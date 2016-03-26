@@ -1,0 +1,81 @@
+use intern::{self, InternedString};
+use repr::*;
+
+grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
+
+pub Func: Func<'arena> = {
+    <blocks:BasicBlockData+> => Func {
+        data: blocks.into_iter()
+                    .map(|block| (block.name, block))
+                    .collect()
+    }
+};
+
+BasicBlockData: BasicBlockData<'arena> = {
+    "block" <name:BasicBlock> "{"
+        <actions:Action+>
+        <gotos:("goto" <BasicBlock*> ";")?>
+    "}" => {
+        BasicBlockData {
+            name: name,
+            actions: actions,
+            successors: gotos.unwrap_or(vec![]),
+        }
+    }
+};
+
+BasicBlock: BasicBlock = {
+    Ident => BasicBlock(<>)
+};
+
+Action: Action<'arena> = {
+    <a:Ty> "<-" <b:Ty> ";" => Action::Subtype(a, b),
+    "*" <r:Ty> ";" => Action::Deref(r),
+};
+
+Ident: InternedString = {
+    r"[a-zA-Z_]\w*" => intern::intern(<>)
+};
+
+Atom: Atom<'arena> = {
+    Ty => Atom::Type(<>),
+    Region => Atom::Region(<>),
+};
+
+Ty: Ty<'arena> = {
+    TyData => arena.intern(<>),
+};
+
+TyData: TyData<'arena> = {
+    "usize" => TyData::Usize,
+    <n:Ident> "<" <a:Atom*> ">" => TyData::Structure(Structure {
+        name: n,
+        substitutions: a,
+    }),
+    "&" <r:Region> <m:"mut"?> <t:Ty> => TyData::Reference(Reference {
+        region: r,
+        mutability: m.map(|_| Mutability::Mut).unwrap_or(Mutability::NotMut),
+        ty: t,
+    }),
+    <n:Ident> => {
+        intern::read(|i| {
+            if i.data(n).chars().all(|c| !c.is_numeric() && c.is_uppercase()) {
+                TyData::Parameter(n)
+            } else {
+                TyData::Structure(Structure {
+                    name: n,
+                    substitutions: vec![]
+                })
+            }
+        })
+    },
+};
+
+Region: Region<'arena> = {
+    RegionData => arena.intern(<>),
+};
+
+RegionData: RegionData = {
+    "'" <Ident> => RegionData::Parameter(<>),
+    "'" "$" <Ident> => RegionData::Variable(<>),
+};

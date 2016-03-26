@@ -3,5 +3,13 @@ name = "nll"
 version = "0.1.0"
 license = "Apache-2.0/MIT"
 authors = ["Niko Matsakis <niko@alum.mit.edu>"]
+build = "build.rs"
 
 [dependencies]
+lalrpop-intern = "0.11.0"
+lalrpop-util = "0.11.0"
+lalrpop = "0.11.0"
+typed-arena = "1.1.0"
+
+[build-dependencies]
+lalrpop = "0.11.0"
