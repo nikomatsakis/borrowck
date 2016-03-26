@@ -1,10 +1,11 @@
 use arena;
 use intern::InternedString;
-use std::cell::RefCell;
+use lalrpop_util::ParseError;
 use std::collections::HashMap;
 use std::hash::Hash;
 
 mod parser;
+#[cfg(test)] mod test;
 
 pub struct Ballast<'arena> {
     pub types: arena::Arena<TyData<'arena>>,
@@ -59,6 +60,23 @@ pub struct BasicBlock(pub InternedString);
 #[derive(Clone, Debug)]
 pub struct Func<'arena> {
     data: HashMap<BasicBlock, BasicBlockData<'arena>>
+}
+
+impl<'arena> Func<'arena> {
+    pub fn parse(arena: &mut Arena<'arena>, s: &str) -> Result<Self, String> {
+        let err_loc = match parser::parse_Func(arena, s) {
+            Ok(f) => return Ok(f),
+            Err(ParseError::InvalidToken { location }) => location,
+            Err(ParseError::UnrecognizedToken { token: None, .. }) => s.len(),
+            Err(ParseError::UnrecognizedToken { token: Some((l, _, _)), .. }) => l,
+            Err(ParseError::ExtraToken { token: (l, _, _) }) => l,
+            Err(ParseError::User { .. }) => unimplemented!()
+        };
+
+        let line_num = s[..err_loc].lines().count();
+        let col_num = s[..err_loc].lines().last().map(|s| s.len()).unwrap_or(0);
+        Err(format!("parse error at {}:{} (offset {})", line_num, col_num + 1, err_loc))
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
