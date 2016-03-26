@@ -1,0 +1,7 @@
+[package]
+name = "nll"
+version = "0.1.0"
+license = "Apache-2.0/MIT"
+authors = ["Niko Matsakis <niko@alum.mit.edu>"]
+
+[dependencies]
