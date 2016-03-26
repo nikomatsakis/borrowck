@@ -13,7 +13,7 @@ pub Func: Func<'arena> = {
 
 BasicBlockData: BasicBlockData<'arena> = {
     "block" <name:BasicBlock> "{"
-        <actions:Action+>
+        <actions:Action*>
         <gotos:("goto" <BasicBlock*> ";")?>
     "}" => {
         BasicBlockData {

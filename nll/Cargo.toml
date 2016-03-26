@@ -1,0 +1,9 @@
+[package]
+name = "nll"
+version = "0.1.0"
+authors = ["Niko Matsakis <niko@alum.mit.edu>"]
+
+[dependencies]
+docopt = "0.6"
+nll-repr = { path = "../nll-repr" }
+rustc-serialize = "0.3"
