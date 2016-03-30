@@ -5,6 +5,7 @@ use std::hash::Hash;
 mod bit_set;
 mod dominators;
 mod iterate;
+mod loop_tree;
 mod reachable;
 mod node_vec;
 
