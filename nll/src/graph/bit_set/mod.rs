@@ -6,7 +6,6 @@ use super::{Graph, NodeIndex};
 type Word = u32;
 
 pub struct BitSet<G: Graph> {
-    num_nodes: usize,
     bits_per_node: usize,
     words: Vec<Word>,
     graph: PhantomData<G>,
