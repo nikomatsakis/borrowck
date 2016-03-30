@@ -7,6 +7,7 @@ mod dominators;
 mod iterate;
 mod loop_tree;
 mod reachable;
+mod reference;
 mod node_vec;
 mod transpose;
 
