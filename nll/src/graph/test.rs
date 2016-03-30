@@ -1,8 +1,10 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::cmp::max;
+use std::slice;
+use std::iter;
 
-use super::{Graph, NodeIndex};
+use super::{Graph, GraphPredecessors, GraphSuccessors, NodeIndex};
 
 pub struct TestGraph {
     num_nodes: usize,
@@ -44,13 +46,23 @@ impl Graph for TestGraph {
         self.num_nodes
     }
 
-    fn predecessors<'graph>(&'graph self, node: usize) -> Cow<'graph, [Self::Node]> {
-        Cow::Borrowed(&self.predecessors[&node])
+    fn predecessors<'graph>(&'graph self, node: usize)
+                            -> <Self as GraphPredecessors<'graph, Self::Node>>::Iter {
+       self.predecessors[&node].iter().cloned()
     }
 
-    fn successors<'graph>(&'graph self, node: usize) -> Cow<'graph, [Self::Node]> {
-        Cow::Borrowed(&self.successors[&node])
+    fn successors<'graph>(&'graph self, node: usize)
+                            -> <Self as GraphSuccessors<'graph, Self::Node>>::Iter {
+        self.successors[&node].iter().cloned()
     }
+}
+
+impl<'graph> GraphPredecessors<'graph, usize> for TestGraph {
+    type Iter = iter::Cloned<slice::Iter<'graph, usize>>;
+}
+
+impl<'graph> GraphSuccessors<'graph, usize> for TestGraph {
+    type Iter = iter::Cloned<slice::Iter<'graph, usize>>;
 }
 
 impl NodeIndex for usize {

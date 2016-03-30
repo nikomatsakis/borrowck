@@ -37,7 +37,7 @@ pub fn dominators_given_rpo<G: Graph>(graph: &G,
 
         for &node in &rpo[1..] {
             let mut new_idom = None;
-            for &pred in graph.predecessors(node).iter() {
+            for pred in graph.predecessors(node) {
                 if immediate_dominators[pred].is_some() { // (*)
                     // (*) dominators for `pred` have been calculated
                     new_idom = intersect_opt(&post_order_rank,

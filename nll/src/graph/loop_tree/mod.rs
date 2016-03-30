@@ -39,8 +39,7 @@ pub fn loop_tree_given<G: Graph>(graph: &G,
         // predecessors.
         let node_is_loop_head =
             graph.predecessors(node)
-                 .iter()
-                 .any(|&pred| dominators.is_dominated_by(pred, node));
+                 .any(|pred| dominators.is_dominated_by(pred, node));
 
         if node_is_loop_head {
             loop_nodes.push(LoopNode {

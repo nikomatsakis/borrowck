@@ -21,7 +21,7 @@ fn post_order_walk<G: Graph>(graph: &G,
     }
     visited[node] = true;
 
-    for &successor in graph.successors(node).iter() {
+    for successor in graph.successors(node) {
         post_order_walk(graph, successor, result, visited);
     }
 

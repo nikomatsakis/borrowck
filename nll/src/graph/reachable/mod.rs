@@ -29,7 +29,7 @@ pub fn reachable_given_rpo<G: Graph>(graph: &G,
             changed |= reachability.bits.insert(node, node.as_usize());
 
             // and every pred can reach everything node can reach
-            for &pred in graph.predecessors(node).iter() {
+            for pred in graph.predecessors(node) {
                 changed |= reachability.bits.insert_bits_from(node, pred);
             }
         }
