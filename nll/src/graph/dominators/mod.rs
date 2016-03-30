@@ -115,6 +115,7 @@ impl<G: Graph> Dominators<G> {
     }
 
     pub fn is_dominated_by(&self, node: G::Node, dom: G::Node) -> bool {
+        // FIXME -- could be optimized by using post-order-rank
         self.dominators(node).any(|n| n == dom)
     }
 
