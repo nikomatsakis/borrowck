@@ -1,5 +1,5 @@
 use graph::test::TestGraph;
-use super::immediate_dominators;
+use super::dominators;
 
 #[test]
 fn diamond() {
@@ -10,11 +10,12 @@ fn diamond() {
         (2, 3),
     ]);
 
-    let dominators = immediate_dominators(&graph, 0);
-    assert_eq!(dominators.vec, vec![Some(0),
-                                    Some(0),
-                                    Some(0),
-                                    Some(0)]);
+    let dominators = dominators(&graph, 0);
+    assert_eq!(&dominators.all_immediate_dominators().vec[..],
+               &[Some(0),
+                 Some(0),
+                 Some(0),
+                 Some(0)]);
 }
 
 #[test]
@@ -32,9 +33,10 @@ fn paper() {
         (2, 1),
     ]);
 
-    let dominators = immediate_dominators(&graph, 6);
-    assert_eq!(dominators.vec, vec![None, // <-- note that 0 is not in graph
-                                    Some(6), Some(6), Some(6),
-                                    Some(6), Some(6), Some(6)]);
+    let dominators = dominators(&graph, 6);
+    assert_eq!(&dominators.all_immediate_dominators().vec[..],
+               &[None, // <-- note that 0 is not in graph
+                 Some(6), Some(6), Some(6),
+                 Some(6), Some(6), Some(6)]);
 }
 
