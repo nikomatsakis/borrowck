@@ -4,6 +4,12 @@ pub struct TransposedGraph<G: Graph> {
     base_graph: G,
 }
 
+impl<G: Graph> TransposedGraph<G> {
+    pub fn new(base_graph: G) -> Self {
+        TransposedGraph { base_graph: base_graph }
+    }
+}
+
 impl<G: Graph> Graph for TransposedGraph<G> {
     type Node = G::Node;
 
