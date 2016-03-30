@@ -47,21 +47,23 @@ impl Graph for TestGraph {
     }
 
     fn predecessors<'graph>(&'graph self, node: usize)
-                            -> <Self as GraphPredecessors<'graph, Self::Node>>::Iter {
+                            -> <Self as GraphPredecessors<'graph>>::Iter {
        self.predecessors[&node].iter().cloned()
     }
 
     fn successors<'graph>(&'graph self, node: usize)
-                            -> <Self as GraphSuccessors<'graph, Self::Node>>::Iter {
+                            -> <Self as GraphSuccessors<'graph>>::Iter {
         self.successors[&node].iter().cloned()
     }
 }
 
-impl<'graph> GraphPredecessors<'graph, usize> for TestGraph {
+impl<'graph> GraphPredecessors<'graph> for TestGraph {
+    type Item = usize;
     type Iter = iter::Cloned<slice::Iter<'graph, usize>>;
 }
 
-impl<'graph> GraphSuccessors<'graph, usize> for TestGraph {
+impl<'graph> GraphSuccessors<'graph> for TestGraph {
+    type Item = usize;
     type Iter = iter::Cloned<slice::Iter<'graph, usize>>;
 }
 
