@@ -6,14 +6,16 @@ use super::{Graph, NodeIndex};
 
 pub struct TestGraph {
     num_nodes: usize,
+    start_node: usize,
     successors: HashMap<usize, Vec<usize>>,
     predecessors: HashMap<usize, Vec<usize>>,
 }
 
 impl TestGraph {
-    pub fn new(edges: &[(usize, usize)]) -> Self {
+    pub fn new(start_node: usize, edges: &[(usize, usize)]) -> Self {
         let mut graph = TestGraph {
-            num_nodes: 0,
+            num_nodes: start_node + 1,
+            start_node: start_node,
             successors: HashMap::new(),
             predecessors: HashMap::new()
         };
@@ -33,6 +35,10 @@ impl TestGraph {
 
 impl Graph for TestGraph {
     type Node = usize;
+
+    fn start_node(&self) -> usize {
+        self.start_node
+    }
 
     fn num_nodes(&self) -> usize {
         self.num_nodes

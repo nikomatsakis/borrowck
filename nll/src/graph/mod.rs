@@ -13,6 +13,7 @@ pub trait Graph {
     type Node: NodeIndex;
 
     fn num_nodes(&self) -> usize;
+    fn start_node(&self) -> Self::Node;
     fn predecessors<'graph>(&'graph self, node: Self::Node) -> Cow<'graph, [Self::Node]>;
     fn successors<'graph>(&'graph self, node: Self::Node) -> Cow<'graph, [Self::Node]>;
 }

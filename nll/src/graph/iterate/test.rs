@@ -1,9 +1,9 @@
 use graph::test::TestGraph;
-use super::{post_order, reverse_post_order};
+use super::post_order;
 
 #[test]
 fn diamond_post_order() {
-    let graph = TestGraph::new(&[
+    let graph = TestGraph::new(0, &[
         (0, 1),
         (0, 2),
         (1, 3),

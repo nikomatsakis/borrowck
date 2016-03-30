@@ -1,5 +1,5 @@
 use std::mem;
-use super::{Graph, NodeIndex};
+use super::Graph;
 use super::iterate::reverse_post_order;
 use super::node_vec::NodeVec;
 
@@ -8,11 +8,19 @@ type ImmediateDominators<G: Graph> = NodeVec<G, Option<G::Node>>;
 #[cfg(test)]
 mod test;
 
-pub fn dominators<G: Graph>(graph: &G,
-                            start_node: G::Node)
+pub fn dominators<G: Graph>(graph: &G)
                             -> Dominators<G>
 {
+    let start_node = graph.start_node();
     let rpo = reverse_post_order(graph, start_node);
+    dominators_given_rpo(graph, &rpo)
+}
+
+pub fn dominators_given_rpo<G: Graph>(graph: &G,
+                                      rpo: &[G::Node])
+                                      -> Dominators<G>
+{
+    let start_node = graph.start_node();
     assert_eq!(rpo[0], start_node);
 
     // compute the post order index (rank) for each node
