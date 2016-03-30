@@ -1,4 +1,3 @@
-use std::mem;
 use super::Graph;
 use super::iterate::reverse_post_order;
 use super::node_vec::NodeVec;
@@ -33,13 +32,12 @@ pub fn dominators_given_rpo<G: Graph>(graph: &G,
     immediate_dominators[start_node] = Some(start_node);
 
     let mut changed = true;
-    while mem::replace(&mut changed, false) {
-        println!("iterate");
+    while changed {
+        changed = false;
+
         for &node in &rpo[1..] {
-            println!("node={:?}", node);
             let mut new_idom = None;
             for &pred in graph.predecessors(node).iter() {
-                println!("pred={:?} new_idom={:?}", pred, new_idom);
                 if immediate_dominators[pred].is_some() { // (*)
                     // (*) dominators for `pred` have been calculated
                     new_idom = intersect_opt(&post_order_rank,
@@ -48,7 +46,7 @@ pub fn dominators_given_rpo<G: Graph>(graph: &G,
                                              Some(pred));
                 }
             }
-            println!("node={:?} new_idom={:?}", node, new_idom);
+
             if new_idom != immediate_dominators[node] {
                 immediate_dominators[node] = new_idom;
                 changed = true;
