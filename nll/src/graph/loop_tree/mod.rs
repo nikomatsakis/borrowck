@@ -30,7 +30,7 @@ pub fn loop_tree_given<G: Graph>(graph: &G,
         // any loop where `node` is the head), if any.
         let innermost_loop_id =
             dominators.dominators(node)
-                      .filter(|&dom| dom != node)
+                      .skip(1)
                       .filter(|&dom| reachable.can_reach(node, dom))
                       .next()
                       .map(|n| loop_ids[n].unwrap());
