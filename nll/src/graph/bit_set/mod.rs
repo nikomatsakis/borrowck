@@ -17,7 +17,6 @@ impl<G: Graph> BitSet<G> {
         let words_per_node = words(bits_per_node);
         let words = vec![0; words_per_node * num_nodes];
         BitSet {
-            num_nodes: num_nodes,
             bits_per_node: bits_per_node,
             words: words,
             graph: PhantomData,
