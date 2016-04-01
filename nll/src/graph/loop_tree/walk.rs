@@ -69,7 +69,7 @@ impl<'walk, G: Graph> LoopTreeWalk<'walk, G> {
                     set.extend(self.head_walk(successor));
                 }
                 InProgress(opt_loop_id) => {
-                    // Backedge.
+                    // Backedge. Successor is a loop-head.
                     if let Some(loop_id) = opt_loop_id {
                         set.insert(loop_id);
                     } else {
