@@ -43,6 +43,10 @@ impl<G: Graph> LoopTree<G> {
         self.loop_infos[loop_id.index].parent
     }
 
+    pub fn parents(&self, loop_id: LoopId) -> Parents<G> {
+        Parents { tree: self, next_loop_id: self.parent(loop_id) }
+    }
+
     pub fn loop_head(&self, loop_id: LoopId) -> G::Node {
         self.loop_infos[loop_id.index].head
     }
@@ -65,5 +69,26 @@ impl<G: Graph> LoopTree<G> {
 
     pub fn set_loop_id(&mut self, node: G::Node, id: Option<LoopId>) {
         self.loop_ids[node] = id;
+    }
+}
+
+pub struct Parents<'iter, G: Graph + 'iter> {
+    tree: &'iter LoopTree<G>,
+    next_loop_id: Option<LoopId>
+}
+
+impl<'iter, G: Graph> Iterator for Parents<'iter, G> {
+    type Item = LoopId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next_loop_id {
+            Some(loop_id) => {
+                self.next_loop_id = self.tree.parent(loop_id);
+                Some(loop_id)
+            }
+            None => {
+                None
+            }
+        }
     }
 }

@@ -41,8 +41,7 @@ impl<'walk, G: Graph> LoopTreeWalk<'walk, G> {
     }
 
     pub fn compute_loop_tree(mut self) -> LoopTree<G> {
-        let set = HashSet::new(); // temporary storage used during the walk
-        self.head_walk(self.graph.start_node(), set);
+        self.head_walk(self.graph.start_node());
         self.exit_walk(self.graph.start_node());
         self.loop_tree
     }
@@ -55,40 +54,41 @@ impl<'walk, G: Graph> LoopTreeWalk<'walk, G> {
     /// the set of loops that `node` was able to reach via backedges.
     /// The innermost such loop is the loop-id of `node`, and we then
     /// return the set for use by the predecessor of `node`.
-    ///
-    /// (As an optimization, we have the predecessor pass in a set
-    /// that `head_walk` will adjust and return, just so we're not
-    /// allocating a ton of sets.)
-    fn head_walk(&mut self, node: G::Node, mut set: HashSet<LoopId>) -> HashSet<LoopId> {
-        match self.state[node] {
-            NotYetStarted => {
-                self.state[node] = InProgress(None);
-            }
-            InProgress(opt_loop_id) => {
-                // Backedge.
-                if let Some(loop_id) = opt_loop_id {
-                    set.insert(loop_id);
-                } else {
-                    set.insert(self.promote_to_loop_head(node));
-                }
-                return set;
-            }
-            FinishedHeadWalk => {
-                // Cross edge.
-                return set;
-            }
-            EnqueuedExitWalk => {
-                unreachable!()
-            }
-        }
+    fn head_walk(&mut self,
+                 node: G::Node)
+                 -> HashSet<LoopId> {
+        assert_eq!(self.state[node], NotYetStarted);
+        self.state[node] = InProgress(None);
 
+        // Walk our successors and collect the set of backedges they
+        // reach.
+        let mut set = HashSet::new();
         for successor in self.graph.successors(node) {
-            set = self.head_walk(successor, set);
+            match self.state[successor] {
+                NotYetStarted => {
+                    set.extend(self.head_walk(successor));
+                }
+                InProgress(opt_loop_id) => {
+                    // Backedge.
+                    if let Some(loop_id) = opt_loop_id {
+                        set.insert(loop_id);
+                    } else {
+                        set.insert(self.promote_to_loop_head(successor));
+                    }
+                }
+                FinishedHeadWalk => {
+                    // Cross edge.
+                }
+                EnqueuedExitWalk => {
+                    unreachable!()
+                }
+            }
         }
 
         self.state[node] = FinishedHeadWalk;
 
-        // First, we need to determine the innermost loop.
+        // Assign a loop-id to this node. This will be the innermost
+        // loop that we could reach.
         match self.innermost(&set) {
             Some(loop_id) => {
                 self.loop_tree.set_loop_id(node, Some(loop_id));
@@ -188,22 +188,27 @@ impl<'walk, G: Graph> LoopTreeWalk<'walk, G> {
     /// Some node that is in loop `loop_id` has the successor
     /// `successor`. Check if `successor` is not in the loop
     /// `loop_id` and update loop exits appropriately.
-    fn update_loop_exit(&mut self, loop_id: LoopId, successor: G::Node) {
+    fn update_loop_exit(&mut self, mut loop_id: LoopId, successor: G::Node) {
         match self.loop_tree.loop_id(successor) {
             Some(successor_loop_id) => {
-                // Successor is in a loop, so check if it is an inner loop
-                // to ours.
-                if
-                    loop_id != successor_loop_id &&
-                    self.is_inner_loop_of(loop_id, successor_loop_id)
-                {
-                    self.loop_tree.push_loop_exit(loop_id, successor);
+                // If the successor's loop is an outer-loop of ours,
+                // then this is an exit from our loop and all
+                // intervening loops.
+                if self.loop_tree.parents(loop_id).any(|p| p == successor_loop_id) {
+                    while loop_id != successor_loop_id {
+                        self.loop_tree.push_loop_exit(loop_id, successor);
+                        loop_id = self.loop_tree.parent(loop_id).unwrap();
+                    }
                 }
             }
             None => {
-                // Successor is not in a loop, so they are
-                // definitely an exit from our loop.
-                self.loop_tree.push_loop_exit(loop_id, successor);
+                // Successor is not in a loop, so this is an exit from
+                // `loop_id` and all of its parents.
+                let mut p = Some(loop_id);
+                while let Some(l) = p {
+                    self.loop_tree.push_loop_exit(l, successor);
+                    p = self.loop_tree.parent(l);
+                }
             }
         }
     }
