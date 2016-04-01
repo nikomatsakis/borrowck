@@ -23,6 +23,11 @@ fn test1() {
     assert_eq!(loop_tree.loop_head_of_node(4), Some(1));
     assert_eq!(loop_tree.loop_head_of_node(5), None);
     assert_eq!(loop_tree.loop_head_of_node(6), Some(1));
+
+    let loop_id = loop_tree.loop_id(1).unwrap();
+    assert_eq!(loop_tree.loop_id(2), Some(loop_id));
+    assert_eq!(loop_tree.parent(loop_id), None);
+    assert_eq!(loop_tree.loop_exits(loop_id), &[3, 5]);
 }
 
 #[test]
