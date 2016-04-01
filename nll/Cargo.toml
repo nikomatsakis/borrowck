@@ -7,3 +7,4 @@ authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 docopt = "0.6"
 nll-repr = { path = "../nll-repr" }
 rustc-serialize = "0.3"
+graph-algorithms = { git = "https://github.com/nikomatsakis/graph-algorithms.git" }

@@ -1,9 +1,9 @@
 extern crate docopt;
+extern crate graph_algorithms;
 extern crate nll_repr;
 extern crate rustc_serialize;
 
 use docopt::Docopt;
-mod graph;
 use nll_repr::repr::*;
 use std::env;
 use std::error::Error;
