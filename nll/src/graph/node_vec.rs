@@ -22,7 +22,7 @@ impl<G: Graph, T: Default> NodeVec<G, T> {
 }
 
 impl<G: Graph, T> NodeVec<G, T> {
-    pub fn from_fn<F>(graph: &G, mut f: F) -> Self
+    pub fn from_fn<F>(graph: &G, f: F) -> Self
         where F: FnMut(G::Node) -> T
     {
         let num_nodes = graph.num_nodes();

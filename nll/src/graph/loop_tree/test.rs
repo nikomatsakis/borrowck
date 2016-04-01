@@ -1,5 +1,5 @@
 use graph::test::TestGraph;
-use super::{loop_tree, LoopTree};
+use super::loop_tree;
 
 #[test]
 fn test1() {
@@ -16,16 +16,16 @@ fn test1() {
         (6, 1),
     ]);
     let loop_tree = loop_tree(&graph);
-    assert_eq!(loop_tree.loop_head(0), None);
-    assert_eq!(loop_tree.loop_head(1), Some(1));
-    assert_eq!(loop_tree.loop_head(2), Some(1));
-    assert_eq!(loop_tree.loop_head(3), None);
-    assert_eq!(loop_tree.loop_head(4), Some(1));
-    assert_eq!(loop_tree.loop_head(5), None);
-    assert_eq!(loop_tree.loop_head(6), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(0), None);
+    assert_eq!(loop_tree.loop_head_of_node(1), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(2), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(3), None);
+    assert_eq!(loop_tree.loop_head_of_node(4), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(5), None);
+    assert_eq!(loop_tree.loop_head_of_node(6), Some(1));
 }
 
-#[test] #[ignore] // BROKEN
+#[test]
 fn nested_loop() {
     // 0 -> 1 ->     2     -> 3 -> 5
     //      ^     ^    v      |
@@ -42,13 +42,60 @@ fn nested_loop() {
         (6, 2),
     ]);
     let loop_tree = loop_tree(&graph);
-    assert_eq!(loop_tree.loop_head(0), None);
-    assert_eq!(loop_tree.loop_head(1), Some(1));
-    assert_eq!(loop_tree.loop_head(2), Some(2));
-    assert_eq!(loop_tree.loop_head(3), Some(1));
-    assert_eq!(loop_tree.loop_head(4), Some(2));
-    assert_eq!(loop_tree.loop_head(5), None);
-    assert_eq!(loop_tree.loop_head(6), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(0), None);
+    assert_eq!(loop_tree.loop_head_of_node(1), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(2), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(3), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(4), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(5), None);
+    assert_eq!(loop_tree.loop_head_of_node(6), Some(2));
+
+    let outer_loop_id = loop_tree.loop_id(1).unwrap();
+    let inner_loop_id = loop_tree.loop_id(2).unwrap();
+    assert_eq!(loop_tree.parent(outer_loop_id), None);
+    assert_eq!(loop_tree.parent(inner_loop_id), Some(outer_loop_id));
+
+    assert_eq!(loop_tree.loop_exits(outer_loop_id), &[5]);
+    assert_eq!(loop_tree.loop_exits(inner_loop_id), &[3]);
+}
+
+
+#[test]
+fn if_else_nested_loop() {
+    // 0 -> 1 ->     2     -> 3 -> 5
+    //      ^     ^    v      |
+    //      |     6 <- 4      |
+    //            7 <--+      |
+    //      +-----------------+
+    let graph = TestGraph::new(0, &[
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (3, 5),
+        (3, 1),
+        (2, 4),
+        (4, 6),
+        (4, 7),
+        (6, 2),
+        (7, 2),
+    ]);
+    let loop_tree = loop_tree(&graph);
+    assert_eq!(loop_tree.loop_head_of_node(0), None);
+    assert_eq!(loop_tree.loop_head_of_node(1), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(2), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(3), Some(1));
+    assert_eq!(loop_tree.loop_head_of_node(4), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(5), None);
+    assert_eq!(loop_tree.loop_head_of_node(6), Some(2));
+    assert_eq!(loop_tree.loop_head_of_node(7), Some(2));
+
+    let outer_loop_id = loop_tree.loop_id(1).unwrap();
+    let inner_loop_id = loop_tree.loop_id(2).unwrap();
+    assert_eq!(loop_tree.parent(outer_loop_id), None);
+    assert_eq!(loop_tree.parent(inner_loop_id), Some(outer_loop_id));
+
+    assert_eq!(loop_tree.loop_exits(outer_loop_id), &[5]);
+    assert_eq!(loop_tree.loop_exits(inner_loop_id), &[3]);
 }
 
 

@@ -1,12 +1,9 @@
 //! Compute reachability using a simple dataflow propagation.
 //! Store end-result in a big NxN bit matrix.
 
-use std::marker::PhantomData;
-use std::mem;
 use super::{Graph, NodeIndex};
 use super::bit_set::BitSet;
 use super::iterate::reverse_post_order;
-use super::node_vec::NodeVec;
 
 #[cfg(test)]
 mod test;
