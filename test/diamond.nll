@@ -1,0 +1,17 @@
+block START {
+   goto A1;
+}
+block A1 {
+   &{A1 -> B, 'r} usize <: &{A -> 'r} usize;
+   goto B C;
+}
+block B {
+   goto D;
+}
+block C {
+   * &{A1 -> B, 'r} usize;
+   &{A -> 'r} usize <: &{A1 -> B, 'r} usize;
+}
+block D {
+   goto A1;
+}

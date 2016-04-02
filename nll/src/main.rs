@@ -1,19 +1,27 @@
+#![feature(question_mark)]
+
 extern crate docopt;
+extern crate lalrpop_intern;
 extern crate graph_algorithms;
 extern crate nll_repr;
 extern crate rustc_serialize;
 
 use docopt::Docopt;
 use nll_repr::repr::*;
-use std::env;
+use std::env::args;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
+mod env;
+mod graph;
+mod relate;
+use self::graph::FuncGraph;
+
 fn main() {
     let args: Args =
         Docopt::new(USAGE)
-        .and_then(|d| d.argv(env::args()).decode())
+        .and_then(|d| d.argv(args()).decode())
         .unwrap_or_else(|e| e.exit());
 
     for input in &args.arg_inputs {
@@ -36,7 +44,8 @@ fn process_input(input: &str) -> Result<(), Box<Error>> {
         return try!(Err(String::from("not UTF-8")));
     }
     let func = try!(Func::parse(&mut arena, &file_text));
-    println!("{:?}", func);
+    let graph = FuncGraph::new(func);
+    println!("{:#?}", graph.func());
     Ok(())
 }
 

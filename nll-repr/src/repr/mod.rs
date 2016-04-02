@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 mod parser;
-#[cfg(test)] mod test;
 
 pub struct Ballast<'arena> {
     pub types: arena::Arena<TyData<'arena>>,
@@ -59,7 +58,8 @@ pub struct BasicBlock(pub InternedString);
 
 #[derive(Clone, Debug)]
 pub struct Func<'arena> {
-    data: HashMap<BasicBlock, BasicBlockData<'arena>>
+    pub data: HashMap<BasicBlock, BasicBlockData<'arena>>,
+    pub structs: HashMap<StructName, StructData>,
 }
 
 impl<'arena> Func<'arena> {
@@ -81,9 +81,9 @@ impl<'arena> Func<'arena> {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct BasicBlockData<'arena> {
-    name: BasicBlock,
-    actions: Vec<Action<'arena>>,
-    successors: Vec<BasicBlock>,
+    pub name: BasicBlock,
+    pub actions: Vec<Action<'arena>>,
+    pub successors: Vec<BasicBlock>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -100,7 +100,7 @@ pub struct Ty<'arena> {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum TyData<'arena> {
     Usize,
-    Structure(Structure<'arena>),
+    StructRef(StructRef<'arena>),
     Reference(Reference<'arena>),
     Parameter(InternedString),
 }
@@ -128,16 +128,32 @@ pub enum Atom<'arena> {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Structure<'arena> {
-    name: InternedString,
-    substitutions: Vec<Atom<'arena>>
+pub struct StructRef<'arena> {
+    pub name: StructName,
+    pub substitutions: Vec<Atom<'arena>>
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub struct StructName(pub InternedString);
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct StructData {
+    pub name: StructName,
+    pub variances: Vec<Variance>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Variance {
+    Co,
+    Contra,
+    In,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Reference<'arena> {
-    region: Region<'arena>,
-    mutability: Mutability,
-    ty: Ty<'arena>,
+    pub region: Region<'arena>,
+    pub mutability: Mutability,
+    pub ty: Ty<'arena>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -151,10 +167,16 @@ pub struct Region<'arena> {
     pub data: &'arena RegionData
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct RegionData {
+    pub entry: BasicBlock,
+    pub exits: Vec<RegionExit>,
+}
+
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum RegionData {
+pub enum RegionExit {
+    Block(BasicBlock),
     Parameter(InternedString),
-    Variable(InternedString),
 }
 
 impl<'arena> Intern<'arena> for RegionData {

@@ -4,11 +4,27 @@ use repr::*;
 grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
 
 pub Func: Func<'arena> = {
-    <blocks:BasicBlockData+> => Func {
+    <structs:StructData*> <blocks:BasicBlockData+> => Func {
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
-                    .collect()
+                    .collect(),
+        structs: structs.into_iter()
+                        .map(|s| (s.name, s))
+                        .collect(),
     }
+};
+
+StructData: StructData = {
+    "struct" <name:StructName> "<" <v:Comma<Variance>> ">" => StructData {
+        name: name,
+        variances: v,
+    },
+};
+
+Variance: Variance = {
+    "+" => Variance::Co,
+    "-" => Variance::Contra,
+    "o" => Variance::In,
 };
 
 BasicBlockData: BasicBlockData<'arena> = {
@@ -28,8 +44,12 @@ BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
 };
 
+StructName: StructName = {
+    Ident => StructName(<>)
+};
+
 Action: Action<'arena> = {
-    <a:Ty> "<-" <b:Ty> ";" => Action::Subtype(a, b),
+    <a:Ty> "<:" <b:Ty> ";" => Action::Subtype(a, b),
     "*" <r:Ty> ";" => Action::Deref(r),
 };
 
@@ -48,7 +68,7 @@ Ty: Ty<'arena> = {
 
 TyData: TyData<'arena> = {
     "usize" => TyData::Usize,
-    <n:Ident> "<" <a:Atom*> ">" => TyData::Structure(Structure {
+    <n:StructName> "<" <a:Atom*> ">" => TyData::StructRef(StructRef {
         name: n,
         substitutions: a,
     }),
@@ -59,11 +79,11 @@ TyData: TyData<'arena> = {
     }),
     <n:Ident> => {
         intern::read(|i| {
-            if i.data(n).chars().all(|c| !c.is_numeric() && c.is_uppercase()) {
+            if i.data(n).chars().all(|c| c.is_numeric() || c.is_uppercase()) {
                 TyData::Parameter(n)
             } else {
-                TyData::Structure(Structure {
-                    name: n,
+                TyData::StructRef(StructRef {
+                    name: StructName(n),
                     substitutions: vec![]
                 })
             }
@@ -76,6 +96,26 @@ Region: Region<'arena> = {
 };
 
 RegionData: RegionData = {
-    "'" <Ident> => RegionData::Parameter(<>),
-    "'" "$" <Ident> => RegionData::Variable(<>),
+    "{" <entry:BasicBlock> "->" <exits:Comma<RegionExit>> "}" => RegionData {
+        entry: entry,
+        exits: exits,
+    }
+};
+
+RegionExit: RegionExit = {
+    "'" <Ident> => RegionExit::Parameter(<>),
+    BasicBlock => RegionExit::Block(<>),
+};
+
+Comma<T>: Vec<T> = {
+    <Comma1<T>> ","?
+};
+
+Comma1<T>: Vec<T> = {
+    T => vec![<>],
+    <v:Comma1<T>> "," <e:T> => {
+        let mut v = v;
+        v.push(e);
+        v
+    }
 };
