@@ -4,27 +4,11 @@ use repr::*;
 grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
 
 pub Func: Func<'arena> = {
-    <structs:StructData*> <blocks:BasicBlockData+> => Func {
+    <blocks:BasicBlockData+> => Func {
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
                     .collect(),
-        structs: structs.into_iter()
-                        .map(|s| (s.name, s))
-                        .collect(),
     }
-};
-
-StructData: StructData = {
-    "struct" <name:StructName> "<" <v:Comma<Variance>> ">" => StructData {
-        name: name,
-        variances: v,
-    },
-};
-
-Variance: Variance = {
-    "+" => Variance::Co,
-    "-" => Variance::Contra,
-    "o" => Variance::In,
 };
 
 BasicBlockData: BasicBlockData<'arena> = {
@@ -44,51 +28,14 @@ BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
 };
 
-StructName: StructName = {
-    Ident => StructName(<>)
-};
-
 Action: Action<'arena> = {
-    <a:Ty> "<:" <b:Ty> ";" => Action::Subtype(a, b),
-    "*" <r:Ty> ";" => Action::Deref(r),
+    <a:Region> "<=" <b:Region> ";" => Action::Subregion(a, b),
+    <a:Region> "==" <b:Region> ";" => Action::Eqregion(a, b),
+    "*" <r:Region> ";" => Action::Deref(r),
 };
 
 Ident: InternedString = {
     r"[a-zA-Z_]\w*" => intern::intern(<>)
-};
-
-Atom: Atom<'arena> = {
-    Ty => Atom::Type(<>),
-    Region => Atom::Region(<>),
-};
-
-Ty: Ty<'arena> = {
-    TyData => arena.intern(<>),
-};
-
-TyData: TyData<'arena> = {
-    "usize" => TyData::Usize,
-    <n:StructName> "<" <a:Atom*> ">" => TyData::StructRef(StructRef {
-        name: n,
-        substitutions: a,
-    }),
-    "&" <r:Region> <m:"mut"?> <t:Ty> => TyData::Reference(Reference {
-        region: r,
-        mutability: m.map(|_| Mutability::Mut).unwrap_or(Mutability::NotMut),
-        ty: t,
-    }),
-    <n:Ident> => {
-        intern::read(|i| {
-            if i.data(n).chars().all(|c| c.is_numeric() || c.is_uppercase()) {
-                TyData::Parameter(n)
-            } else {
-                TyData::StructRef(StructRef {
-                    name: StructName(n),
-                    substitutions: vec![]
-                })
-            }
-        })
-    },
 };
 
 Region: Region<'arena> = {

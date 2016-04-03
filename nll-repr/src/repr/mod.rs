@@ -6,31 +6,27 @@ use std::hash::Hash;
 
 mod parser;
 
-pub struct Ballast<'arena> {
-    pub types: arena::Arena<TyData<'arena>>,
+pub struct Ballast {
     pub regions: arena::Arena<RegionData>,
 }
 
-impl<'arena> Ballast<'arena> {
+impl Ballast {
     pub fn new() -> Self {
         Ballast {
-            types: arena::Arena::new(),
             regions: arena::Arena::new(),
         }
     }
 }
 
 pub struct Arena<'arena> {
-    pub ballast: &'arena Ballast<'arena>,
-    pub types_map: HashMap<TyData<'arena>, Ty<'arena>>,
+    pub ballast: &'arena Ballast,
     pub regions_map: HashMap<RegionData, Region<'arena>>,
 }
 
 impl<'arena> Arena<'arena> {
-    pub fn new(ballast: &'arena Ballast<'arena>) -> Self {
+    pub fn new(ballast: &'arena Ballast) -> Self {
         Arena {
             ballast: ballast,
-            types_map: HashMap::default(),
             regions_map: HashMap::default(),
         }
     }
@@ -59,7 +55,6 @@ pub struct BasicBlock(pub InternedString);
 #[derive(Clone, Debug)]
 pub struct Func<'arena> {
     pub data: HashMap<BasicBlock, BasicBlockData<'arena>>,
-    pub structs: HashMap<StructName, StructData>,
 }
 
 impl<'arena> Func<'arena> {
@@ -88,78 +83,9 @@ pub struct BasicBlockData<'arena> {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action<'arena> {
-    Subtype(Ty<'arena>, Ty<'arena>),
-    Deref(Ty<'arena>)
-}
-
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Ty<'arena> {
-    pub data: &'arena TyData<'arena>
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum TyData<'arena> {
-    Usize,
-    StructRef(StructRef<'arena>),
-    Reference(Reference<'arena>),
-    Parameter(InternedString),
-}
-
-impl<'arena> Intern<'arena> for TyData<'arena> {
-    type Interned = Ty<'arena>;
-
-    fn fields<'r>(arena: &'r mut Arena<'arena>)
-              -> (&'arena arena::Arena<Self>,
-                  &'r mut HashMap<Self, Self::Interned>)
-    {
-        (&arena.ballast.types, &mut arena.types_map)
-    }
-
-    fn make(data: &'arena Self) -> Self::Interned {
-        Ty { data: data }
-    }
-}
-
-/// an instance of some kind K = Ty | Region
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Atom<'arena> {
-    Type(Ty<'arena>),
-    Region(Region<'arena>),
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct StructRef<'arena> {
-    pub name: StructName,
-    pub substitutions: Vec<Atom<'arena>>
-}
-
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct StructName(pub InternedString);
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct StructData {
-    pub name: StructName,
-    pub variances: Vec<Variance>,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Variance {
-    Co,
-    Contra,
-    In,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Reference<'arena> {
-    pub region: Region<'arena>,
-    pub mutability: Mutability,
-    pub ty: Ty<'arena>,
-}
-
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Mutability {
-    Mut,
-    NotMut,
+    Subregion(Region<'arena>, Region<'arena>),
+    Eqregion(Region<'arena>, Region<'arena>),
+    Deref(Region<'arena>)
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]

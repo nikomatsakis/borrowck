@@ -14,6 +14,7 @@ use std::fs::File;
 use std::io::Read;
 
 mod env;
+use self::env::Environment;
 mod graph;
 mod relate;
 use self::graph::FuncGraph;
@@ -45,7 +46,10 @@ fn process_input(input: &str) -> Result<(), Box<Error>> {
     }
     let func = try!(Func::parse(&mut arena, &file_text));
     let graph = FuncGraph::new(func);
+    let env = Environment::new(&graph);
+
     println!("{:#?}", graph.func());
+
     Ok(())
 }
 

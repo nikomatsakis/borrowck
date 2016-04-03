@@ -1,53 +1,34 @@
-use graph::FuncGraph;
-use nll_repr::repr::*;
+use graph::{BasicBlockIndex, FuncGraph};
+use graph_algorithms::Graph;
+use graph_algorithms::dominators::{self, Dominators};
+use graph_algorithms::iterate::reverse_post_order;
+use graph_algorithms::loop_tree::{self, LoopTree};
+use graph_algorithms::reachable::{self, Reachability};
+use graph_algorithms::transpose::TransposedGraph;
 
 pub struct Environment<'func, 'arena: 'func> {
     pub graph: &'func FuncGraph<'arena>,
+    pub dominators: Dominators<FuncGraph<'arena>>,
+    pub postdominators: Dominators<TransposedGraph<&'func FuncGraph<'arena>>>,
+    pub reachable: Reachability<FuncGraph<'arena>>,
+    pub loop_tree: LoopTree<FuncGraph<'arena>>,
+    pub reverse_post_order: Vec<BasicBlockIndex>,
 }
 
 impl<'func, 'arena> Environment<'func, 'arena> {
-    pub fn struct_data(&self, name: StructName)
-                       -> EnvResult<'arena, &'func StructData> {
-        match self.graph.func().structs.get(&name) {
-            Some(v) => Ok(v),
-            None => Err(Error::NoStructData(name))
-        }
-    }
-}
-
-pub struct RegionRelation<'arena> {
-    variance: Variance,
-    r1: Region<'arena>,
-    r2: Region<'arena>,
-}
-
-pub enum Error<'arena> {
-    Types(Ty<'arena>, Ty<'arena>),
-    NoStructData(StructName),
-    WrongNumberArg(StructName, usize, usize),
-}
-
-pub type EnvResult<'arena, T> = Result<T, Error<'arena>>;
-
-pub trait VarianceMethods {
-    fn invert(self) -> Variance;
-    fn xform(self, context: Variance) -> Variance;
-}
-
-impl VarianceMethods for Variance {
-    fn invert(self) -> Variance {
-        match self {
-            Variance::Co => Variance::Contra,
-            Variance::Contra => Variance::Co,
-            Variance::In => Variance::In,
-        }
-    }
-
-    fn xform(self, context: Variance) -> Variance {
-        match context {
-            Variance::Co => self,
-            Variance::Contra => self.invert(),
-            Variance::In => Variance::In,
+    pub fn new(graph: &'func FuncGraph<'arena>) -> Self {
+        let rpo = reverse_post_order(graph, graph.start_node());
+        let dominators = dominators::dominators_given_rpo(graph, &rpo);
+        let reachable = reachable::reachable_given_rpo(graph, &rpo);
+        let loop_tree = loop_tree::loop_tree_given(graph, &dominators);
+        let postdominators = dominators::dominators(&TransposedGraph::new(graph));
+        Environment {
+            graph: graph,
+            dominators: dominators,
+            postdominators: postdominators,
+            reachable: reachable,
+            loop_tree: loop_tree,
+            reverse_post_order: rpo,
         }
     }
 }
