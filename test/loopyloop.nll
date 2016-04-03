@@ -1,0 +1,50 @@
+// /* point A */
+// loop {
+//     if cond1 { break; }
+//     /* exit 2 */
+//     if cond2 { break; }
+//     /* point B */
+// }
+// /* exit 1 */
+
+block START {
+   goto B1;
+}
+
+// if cond1 { break }
+block B1 {
+   goto B2 B3;
+}
+
+// exit 2
+block B2 {
+   goto B4;
+}
+
+// break
+block B3 {
+    goto B7;
+}
+
+// if cond2 { break }
+block B4 {
+    goto B5 B6;
+}
+
+// point B
+block B5 {
+    goto B1;
+}
+
+// break
+block B6 {
+    goto B7;
+}  
+
+// exit 1
+block B7 {
+    goto EXIT;
+}
+
+block EXIT {
+}

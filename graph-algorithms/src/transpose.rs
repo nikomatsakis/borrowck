@@ -2,11 +2,17 @@ use super::*;
 
 pub struct TransposedGraph<G: Graph> {
     base_graph: G,
+    start_node: G::Node,
 }
 
 impl<G: Graph> TransposedGraph<G> {
     pub fn new(base_graph: G) -> Self {
-        TransposedGraph { base_graph: base_graph }
+        let start_node = base_graph.start_node();
+        Self::with_start(base_graph, start_node)
+    }
+
+    pub fn with_start(base_graph: G, start_node: G::Node) -> Self {
+        TransposedGraph { base_graph: base_graph, start_node: start_node }
     }
 }
 
@@ -18,7 +24,7 @@ impl<G: Graph> Graph for TransposedGraph<G> {
     }
 
     fn start_node(&self) -> Self::Node {
-        self.base_graph.start_node()
+        self.start_node
     }
 
     fn predecessors<'graph>(&'graph self, node: Self::Node)

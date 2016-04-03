@@ -50,6 +50,14 @@ fn process_input(input: &str) -> Result<(), Box<Error>> {
 
     println!("{:#?}", graph.func());
 
+    println!("");
+    println!("Dominators:");
+    println!("{:#?}", env.dominators.dominator_tree());
+
+    println!("");
+    println!("Postdomaintors:");
+    println!("{:#?}", env.postdominators.dominator_tree());
+
     Ok(())
 }
 

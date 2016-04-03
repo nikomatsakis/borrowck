@@ -41,7 +41,11 @@ impl<'arena> FuncGraph<'arena> {
         for (block, &index) in &block_indices {
             let data = &func.data[block];
             for successor in &data.successors {
-                let successor_index = block_indices[successor];
+                let successor_index = block_indices.get(successor)
+                                                   .cloned()
+                                                   .unwrap_or_else(|| {
+                                                       panic!("no index for {:?}", successor)
+                                                   });
                 successors[index.index].push(successor_index);
                 predecessors[successor_index.index].push(index);
             }
@@ -62,6 +66,14 @@ impl<'arena> FuncGraph<'arena> {
 
     pub fn func(&self) -> &repr::Func<'arena> {
         &self.func
+    }
+
+    pub fn block_index(&self, name: &str) -> BasicBlockIndex {
+        self.block_indices.get(&repr::BasicBlock(intern(name)))
+                          .cloned()
+                          .unwrap_or_else(|| {
+                              panic!("no index for `{}`", name)
+                          })
     }
 
     pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData {

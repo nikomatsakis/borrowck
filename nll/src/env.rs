@@ -21,7 +21,13 @@ impl<'func, 'arena> Environment<'func, 'arena> {
         let dominators = dominators::dominators_given_rpo(graph, &rpo);
         let reachable = reachable::reachable_given_rpo(graph, &rpo);
         let loop_tree = loop_tree::loop_tree_given(graph, &dominators);
-        let postdominators = dominators::dominators(&TransposedGraph::new(graph));
+
+        let postdominators = {
+            let exit = graph.block_index("EXIT");
+            let transpose = &TransposedGraph::with_start(graph, exit);
+            dominators::dominators(transpose)
+        };
+
         Environment {
             graph: graph,
             dominators: dominators,

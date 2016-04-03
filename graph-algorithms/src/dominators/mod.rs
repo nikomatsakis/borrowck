@@ -2,6 +2,8 @@ use super::Graph;
 use super::iterate::reverse_post_order;
 use super::node_vec::NodeVec;
 
+use std::fmt;
+
 #[cfg(test)]
 mod test;
 
@@ -128,22 +130,24 @@ impl<G: Graph> Dominators<G> {
         &self.immediate_dominators
     }
 
-    pub fn dominator_tree(&self, graph: &G) -> DominatorTree<G> {
-        let mut children: NodeVec<G, Vec<G::Node>> = NodeVec::from_default(graph);
+    pub fn dominator_tree(&self) -> DominatorTree<G> {
+        let mut children: NodeVec<G, Vec<G::Node>> =
+            NodeVec::from_default_with_len(self.immediate_dominators.len());
+        let mut root = None;
         for (index, immed_dom) in self.immediate_dominators.iter().enumerate() {
             let node = G::Node::from(index);
             match *immed_dom {
                 None => { /* node not reachable */ }
                 Some(immed_dom) => {
                     if node == immed_dom {
-                        // start node, ignore
+                        root = Some(node);
                     } else {
                         children[immed_dom].push(node);
                     }
                 }
             }
         }
-        DominatorTree { children: children }
+        DominatorTree { root: root.unwrap(), children: children }
     }
 }
 
@@ -171,7 +175,8 @@ impl<'dom, G: Graph> Iterator for Iter<'dom, G> {
 }
 
 pub struct DominatorTree<G: Graph> {
-    children: NodeVec<G, Vec<G::Node>>
+    root: G::Node,
+    children: NodeVec<G, Vec<G::Node>>,
 }
 
 impl<G: Graph> DominatorTree<G> {
@@ -180,4 +185,28 @@ impl<G: Graph> DominatorTree<G> {
     }
 }
 
+impl<G: Graph> fmt::Debug for DominatorTree<G> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        fmt::Debug::fmt(&DominatorTreeNode { tree: self, node: self.root }, fmt)
+    }
+}
+
+struct DominatorTreeNode<'tree, G: Graph + 'tree> {
+    tree: &'tree DominatorTree<G>,
+    node: G::Node,
+}
+
+impl<'tree, G: Graph> fmt::Debug for DominatorTreeNode<'tree, G> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let subtrees: Vec<_> =
+            self.tree.children(self.node)
+                     .iter()
+                     .map(|&child| DominatorTreeNode { tree: self.tree, node: child })
+                     .collect();
+        fmt.debug_tuple("")
+           .field(&self.node)
+           .field(&subtrees)
+           .finish()
+    }
+}
 

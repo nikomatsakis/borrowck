@@ -12,7 +12,7 @@ pub Func: Func<'arena> = {
 };
 
 BasicBlockData: BasicBlockData<'arena> = {
-    "block" <name:BasicBlock> "{"
+    Comment* "block" <name:BasicBlock> "{"
         <actions:Action*>
         <gotos:("goto" <BasicBlock*> ";")?>
     "}" => {
@@ -65,4 +65,8 @@ Comma1<T>: Vec<T> = {
         v.push(e);
         v
     }
+};
+
+Comment: () = {
+    r"//.*" => ()
 };
