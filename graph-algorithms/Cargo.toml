@@ -1,0 +1,9 @@
+[package]
+name = "graph-algorithms"
+version = "0.1.0"
+authors = ["Niko Matsakis <niko@alum.mit.edu>"]
+description = "Common graph algorithms used in compilers"
+license = "Apache-2.0/MIT"
+repository = "https://github.com/nikomatsakis/graph-algorithms"
+
+[dependencies]
