@@ -8,41 +8,34 @@
 // /* exit 1 */
 
 block START {
-   goto B1;
+   goto IFCOND1;
 }
 
-// if cond1 { break }
-block B1 {
-   goto B2 B3;
+block IFCOND1 {
+   goto EXIT2 BREAK1;
 }
 
-// exit 2
-block B2 {
-   goto B4;
+block EXIT2 {
+   goto IFCOND2;
 }
 
-// break
-block B3 {
-    goto B7;
+block BREAK1 {
+    goto EXIT1;
 }
 
-// if cond2 { break }
-block B4 {
-    goto B5 B6;
+block IFCOND2 {
+    goto B BREAK2;
 }
 
-// point B
-block B5 {
-    goto B1;
+block B {
+    goto IFCOND1;
 }
 
-// break
-block B6 {
-    goto B7;
+block BREAK2 {
+    goto EXIT1;
 }  
 
-// exit 1
-block B7 {
+block EXIT1 {
     goto EXIT;
 }
 

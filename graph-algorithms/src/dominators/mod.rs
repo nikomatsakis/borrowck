@@ -180,6 +180,10 @@ pub struct DominatorTree<G: Graph> {
 }
 
 impl<G: Graph> DominatorTree<G> {
+    pub fn root(&self) -> G::Node {
+        self.root
+    }
+
     pub fn children(&self, node: G::Node) -> &[G::Node] {
         &self.children[node]
     }

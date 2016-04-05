@@ -104,3 +104,40 @@ fn if_else_break_nested_loop() {
     assert_eq!(loop_tree.loop_exits(outer_loop_id), &[7, 5]);
     assert_eq!(loop_tree.loop_exits(inner_loop_id), &[3, 7]);
 }
+
+#[test]
+fn wacked() {
+    // This example looks kind of mind-bending,
+    // but really isn't. It could result from some code like:
+    //
+    //     loop {
+    //         if ... {
+    //             continue
+    //         } else {
+    //             continue
+    //         }
+    //     }
+    //
+    // It came from Munchnick's book.
+    //
+    // +-1
+    // v/
+    // 0--->3
+    // ^\
+    // +-2
+    let graph = TestGraph::new(0, &[
+        (0, 1),
+        (1, 0),
+        (0, 2),
+        (2, 0),
+        (0, 3),
+    ]);
+    let loop_tree = loop_tree(&graph);
+    assert_eq!(loop_tree.loop_head_of_node(0), Some(0));
+    assert_eq!(loop_tree.loop_head_of_node(1), Some(0));
+    assert_eq!(loop_tree.loop_head_of_node(2), Some(0));
+    assert_eq!(loop_tree.loop_head_of_node(3), None);
+
+    let outer_loop_id = loop_tree.loop_id(0).unwrap();
+    assert_eq!(loop_tree.loop_exits(outer_loop_id), &[3]);
+}

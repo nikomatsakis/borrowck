@@ -1,6 +1,6 @@
 use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::Graph;
-use graph_algorithms::dominators::{self, Dominators};
+use graph_algorithms::dominators::{self, Dominators, DominatorTree};
 use graph_algorithms::iterate::reverse_post_order;
 use graph_algorithms::loop_tree::{self, LoopTree};
 use graph_algorithms::reachable::{self, Reachability};
@@ -35,6 +35,32 @@ impl<'func, 'arena> Environment<'func, 'arena> {
             reachable: reachable,
             loop_tree: loop_tree,
             reverse_post_order: rpo,
+        }
+    }
+
+    pub fn dump_dominators(&self) {
+        let tree = self.dominators.dominator_tree();
+        self.dump_dominator_tree(&tree, tree.root(), 0)
+    }
+
+    pub fn dump_postdominators(&self) {
+        let tree = self.postdominators.dominator_tree();
+        self.dump_dominator_tree(&tree, tree.root(), 0)
+    }
+
+    fn dump_dominator_tree<G1>(&self,
+                               tree: &DominatorTree<G1>,
+                               node: BasicBlockIndex,
+                               indent: usize)
+        where G1: Graph<Node=BasicBlockIndex>
+    {
+        println!("{0:1$}- {2:?}",
+                 "",
+                 indent,
+                 self.graph.block_name(node));
+
+        for &child in tree.children(node) {
+            self.dump_dominator_tree(tree, child, indent + 2)
         }
     }
 }
