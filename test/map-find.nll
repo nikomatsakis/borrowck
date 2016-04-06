@@ -1,18 +1,33 @@
 block START {
+    * $R ;
     goto FIND;
 }
 
+block CHECK {
+    goto FIND ;
+}
+
 block FIND {
+    * $R ;
+    * $Q ;
     goto OK ERR;
 }
 
 block OK {
+    * $R ;
+    * $Q ;
     goto EXIT;
 }
 
 block ERR {
-    goto FIND;
+    goto CHECK;
 }    
 
 block EXIT {
+    * $R ;
+    * $Q ;
 }
+
+// Expected result:
+// $R = EXIT/1
+// $Q = {EXIT/1, ERR/0}

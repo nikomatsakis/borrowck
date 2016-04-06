@@ -11,7 +11,8 @@ pub fn region_check(env: &Environment) {
     // Visit the blocks in reverse post order, for no particular
     // reason, just because it's convenient.
     for &block in &env.reverse_post_order {
-        for (index, action) in env.actions(block).iter().enumerate() {
+        let actions = &env.graph.block_data(block).actions;
+        for (index, action) in actions.iter().enumerate() {
             match *action {
                 repr::Action::Subregion(..) => unimplemented!(),
                 repr::Action::Eqregion(..) => unimplemented!(),
@@ -38,10 +39,12 @@ fn grow(env: &Environment,
         name: InternedString,
         block: BasicBlockIndex,
         action: usize) {
-    let point = Point { block: block, action: action };
+    let point = Point { block: block, action: action + 1 };
+
     if let Some(region) = region_map.get_mut(&name) {
         region.add_point(env, point);
-    } else {
-        region_map.insert(name, Region::with_point(point));
+        return;
     }
+
+    region_map.insert(name, Region::with_point(point));
 }

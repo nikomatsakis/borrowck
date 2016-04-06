@@ -1,7 +1,7 @@
 use lalrpop_intern::intern;
 use graph_algorithms as ga;
 use nll_repr::repr;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::iter;
 use std::slice;
@@ -10,7 +10,7 @@ pub struct FuncGraph<'arena> {
     func: repr::Func<'arena>,
     start_block: BasicBlockIndex,
     blocks: Vec<repr::BasicBlock>,
-    block_indices: HashMap<repr::BasicBlock, BasicBlockIndex>,
+    block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
 }
@@ -24,7 +24,7 @@ impl<'arena> FuncGraph<'arena> {
     pub fn new(func: repr::Func<'arena>) -> Self {
         let blocks: Vec<_> =
             func.data.keys().cloned().collect();
-        let block_indices: HashMap<_, _> =
+        let block_indices: BTreeMap<_, _> =
             func.data.keys()
                      .cloned()
                      .enumerate()

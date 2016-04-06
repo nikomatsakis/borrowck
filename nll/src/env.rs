@@ -93,13 +93,8 @@ impl<'func, 'arena> Environment<'func, 'arena> {
         }
     }
 
-    pub fn actions(&self, block: BasicBlockIndex) -> &'func Vec<repr::Action> {
-        loop { } // &self.graph.block_data(block).actions
-    }
-
     pub fn end_action(&self, block: BasicBlockIndex) -> usize {
-        let actions = (&*self).actions(block);
-        actions.len() + 1
+        self.graph.block_data(block).actions.len() + 1
     }
 
     pub fn end_point(&self, block: BasicBlockIndex) -> Point {

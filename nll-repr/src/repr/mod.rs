@@ -1,6 +1,7 @@
 use arena;
 use intern::InternedString;
 use lalrpop_util::ParseError;
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -49,12 +50,12 @@ pub trait Intern<'arena>: Sized + Clone + Hash + Eq {
     fn make(data: &'arena Self) -> Self::Interned;
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BasicBlock(pub InternedString);
 
 #[derive(Clone, Debug)]
 pub struct Func<'arena> {
-    pub data: HashMap<BasicBlock, BasicBlockData<'arena>>,
+    pub data: BTreeMap<BasicBlock, BasicBlockData<'arena>>,
 }
 
 impl<'arena> Func<'arena> {
