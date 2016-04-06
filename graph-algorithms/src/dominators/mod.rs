@@ -120,10 +120,20 @@ impl<G: Graph> Dominators<G> {
         self.dominators(node).any(|n| n == dom)
     }
 
-    pub fn mutual_dominator(&self, node1: G::Node, node2: G::Node) -> G::Node {
+    pub fn mutual_dominator_node(&self, node1: G::Node, node2: G::Node) -> G::Node {
         assert!(self.is_reachable(node1), "node {:?} is not reachable", node1);
         assert!(self.is_reachable(node2), "node {:?} is not reachable", node2);
         intersect(&self.post_order_rank, &self.immediate_dominators, node1, node2)
+    }
+
+    pub fn mutual_dominator<I>(&self, iter: I) -> Option<G::Node>
+        where I: IntoIterator<Item=G::Node>
+    {
+        let mut iter = iter.into_iter();
+        iter.next()
+            .map(|dom| {
+                iter.fold(dom, |dom, node| self.mutual_dominator_node(dom, node))
+            })
     }
 
     pub fn all_immediate_dominators(&self) -> &NodeVec<G, Option<G::Node>> {
@@ -186,6 +196,28 @@ impl<G: Graph> DominatorTree<G> {
 
     pub fn children(&self, node: G::Node) -> &[G::Node] {
         &self.children[node]
+    }
+
+    pub fn iter_children_of(&self, node: G::Node) -> IterChildrenOf<G> {
+        IterChildrenOf { tree: self, stack: vec![node] }
+    }
+}
+
+pub struct IterChildrenOf<'iter, G: Graph + 'iter> {
+    tree: &'iter DominatorTree<G>,
+    stack: Vec<G::Node>
+}
+
+impl<'iter, G: Graph> Iterator for IterChildrenOf<'iter, G> {
+    type Item = G::Node;
+
+    fn next(&mut self) -> Option<G::Node> {
+        if let Some(node) = self.stack.pop() {
+            self.stack.extend(self.tree.children(node));
+            Some(node)
+        } else {
+            None
+        }
     }
 }
 
