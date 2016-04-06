@@ -91,6 +91,10 @@ impl<'arena> FuncGraph<'arena> {
         let block = self.blocks[index.index];
         &self.func.data[&block]
     }
+
+    pub fn assertions(&self) -> &[repr::Assertion<'arena>] {
+        &self.func.assertions
+    }
 }
 
 impl<'arena> ga::Graph for FuncGraph<'arena> {

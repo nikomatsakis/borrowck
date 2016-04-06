@@ -2,28 +2,34 @@ use graph_algorithms::Graph;
 use graph_algorithms::node_vec::NodeVec;
 use graph::{BasicBlockIndex, FuncGraph};
 use env::{Environment, Point};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::cmp;
 use std::fmt;
 
 /// A region is fully characterized by a set of exits.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Region {
-    exits: HashMap<BasicBlockIndex, usize>,
+    exits: BTreeMap<BasicBlockIndex, usize>,
 }
 
 impl Region {
     pub fn with_point(point: Point) -> Self {
-        let map = Some((point.block, point.action + 1)).into_iter().collect();
+        Self::with_exits(Some(Point { block: point.block, action: point.action + 1 }))
+    }
+
+    pub fn with_exits<P>(exits: P) -> Self
+        where P: IntoIterator<Item=Point>
+    {
+        let map = exits.into_iter().map(|p| (p.block, p.action)).collect();
         Region::new(map)
     }
 
-    pub fn new(exits: HashMap<BasicBlockIndex, usize>) -> Self {
+    pub fn new(exits: BTreeMap<BasicBlockIndex, usize>) -> Self {
         assert!(!exits.is_empty());
         Region { exits: exits }
     }
 
-    pub fn exits(&self) -> &HashMap<BasicBlockIndex, usize> {
+    pub fn exits(&self) -> &BTreeMap<BasicBlockIndex, usize> {
         &self.exits
     }
 

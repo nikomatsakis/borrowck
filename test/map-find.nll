@@ -28,6 +28,5 @@ block EXIT {
     * $Q ;
 }
 
-// Expected result:
-// $R = EXIT/1
-// $Q = {EXIT/1, ERR/0}
+assert $R = {EXIT/1};
+assert $Q = {EXIT/2, ERR/0};

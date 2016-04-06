@@ -12,6 +12,7 @@ use std::env::args;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
+use std::process;
 
 mod env;
 use self::env::Environment;
@@ -31,8 +32,8 @@ fn main() {
         match process_input(&args, input) {
             Ok(()) => { }
             Err(err) => {
-                println!("Error with {}: {}",
-                         input, err);
+                println!("{}: {}", input, err);
+                process::exit(1);
             }
         }
     }
@@ -58,7 +59,7 @@ fn process_input(args: &Args, input: &str) -> Result<(), Box<Error>> {
         env.dump_postdominators();
     }
 
-    regionck::region_check(&env);
+    try!(regionck::region_check(&env));
 
     Ok(())
 }

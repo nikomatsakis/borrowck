@@ -1,13 +1,15 @@
 use intern::{self, InternedString};
 use repr::*;
+use std::str::FromStr;
 
 grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
 
 pub Func: Func<'arena> = {
-    <blocks:BasicBlockData+> => Func {
+    <blocks:BasicBlockData+> <assertions:Assertion+> => Func {
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
                     .collect(),
+        assertions: assertions,
     }
 };
 
@@ -24,6 +26,12 @@ BasicBlockData: BasicBlockData<'arena> = {
     }
 };
 
+Assertion: Assertion<'arena> = {
+    "assert" <a:Region> "=" <b:Region> ";" => {
+        Assertion::RegionEq(a, b)
+    },
+};
+
 BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
 };
@@ -31,7 +39,7 @@ BasicBlock: BasicBlock = {
 Action: Action<'arena> = {
     <a:Region> "<=" <b:Region> ";" => Action::Subregion(a, b),
     <a:Region> "==" <b:Region> ";" => Action::Eqregion(a, b),
-    "*" <r:Region> ";" => Action::Deref(r),
+    "*" <r:RegionVariable> ";" => Action::Deref(r),
 };
 
 Ident: InternedString = {
@@ -43,7 +51,17 @@ Region: Region<'arena> = {
 };
 
 RegionData: RegionData = {
-    "$" <name:Ident> => RegionData::Variable(name),
+    <v:RegionVariable> => RegionData::Variable(v),
+    "{" <Comma<RegionExit>> "}" => RegionData::Exits(<>),
+};
+
+RegionVariable: RegionVariable = {
+    "$" <name:Ident> => RegionVariable(name),
+};
+
+RegionExit: RegionExit = {
+    <b:BasicBlock> "/" <a:r"[0-9]+"> =>
+        RegionExit::Point(b, usize::from_str(a).unwrap()),
 };
 
 Comma<T>: Vec<T> = {

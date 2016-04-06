@@ -56,6 +56,7 @@ pub struct BasicBlock(pub InternedString);
 #[derive(Clone, Debug)]
 pub struct Func<'arena> {
     pub data: BTreeMap<BasicBlock, BasicBlockData<'arena>>,
+    pub assertions: Vec<Assertion<'arena>>
 }
 
 impl<'arena> Func<'arena> {
@@ -82,12 +83,20 @@ pub struct BasicBlockData<'arena> {
     pub successors: Vec<BasicBlock>,
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Assertion<'arena> {
+    RegionEq(Region<'arena>, Region<'arena>),
+}
+
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action<'arena> {
     Subregion(Region<'arena>, Region<'arena>),
     Eqregion(Region<'arena>, Region<'arena>),
-    Deref(Region<'arena>)
+    Deref(RegionVariable),
 }
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct RegionVariable(pub InternedString);
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Region<'arena> {
@@ -96,13 +105,13 @@ pub struct Region<'arena> {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum RegionData {
-    Variable(InternedString),
+    Variable(RegionVariable),
+    Exits(Vec<RegionExit>),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum RegionExit {
-    Block(BasicBlock),
-    Parameter(InternedString),
+    Point(BasicBlock, usize),
 }
 
 impl<'arena> Intern<'arena> for RegionData {
