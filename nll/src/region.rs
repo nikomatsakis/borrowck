@@ -37,11 +37,47 @@ impl Region {
         env.mutual_interval(self.exits.keys().cloned()).unwrap()
     }
 
+    pub fn contains(&self, env: &Environment, point: Point) -> bool {
+        println!("contains(self={:?}, point={:?})", self, point);
+
+        // Check if point is an exit block. In that case, we have to compare
+        // the action index.
+        if let Some(&upto_action) = self.exits.get(&point.block) {
+            println!("contains: exit {}", upto_action);
+            return point.action < upto_action;
+        }
+
+        // Otherwise, check whether it is dominated by the entry.  If
+        // not, it is certainly not in the region.
+        let entry = self.entry(env);
+        println!("contains: entry={:?}", entry);
+        if !env.dominators.is_dominated_by(point.block, entry) {
+            println!("contains: not dominated by entry");
+            return false;
+        }
+
+        // If it is in the region, it must lie between the exits and the entry.
+        // So walk up the dominator tree and see what we find first.
+        let mut p = point.block;
+        loop {
+            println!("contains: p={:?}", p);
+            if self.exits.contains_key(&p) {
+                return false;
+            }
+            if p == entry {
+                break;
+            } else {
+                p = env.dominators.immediate_dominator(p);
+            }
+        }
+
+        println!("contains: done");
+        true
+    }
+
     pub fn add_point(&mut self, env: &Environment, point: Point) {
         // Grow the region in a minimal way so that it contains
         // `block`.
-        assert!(point.action > 0);
-
         println!("add_point: exits={:?} point={:?}", self.exits, point);
         let mut contained_nodes = self.contained_nodes(env);
         let new_head = env.mutual_interval(self.exits
@@ -53,7 +89,7 @@ impl Region {
         println!("add_point: new_head={:?}", new_head);
 
         contained_nodes[point.block] =
-            cmp::max(point.action, contained_nodes[point.block]);
+            cmp::max(point.action + 1, contained_nodes[point.block]);
 
         let mut changed = true;
         while changed {

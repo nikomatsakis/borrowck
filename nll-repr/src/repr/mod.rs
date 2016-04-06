@@ -86,6 +86,7 @@ pub struct BasicBlockData<'arena> {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion<'arena> {
     RegionEq(Region<'arena>, Region<'arena>),
+    RegionContains(Region<'arena>, RegionExit),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]

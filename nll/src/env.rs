@@ -18,6 +18,7 @@ pub struct Environment<'func, 'arena: 'func> {
     pub reverse_post_order: Vec<BasicBlockIndex>,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Point {
     pub block: BasicBlockIndex,
     pub action: usize,

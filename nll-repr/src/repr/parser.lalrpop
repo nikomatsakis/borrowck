@@ -30,6 +30,10 @@ Assertion: Assertion<'arena> = {
     "assert" <a:Region> "=" <b:Region> ";" => {
         Assertion::RegionEq(a, b)
     },
+
+    "assert" <p:RegionExit> "in" <b:Region> ";" => {
+        Assertion::RegionContains(b, p)
+    },
 };
 
 BasicBlock: BasicBlock = {
