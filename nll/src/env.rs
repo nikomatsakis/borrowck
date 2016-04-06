@@ -104,6 +104,14 @@ impl<'func, 'arena> Environment<'func, 'arena> {
             action: self.end_action(block)
         }
     }
+
+    pub fn can_reach(&self, pred: Point, succ: Point) -> bool {
+        if pred.block == succ.block {
+            pred.action <= succ.action
+        } else {
+            self.reachable.can_reach(pred.block, succ.block)
+        }
+    }
 }
 
 impl fmt::Debug for Point {

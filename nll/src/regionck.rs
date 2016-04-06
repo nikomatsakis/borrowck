@@ -1,5 +1,6 @@
 use env::{Environment, Point};
 use graph::BasicBlockIndex;
+use graph_algorithms::Graph;
 use region::Region;
 use std::collections::HashMap;
 use std::error::Error;
@@ -17,15 +18,16 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
             println!("Actions from {:?}/{:?}", block, env.graph.block_name(block));
             let actions = &env.graph.block_data(block).actions;
             for (index, action) in actions.iter().enumerate() {
+                let current_point = Point { block: block, action: index };
                 match *action {
                     repr::Action::Subregion(sub, sup) => {
-                        if subregion(env, &mut region_map, sub, sup) {
+                        if subregion(env, &mut region_map, sub, sup, current_point) {
                             println!("changed!");
                             changed = true;
                         }
                     }
                     repr::Action::Deref(name) => {
-                        if grow(env, &mut region_map, name, block, index) {
+                        if grow(env, &mut region_map, name, current_point) {
                             println!("changed!");
                             changed = true;
                         }
@@ -98,22 +100,10 @@ fn point<'func, 'arena>(env: &Environment<'func, 'arena>,
 fn grow(env: &Environment,
         region_map: &mut HashMap<repr::RegionVariable, Region>,
         name: repr::RegionVariable,
-        block: BasicBlockIndex,
-        action: usize)
+        point: Point)
         -> bool {
-    let point = Point {
-        block: block,
-        action: action,
-    };
-
     if let Some(region) = region_map.get_mut(&name) {
-        if !region.contains(env, point) {
-            region.add_point(env, point);
-            return true;
-        } else {
-            println!("region {:?} contains {:?}", region, point);
-            return false;
-        }
+        return region.add_point(env, point);
     }
 
     region_map.insert(name, Region::with_point(point));
@@ -123,16 +113,34 @@ fn grow(env: &Environment,
 fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
                             region_map: &mut HashMap<repr::RegionVariable, Region>,
                             sub: repr::Region<'arena>,
-                            sup: repr::Region<'arena>)
+                            sup: repr::Region<'arena>,
+                            current_point: Point)
                             -> bool {
+    let mut changed = false;
+    let sub_region = lookup(env, region_map, sub);
+
     let sup_name = match *sup.data {
         repr::RegionData::Variable(name) => name,
         repr::RegionData::Exits(_) => return false
     };
+    let sup_region = region_map.get_mut(&sup_name).unwrap();
 
-    let in_region = lookup(env, region_map, sub);
-    for exit in in_region.exits() {
+    for (&block, &action) in sub_region.exits() {
+        let exit = Point { block: block, action: action };
+        if env.can_reach(current_point, exit) {
+            if exit.action == 0 {
+                for pred in env.graph.predecessors(exit.block) {
+                    let pred_end = env.end_point(pred);
+                    changed |= sup_region.add_point(env, pred_end);
+                }
+            } else {
+                changed |= sup_region.add_point(env, Point {
+                    block: exit.block,
+                    action: exit.action - 1,
+                });
+            }
+        }
     }
 
-    unimplemented!()
+    changed
 }

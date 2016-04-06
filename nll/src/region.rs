@@ -75,8 +75,12 @@ impl Region {
         true
     }
 
-    pub fn add_point(&mut self, env: &Environment, point: Point) {
-        assert!(point.action < env.end_action(point));
+    pub fn add_point(&mut self, env: &Environment, point: Point) -> bool {
+        assert!(point.action < env.end_action(point.block));
+
+        if self.contains(env, point) {
+            return false;
+        }
 
         // Grow the region in a minimal way so that it contains
         // `block`.
@@ -135,6 +139,7 @@ impl Region {
         }
 
         println!("add_point: exits={:?}", self.exits);
+        true
     }
 
     /// Returns a vector such that `v[x] = a` means that all action in
