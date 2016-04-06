@@ -76,6 +76,8 @@ impl Region {
     }
 
     pub fn add_point(&mut self, env: &Environment, point: Point) {
+        assert!(point.action < env.end_action(point));
+
         // Grow the region in a minimal way so that it contains
         // `block`.
         println!("add_point: exits={:?} point={:?}", self.exits, point);

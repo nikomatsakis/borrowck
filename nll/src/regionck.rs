@@ -18,8 +18,12 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
             let actions = &env.graph.block_data(block).actions;
             for (index, action) in actions.iter().enumerate() {
                 match *action {
-                    repr::Action::Subregion(..) => unimplemented!(),
-                    repr::Action::Eqregion(..) => unimplemented!(),
+                    repr::Action::Subregion(sub, sup) => {
+                        if subregion(env, &mut region_map, sub, sup) {
+                            println!("changed!");
+                            changed = true;
+                        }
+                    }
                     repr::Action::Deref(name) => {
                         if grow(env, &mut region_map, name, block, index) {
                             println!("changed!");
@@ -114,4 +118,21 @@ fn grow(env: &Environment,
 
     region_map.insert(name, Region::with_point(point));
     true
+}
+
+fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
+                            region_map: &mut HashMap<repr::RegionVariable, Region>,
+                            sub: repr::Region<'arena>,
+                            sup: repr::Region<'arena>)
+                            -> bool {
+    let sup_name = match *sup.data {
+        repr::RegionData::Variable(name) => name,
+        repr::RegionData::Exits(_) => return false
+    };
+
+    let in_region = lookup(env, region_map, sub);
+    for exit in in_region.exits() {
+    }
+
+    unimplemented!()
 }

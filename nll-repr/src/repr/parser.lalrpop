@@ -42,7 +42,6 @@ BasicBlock: BasicBlock = {
 
 Action: Action<'arena> = {
     <a:Region> "<=" <b:Region> ";" => Action::Subregion(a, b),
-    <a:Region> "==" <b:Region> ";" => Action::Eqregion(a, b),
     "*" <r:RegionVariable> ";" => Action::Deref(r),
 };
 

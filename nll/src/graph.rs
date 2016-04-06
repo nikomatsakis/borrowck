@@ -87,7 +87,7 @@ impl<'arena> FuncGraph<'arena> {
         self.blocks[index.index]
     }
 
-    pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData {
+    pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData<'arena> {
         let block = self.blocks[index.index];
         &self.func.data[&block]
     }

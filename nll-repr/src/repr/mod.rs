@@ -92,7 +92,6 @@ pub enum Assertion<'arena> {
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action<'arena> {
     Subregion(Region<'arena>, Region<'arena>),
-    Eqregion(Region<'arena>, Region<'arena>),
     Deref(RegionVariable),
 }
 
