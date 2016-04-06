@@ -43,15 +43,7 @@ Region: Region<'arena> = {
 };
 
 RegionData: RegionData = {
-    "{" <entry:BasicBlock> "->" <exits:Comma<RegionExit>> "}" => RegionData {
-        entry: entry,
-        exits: exits,
-    }
-};
-
-RegionExit: RegionExit = {
-    "'" <Ident> => RegionExit::Parameter(<>),
-    BasicBlock => RegionExit::Block(<>),
+    "$" <name:Ident> => RegionData::Variable(name),
 };
 
 Comma<T>: Vec<T> = {

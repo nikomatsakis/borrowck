@@ -94,9 +94,8 @@ pub struct Region<'arena> {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct RegionData {
-    pub entry: BasicBlock,
-    pub exits: Vec<RegionExit>,
+pub enum RegionData {
+    Variable(InternedString),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]

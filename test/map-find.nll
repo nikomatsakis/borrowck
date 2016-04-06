@@ -1,0 +1,18 @@
+block START {
+    goto FIND;
+}
+
+block FIND {
+    goto OK ERR;
+}
+
+block OK {
+    goto EXIT;
+}
+
+block ERR {
+    goto FIND;
+}    
+
+block EXIT {
+}

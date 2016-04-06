@@ -2,6 +2,7 @@ use lalrpop_intern::intern;
 use graph_algorithms as ga;
 use nll_repr::repr;
 use std::collections::HashMap;
+use std::fmt;
 use std::iter;
 use std::slice;
 
@@ -14,7 +15,7 @@ pub struct FuncGraph<'arena> {
     predecessors: Vec<Vec<BasicBlockIndex>>,
 }
 
-#[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct BasicBlockIndex {
     index: usize
 }
@@ -68,12 +69,18 @@ impl<'arena> FuncGraph<'arena> {
         &self.func
     }
 
-    pub fn block_index(&self, name: &str) -> BasicBlockIndex {
-        self.block_indices.get(&repr::BasicBlock(intern(name)))
-                          .cloned()
-                          .unwrap_or_else(|| {
-                              panic!("no index for `{}`", name)
-                          })
+    pub fn block_index_str(&self, name: &str) -> BasicBlockIndex {
+        self.block_index(repr::BasicBlock(intern(name)))
+    }
+
+    pub fn start_block(&self) -> repr::BasicBlock {
+        self.block_name(self.start_block)
+    }
+
+    pub fn block_index(&self, name: repr::BasicBlock) -> BasicBlockIndex {
+        self.block_indices.get(&name).cloned().unwrap_or_else(|| {
+            panic!("no index for `{:?}`", name)
+        })
     }
 
     pub fn block_name(&self, index: BasicBlockIndex) -> repr::BasicBlock {
@@ -132,5 +139,11 @@ impl From<usize> for BasicBlockIndex {
 impl Into<usize> for BasicBlockIndex {
     fn into(self) -> usize {
         self.index
+    }
+}
+
+impl fmt::Debug for BasicBlockIndex {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "BB{}", self.index)
     }
 }

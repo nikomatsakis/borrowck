@@ -16,6 +16,8 @@ use std::io::Read;
 mod env;
 use self::env::Environment;
 mod graph;
+mod region;
+mod regionck;
 mod relate;
 use self::graph::FuncGraph;
 
@@ -26,7 +28,7 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     for input in &args.arg_inputs {
-        match process_input(input) {
+        match process_input(&args, input) {
             Ok(()) => { }
             Err(err) => {
                 println!("Error with {}: {}",
@@ -36,7 +38,7 @@ fn main() {
     }
 }
 
-fn process_input(input: &str) -> Result<(), Box<Error>> {
+fn process_input(args: &Args, input: &str) -> Result<(), Box<Error>> {
     let ballast = Ballast::new();
     let mut arena = Arena::new(&ballast);
     let mut file_text = String::new();
@@ -48,20 +50,30 @@ fn process_input(input: &str) -> Result<(), Box<Error>> {
     let graph = FuncGraph::new(func);
     let env = Environment::new(&graph);
 
-    println!("{:#?}", graph.func());
+    if args.flag_dominators {
+        env.dump_dominators();
+    }
 
-    env.dump_dominators();
+    if args.flag_post_dominators {
+        env.dump_postdominators();
+    }
 
-    env.dump_postdominators();
+    regionck::region_check(&env);
 
     Ok(())
 }
 
 const USAGE: &'static str = "
-Usage: nll <inputs>...
+Usage: nll [options] <inputs>...
+
+Options:
+  --dominators
+  --post-dominators
 ";
 
 #[derive(Debug, RustcDecodable)]
 struct Args {
     arg_inputs: Vec<String>,
+    flag_dominators: bool,
+    flag_post_dominators: bool,
 }
