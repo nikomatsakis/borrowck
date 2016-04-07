@@ -25,7 +25,6 @@ fn post_order_walk<G: Graph>(graph: &G,
                              node: G::Node,
                              result: &mut Vec<G::Node>,
                              visited: &mut NodeVec<G, bool>) {
-    println!("post_order_walk(node: {:?})", node);
     if visited[node] {
         return;
     }

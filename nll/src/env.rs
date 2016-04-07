@@ -1,4 +1,3 @@
-use nll_repr::repr;
 use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::Graph;
 use graph_algorithms::dominators::{self, Dominators, DominatorTree};
@@ -65,10 +64,10 @@ impl<'func, 'arena> Environment<'func, 'arena> {
                                indent: usize)
         where G1: Graph<Node=BasicBlockIndex>
     {
-        println!("{0:1$}- {2:?}",
-                 "",
-                 indent,
-                 self.graph.block_name(node));
+        log!("{0:1$}- {2:?}",
+             "",
+             indent,
+             self.graph.block_name(node));
 
         for &child in tree.children(node) {
             self.dump_dominator_tree(tree, child, indent + 2)
@@ -85,13 +84,6 @@ impl<'func, 'arena> Environment<'func, 'arena> {
     {
         self.dominators.mutual_dominator(iter)
                        .map(|dom| self.interval_head(dom))
-    }
-
-    pub fn start_point(&self, block: BasicBlockIndex) -> Point {
-        Point {
-            block: block,
-            action: 0,
-        }
     }
 
     pub fn end_action(&self, block: BasicBlockIndex) -> usize {

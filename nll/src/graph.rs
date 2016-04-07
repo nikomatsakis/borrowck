@@ -65,26 +65,14 @@ impl<'arena> FuncGraph<'arena> {
         }
     }
 
-    pub fn func(&self) -> &repr::Func<'arena> {
-        &self.func
-    }
-
     pub fn block_index_str(&self, name: &str) -> BasicBlockIndex {
         self.block_index(repr::BasicBlock(intern(name)))
-    }
-
-    pub fn start_block(&self) -> repr::BasicBlock {
-        self.block_name(self.start_block)
     }
 
     pub fn block_index(&self, name: repr::BasicBlock) -> BasicBlockIndex {
         self.block_indices.get(&name).cloned().unwrap_or_else(|| {
             panic!("no index for `{:?}`", name)
         })
-    }
-
-    pub fn block_name(&self, index: BasicBlockIndex) -> repr::BasicBlock {
-        self.blocks[index.index]
     }
 
     pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData<'arena> {

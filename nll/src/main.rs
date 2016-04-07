@@ -14,6 +14,7 @@ use std::fs::File;
 use std::io::Read;
 use std::process;
 
+#[macro_use] mod log;
 mod env;
 use self::env::Environment;
 mod graph;
