@@ -106,7 +106,7 @@ fn grow(env: &Environment,
         return region.add_point(env, point);
     }
 
-    region_map.insert(name, Region::with_point(point));
+    region_map.insert(name, Region::with_point(env, point));
     true
 }
 
@@ -123,10 +123,9 @@ fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
         repr::RegionData::Variable(name) => name,
         repr::RegionData::Exits(_) => return false
     };
-    let sup_region = region_map.entry(sup_name)
-                               .or_insert_with(|| {
-                                   Region::with_point(current_point)
-                               });
+    let sup_region =
+        region_map.entry(sup_name)
+                  .or_insert_with(|| Region::with_point(env, current_point));
 
     for (&block, &action) in sub_region.exits() {
         let exit = Point { block: block, action: action };

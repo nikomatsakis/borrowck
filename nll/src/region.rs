@@ -13,8 +13,24 @@ pub struct Region {
 }
 
 impl Region {
-    pub fn with_point(point: Point) -> Self {
-        Self::with_exits(Some(Point { block: point.block, action: point.action + 1 }))
+    pub fn with_point(env: &Environment, point: Point) -> Self {
+        // The minimal region containing point is to walk up the
+        // dominator tree, excluding all "uncles/aunts" from the
+        // minimal loop containing point.
+        let entry = env.interval_head(point.block);
+        let mut exits = BTreeMap::new();
+        exits.insert(point.block, point.action + 1);
+        let mut p = point.block;
+        while p != entry {
+            let dom = env.dominators.immediate_dominator(p);
+            for node in env.dominator_tree.iter_children_of(dom) {
+                if node != p {
+                    exits.insert(node, 0);
+                }
+            }
+            p = dom;
+        }
+        Self::new(exits)
     }
 
     pub fn with_exits<P>(exits: P) -> Self

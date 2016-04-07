@@ -2,16 +2,22 @@ block START {
    goto A1;
 }
 block A1 {
-   &{A1 -> B, 'r} usize <: &{A -> 'r} usize;
    goto B C;
 }
 block B {
-   goto D;
+   * $R;
+   * $Q;
+   goto EXIT;
 }
 block C {
-   * &{A1 -> B, 'r} usize;
-   &{A -> 'r} usize <: &{A1 -> B, 'r} usize;
+   * $Q;
+   * $S;
+   goto EXIT;
 }
-block D {
-   goto A1;
+block EXIT {
+   * $R;
 }
+
+assert $R = {EXIT/1};
+assert $Q = {B/2, C/1, EXIT/0};
+assert $S = {C/2, B/0, EXIT/0};
