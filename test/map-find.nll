@@ -16,6 +16,7 @@ block FIND {
 block OK {
     * $R ;
     * $Q ;
+    $Q <= $U;
     goto EXIT;
 }
 
@@ -30,6 +31,7 @@ block EXIT {
 
 assert $R = {EXIT/1};
 assert $Q = {EXIT/2, ERR/0};
+assert $U = {EXIT/2};
 assert START/1 in $R;
 assert FIND/0 in $R;
 assert FIND/0 in $Q;
