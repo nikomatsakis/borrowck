@@ -12,7 +12,7 @@ block INIT {
 // for key in keys {
 block FOR {
     *$key; // lifetime of `key`
-    goto IF_LET;    
+    goto IF_LET PRINTLN;    
 }
 
 // if let Some(_) = map.get(key)
@@ -55,7 +55,8 @@ block k {
 block static {
 }
 
-assert $v = { IF_LET -> PRINTLN/0 };
+assert $v = { FOR -> PRINTLN/0, SOME/1 };
+assert $p = { INIT -> NONE/1, PRINTLN/0, SOME/1 };
 assert NONE/0 not in $v;
 assert PRINTLN/0 in $v;
 assert PRINTLN/0 in $p;

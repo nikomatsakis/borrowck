@@ -224,7 +224,8 @@ impl<'iter> Iterator for Leaves<'iter> {
 impl fmt::Debug for Region {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         try!(write!(fmt, "{{{:?} -> ", self.entry));
-        for leaf in self.leaves() {
+        for (index, leaf) in self.leaves().enumerate() {
+            if index > 0 { try!(write!(fmt, ", ")); }
             try!(write!(fmt, "{:?}", leaf));
         }
         write!(fmt, "}}")
