@@ -5,7 +5,7 @@ use std::str::FromStr;
 grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
 
 pub Func: Func<'arena> = {
-    <blocks:BasicBlockData+> <assertions:Assertion+> => Func {
+    <blocks:BasicBlockData+> <assertions:Assertion*> => Func {
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
                     .collect(),
@@ -45,8 +45,8 @@ BasicBlock: BasicBlock = {
 };
 
 Action: Action<'arena> = {
-    <a:Region> "<=" <b:Region> ";" => Action::Subregion(a, b),
-    "*" <r:RegionVariable> ";" => Action::Deref(r),
+    <a:Region> "<=" <b:Region> ";" Comment? => Action::Subregion(a, b),
+    "*" <r:RegionVariable> ";" Comment? => Action::Deref(r),
 };
 
 Ident: InternedString = {
@@ -59,7 +59,7 @@ Region: Region<'arena> = {
 
 RegionData: RegionData = {
     <v:RegionVariable> => RegionData::Variable(v),
-    "{" <BasicBlock> "->" <Comma<Point>> "}" => RegionData::Literal(<>),
+    "{" <BasicBlock> "->" <Comma0<Point>> "}" => RegionData::Literal(<>),
 };
 
 RegionVariable: RegionVariable = {
@@ -73,6 +73,10 @@ Point: Point = {
 
 Comma<T>: Vec<T> = {
     <Comma1<T>> ","?
+};
+
+Comma0<T>: Vec<T> = {
+    <v:Comma<T>?> => v.unwrap_or(vec![])
 };
 
 Comma1<T>: Vec<T> = {

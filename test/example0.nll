@@ -1,0 +1,62 @@
+block START {
+   goto INIT;
+}
+
+//  let default: usize = 22;
+//  let mut p = &default;
+block INIT {
+    *$p; // lifetime of `'p`
+    goto FOR;
+}
+
+// for key in keys {
+block FOR {
+    *$key; // lifetime of `key`
+    goto IF_LET;    
+}
+
+// if let Some(_) = map.get(key)
+block IF_LET {
+    *$v; // auto-ref borrow of `map`, also lifetime of `v`
+    goto SOME NONE;
+}
+
+// p = v; break;
+block SOME {
+    $p <= $v;
+    goto PRINTLN;
+}
+
+// map.insert(key, 0)
+block NONE {
+    *$key;
+    goto FOR;
+}    
+
+// println!(p)
+block PRINTLN {
+   *$p;
+   goto EXIT;
+}
+
+// return;
+block EXIT {
+   goto m k;
+}
+
+block m {
+   goto static;
+}
+
+block k {
+   goto static;
+}
+
+block static {
+}
+
+assert $v = { IF_LET -> PRINTLN/0 };
+assert NONE/0 not in $v;
+assert PRINTLN/0 in $v;
+assert PRINTLN/0 in $p;
+assert NONE/0 in $p;
