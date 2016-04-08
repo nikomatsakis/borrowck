@@ -7,9 +7,16 @@ use std::cmp;
 use std::fmt;
 
 /// A region is characterized by an entry point and a set of leaves.
+///
 /// The region contains all blocks B where:
 /// - `entry dom B`
-/// - and `exists leaf in leaves. B dom leaf`
+/// - and `exists leaf in leaves. B dom leaf`.
+///
+/// To be valid, two conditions must be met:
+/// - entry must dominate all leaves
+/// - there must not exist an edge U->V in the graph where:
+///   - V is in the region and not the entry
+///   - but U is not
 #[derive(Clone, PartialEq, Eq)]
 pub struct Region {
     entry: BasicBlockIndex,
