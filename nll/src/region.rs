@@ -6,15 +6,10 @@ use std::collections::BTreeMap;
 use std::cmp;
 use std::fmt;
 
-/// A region is fully characterized by a set of tails.  The entry
-/// point is the innerloop loop contained by one of the tails. The
-/// region consists of all blocks that are dominated by the entry
-/// point **and** which dominate one of the tails.
-///
-/// To be self-consistent:
-/// - All tails must be dominated by the entry point.
-/// - There must not exist an edge U->V where U is not in the region but
-///   V is, unless V is the entry point.
+/// A region is characterized by an entry point and a set of leaves.
+/// The region contains all blocks B where:
+/// - `entry dom B`
+/// - and `exists leaf in leaves. B dom leaf`
 #[derive(Clone, PartialEq, Eq)]
 pub struct Region {
     entry: BasicBlockIndex,
