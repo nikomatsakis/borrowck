@@ -64,30 +64,22 @@ impl<'func, 'arena> Environment<'func, 'arena> {
                                indent: usize)
         where G1: Graph<Node=BasicBlockIndex>
     {
-        log!("{0:1$}- {2:?}",
-             "",
-             indent,
-             self.graph.block_name(node));
+        println!("{0:1$}- {2:?}",
+                 "",
+                 indent,
+                 node);
 
         for &child in tree.children(node) {
             self.dump_dominator_tree(tree, child, indent + 2)
         }
     }
 
-    pub fn interval_head(&self, block: BasicBlockIndex) -> BasicBlockIndex {
-        self.loop_tree.loop_head_of_node(block)
-                      .unwrap_or(self.graph.start_node())
-    }
-
-    pub fn mutual_interval<I>(&self, iter: I) -> Option<BasicBlockIndex>
-        where I: IntoIterator<Item=BasicBlockIndex>
-    {
-        self.dominators.mutual_dominator(iter)
-                       .map(|dom| self.interval_head(dom))
+    pub fn last_action(&self, block: BasicBlockIndex) -> usize {
+        self.graph.block_data(block).actions.len()
     }
 
     pub fn end_action(&self, block: BasicBlockIndex) -> usize {
-        self.graph.block_data(block).actions.len() + 1
+        self.last_action(block) + 1
     }
 
     pub fn end_point(&self, block: BasicBlockIndex) -> Point {

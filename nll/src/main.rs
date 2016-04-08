@@ -50,25 +50,27 @@ fn process_input(args: &Args, input: &str) -> Result<(), Box<Error>> {
     }
     let func = try!(Func::parse(&mut arena, &file_text));
     let graph = FuncGraph::new(func);
-    let env = Environment::new(&graph);
+    graph::with_graph(&graph, || {
+        let env = Environment::new(&graph);
 
-    if args.flag_dominators {
-        env.dump_dominators();
-    }
+        if args.flag_dominators {
+            env.dump_dominators();
+        }
 
-    if args.flag_post_dominators {
-        env.dump_postdominators();
-    }
+        if args.flag_post_dominators {
+            env.dump_postdominators();
+        }
 
-    try!(regionck::region_check(&env));
-
-    Ok(())
+        try!(regionck::region_check(&env));
+        Ok(())
+    })
 }
 
 const USAGE: &'static str = "
 Usage: nll [options] <inputs>...
 
 Options:
+  --help
   --dominators
   --post-dominators
 ";
@@ -78,4 +80,5 @@ struct Args {
     arg_inputs: Vec<String>,
     flag_dominators: bool,
     flag_post_dominators: bool,
+    flag_help: bool,
 }

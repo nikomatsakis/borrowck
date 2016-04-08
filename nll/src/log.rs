@@ -1,3 +1,3 @@
 macro_rules! log {
-    ($($t:tt)*) => { }
+    ($($t:tt)*) => { if false { println!($($t)*) } }
 }

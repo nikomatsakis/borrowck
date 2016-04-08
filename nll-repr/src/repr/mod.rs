@@ -86,7 +86,8 @@ pub struct BasicBlockData<'arena> {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion<'arena> {
     RegionEq(Region<'arena>, Region<'arena>),
-    RegionContains(Region<'arena>, RegionExit),
+    RegionContains(Region<'arena>, Point),
+    RegionNotContains(Region<'arena>, Point),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -106,12 +107,13 @@ pub struct Region<'arena> {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum RegionData {
     Variable(RegionVariable),
-    Exits(Vec<RegionExit>),
+    Literal(BasicBlock, Vec<Point>),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum RegionExit {
-    Point(BasicBlock, usize),
+pub struct Point {
+    pub block: BasicBlock,
+    pub action: usize,
 }
 
 impl<'arena> Intern<'arena> for RegionData {

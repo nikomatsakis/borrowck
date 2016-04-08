@@ -2,7 +2,9 @@ use lalrpop_intern::intern;
 use graph_algorithms as ga;
 use nll_repr::repr;
 use std::collections::BTreeMap;
+use std::cell::RefCell;
 use std::fmt;
+use std::mem;
 use std::iter;
 use std::slice;
 
@@ -134,8 +136,33 @@ impl Into<usize> for BasicBlockIndex {
     }
 }
 
+thread_local! {
+    static NAMES: RefCell<Vec<repr::BasicBlock>> = RefCell::new(vec![])
+}
+
+pub fn with_graph<OP, R>(g: &FuncGraph, op: OP)  -> R
+    where OP: FnOnce() -> R
+{
+    NAMES.with(|names| {
+        let old_names = mem::replace(&mut *names.borrow_mut(), g.blocks.clone());
+        let result = op();
+        *names.borrow_mut() = old_names;
+        result
+    })
+}
+
 impl fmt::Debug for BasicBlockIndex {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(fmt, "BB{}", self.index)
+        NAMES.with(|names| {
+            let names = names.borrow();
+            if !names.is_empty() {
+                write!(fmt, "{}", names[self.index].0)
+            } else {
+                write!(fmt, "BB{}", self.index)
+            }
+        })
     }
 }
+
+
+

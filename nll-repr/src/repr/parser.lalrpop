@@ -31,8 +31,12 @@ Assertion: Assertion<'arena> = {
         Assertion::RegionEq(a, b)
     },
 
-    "assert" <p:RegionExit> "in" <b:Region> ";" => {
+    "assert" <p:Point> "in" <b:Region> ";" => {
         Assertion::RegionContains(b, p)
+    },
+
+    "assert" <p:Point> "not" "in" <b:Region> ";" => {
+        Assertion::RegionNotContains(b, p)
     },
 };
 
@@ -55,16 +59,16 @@ Region: Region<'arena> = {
 
 RegionData: RegionData = {
     <v:RegionVariable> => RegionData::Variable(v),
-    "{" <Comma<RegionExit>> "}" => RegionData::Exits(<>),
+    "{" <BasicBlock> "->" <Comma<Point>> "}" => RegionData::Literal(<>),
 };
 
 RegionVariable: RegionVariable = {
     "$" <name:Ident> => RegionVariable(name),
 };
 
-RegionExit: RegionExit = {
+Point: Point = {
     <b:BasicBlock> "/" <a:r"[0-9]+"> =>
-        RegionExit::Point(b, usize::from_str(a).unwrap()),
+        Point { block: b, action: usize::from_str(a).unwrap() },
 };
 
 Comma<T>: Vec<T> = {

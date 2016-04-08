@@ -1,5 +1,4 @@
 use env::{Environment, Point};
-use graph_algorithms::Graph;
 use region::Region;
 use std::collections::HashMap;
 use std::error::Error;
@@ -14,9 +13,10 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     while changed {
         changed = false;
         for &block in &env.reverse_post_order {
-            log!("Actions from {:?}/{:?}", block, env.graph.block_name(block));
             let actions = &env.graph.block_data(block).actions;
             for (index, action) in actions.iter().enumerate() {
+                log!("Action {:?} from {:?} is {:?}",
+                     index, block, action);
                 let current_point = Point {
                     block: block,
                     action: index,
@@ -47,11 +47,11 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
                 let rr2 = lookup(env, &region_map, r2);
                 if rr1 != rr2 {
                     if errors > 0 {
-                        log!("");
+                        println!("");
                     }
-                    log!("Region {:?} is {:#?}", r1, rr1);
-                    log!("Region {:?} is {:#?}", r2, rr2);
-                    log!("But they should be equal!");
+                    println!("Region {:?} is {:#?}", r1, rr1);
+                    println!("Region {:?} is {:#?}", r2, rr2);
+                    println!("Regions are not equal (but they should be).");
                     errors += 1;
                 }
             }
@@ -61,11 +61,25 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
                 let pp = point(env, p);
                 if !rr.contains(env, pp) {
                     if errors > 0 {
-                        log!("");
+                        println!("");
                     }
-                    log!("Region {:?} is {:#?}", r, rr);
-                    log!("Point {:?} is {:#?}", p, pp);
-                    log!("Region does not contain point.");
+                    println!("Region {:?} is {:#?}", r, rr);
+                    println!("Point {:?} is {:#?}", p, pp);
+                    println!("Region does not contain point (but should).");
+                    errors += 1;
+                }
+            }
+
+            repr::Assertion::RegionNotContains(r, ref p) => {
+                let rr = lookup(env, &region_map, r);
+                let pp = point(env, p);
+                if rr.contains(env, pp) {
+                    if errors > 0 {
+                        println!("");
+                    }
+                    println!("Region {:?} is {:#?}", r, rr);
+                    println!("Point {:?} is {:#?}", p, pp);
+                    println!("Region contains point (but should not).");
                     errors += 1;
                 }
             }
@@ -86,21 +100,18 @@ fn lookup<'func, 'arena>(env: &Environment<'func, 'arena>,
     match *region.data {
         repr::RegionData::Variable(name) => region_map[&name].clone(),
 
-        repr::RegionData::Exits(ref exits) => {
-            let exits = exits.iter().map(|exit| point(env, exit));
-            Region::with_exits(exits)
+        repr::RegionData::Literal(entry, ref leaves) => {
+            let entry = env.graph.block_index(entry);
+            let leaves = leaves.iter().map(|exit| point(env, exit));
+            Region::new(entry, leaves)
         }
     }
 }
 
-fn point<'func, 'arena>(env: &Environment<'func, 'arena>, point: &repr::RegionExit) -> Point {
-    match *point {
-        repr::RegionExit::Point(block, index) => {
-            Point {
-                block: env.graph.block_index(block),
-                action: index,
-            }
-        }
+fn point<'func, 'arena>(env: &Environment<'func, 'arena>, point: &repr::Point) -> Point {
+    Point {
+        block: env.graph.block_index(point.block),
+        action: point.action,
     }
 }
 
@@ -113,7 +124,7 @@ fn grow(env: &Environment,
         return region.add_point(env, point);
     }
 
-    region_map.insert(name, Region::with_point(env, point));
+    region_map.insert(name, Region::with_point(point));
     true
 }
 
@@ -128,29 +139,16 @@ fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
 
     let sup_name = match *sup.data {
         repr::RegionData::Variable(name) => name,
-        repr::RegionData::Exits(_) => return false,
+        repr::RegionData::Literal(..) => return false,
     };
     let sup_region = region_map.entry(sup_name)
-                               .or_insert_with(|| Region::with_point(env, current_point));
+                               .or_insert_with(|| Region::with_point(current_point));
 
-    for (&block, &action) in sub_region.exits() {
-        let exit = Point {
-            block: block,
-            action: action,
-        };
-        if env.can_reach(current_point, exit) {
-            if exit.action == 0 {
-                for pred in env.graph.predecessors(exit.block) {
-                    let pred_end = env.end_point(pred);
-                    changed |= sup_region.add_point(env, pred_end);
-                }
-            } else {
-                changed |= sup_region.add_point(env,
-                                                Point {
-                                                    block: exit.block,
-                                                    action: exit.action - 1,
-                                                });
-            }
+    changed |= sup_region.add_point(env, current_point);
+
+    for leaf in sub_region.leaves() {
+        if env.can_reach(current_point, leaf) {
+            changed |= sup_region.add_point(env, leaf);
         }
     }
 

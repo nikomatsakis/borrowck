@@ -1,6 +1,6 @@
 block START {
     * $R ;
-    goto FIND;
+    goto CHECK;
 }
 
 block CHECK {
@@ -29,9 +29,12 @@ block EXIT {
     * $Q ;
 }
 
-assert $R = {EXIT/1};
-assert $Q = {EXIT/2, ERR/0};
-assert $U = {EXIT/2};
+assert $R = {START -> EXIT/0, ERR/0};
+assert $Q = {FIND -> EXIT/1};
+assert $U = {OK -> EXIT/1};
 assert START/1 in $R;
 assert FIND/0 in $R;
 assert FIND/0 in $Q;
+assert ERR/0 in $R;
+assert ERR/0 not in $Q;
+assert ERR/0 not in $U;

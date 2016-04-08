@@ -4,182 +4,227 @@ use graph::{BasicBlockIndex, FuncGraph};
 use env::{Environment, Point};
 use std::collections::BTreeMap;
 use std::cmp;
+use std::fmt;
 
-/// A region is fully characterized by a set of exits.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// A region is fully characterized by a set of tails.  The entry
+/// point is the innerloop loop contained by one of the tails. The
+/// region consists of all blocks that are dominated by the entry
+/// point **and** which dominate one of the tails.
+///
+/// To be self-consistent:
+/// - All tails must be dominated by the entry point.
+/// - There must not exist an edge U->V where U is not in the region but
+///   V is, unless V is the entry point.
+#[derive(Clone, PartialEq, Eq)]
 pub struct Region {
-    exits: BTreeMap<BasicBlockIndex, usize>,
+    entry: BasicBlockIndex,
+    leaves: BTreeMap<BasicBlockIndex, usize>,
 }
 
 impl Region {
-    pub fn with_point(env: &Environment, point: Point) -> Self {
-        // The minimal region containing point is to walk up the
-        // dominator tree, excluding all "uncles/aunts" from the
-        // minimal loop containing point.
-        let entry = env.interval_head(point.block);
-        let mut exits = BTreeMap::new();
-        exits.insert(point.block, point.action + 1);
-        let mut p = point.block;
-        while p != entry {
-            let dom = env.dominators.immediate_dominator(p);
-            for node in env.dominator_tree.iter_children_of(dom) {
-                if node != p {
-                    exits.insert(node, 0);
-                }
-            }
-            p = dom;
-        }
-        Self::new(exits)
+    pub fn with_point(point: Point) -> Self {
+        // The minimal region containing point just has `point` as a tail.
+        Self::new(point.block, Some(point))
     }
 
-    pub fn with_exits<P>(exits: P) -> Self
-        where P: IntoIterator<Item = Point>
+    pub fn new<I>(entry: BasicBlockIndex, leaves: I) -> Self
+        where I: IntoIterator<Item = Point>
     {
-        let map = exits.into_iter().map(|p| (p.block, p.action)).collect();
-        Region::new(map)
+        Region {
+            entry: entry,
+            leaves: leaves.into_iter()
+                          .map(|p| (p.block, p.action))
+                          .collect(),
+        }
     }
 
-    pub fn new(exits: BTreeMap<BasicBlockIndex, usize>) -> Self {
-        assert!(!exits.is_empty());
-        Region { exits: exits }
-    }
-
-    pub fn exits(&self) -> &BTreeMap<BasicBlockIndex, usize> {
-        &self.exits
-    }
-
-    pub fn entry(&self, env: &Environment) -> BasicBlockIndex {
-        env.mutual_interval(self.exits.keys().cloned()).unwrap()
+    pub fn leaves(&self) -> Leaves {
+        Leaves {
+            iter: Box::new(self.leaves
+                               .iter()
+                               .map(|(&block, &action)| {
+                                   Point {
+                                       block: block,
+                                       action: action,
+                                   }
+                               })),
+        }
     }
 
     pub fn contains(&self, env: &Environment, point: Point) -> bool {
         log!("contains(self={:?}, point={:?})", self, point);
 
-        // Check if point is an exit block. In that case, we have to compare
-        // the action index.
-        if let Some(&upto_action) = self.exits.get(&point.block) {
-            log!("contains: exit {}", upto_action);
-            return point.action < upto_action;
-        }
-
-        // Otherwise, check whether it is dominated by the entry.  If
-        // not, it is certainly not in the region.
-        let entry = self.entry(env);
-        log!("contains: entry={:?}", entry);
-        if !env.dominators.is_dominated_by(point.block, entry) {
-            log!("contains: not dominated by entry");
+        // no leaves is the empty region, which contains no points
+        if self.leaves.is_empty() {
             return false;
         }
 
-        // If it is in the region, it must lie between the exits and the entry.
-        // So walk up the dominator tree and see what we find first.
-        let mut p = point.block;
-        loop {
-            log!("contains: p={:?}", p);
-            if self.exits.contains_key(&p) {
-                return false;
-            }
-            if p == entry {
-                break;
-            } else {
-                p = env.dominators.immediate_dominator(p);
-            }
+        // point must be dominated by the entry
+        if !env.dominators.is_dominated_by(point.block, self.entry) {
+            log!("contains: {:?} not dominated by entry {:?}",
+                 point.block,
+                 self.entry);
+            return false;
         }
 
-        log!("contains: done");
-        true
+        // point dominate one of the leaves; if it is in a tail block,
+        // compare the actions, otherwise consult the dominator graph
+        if let Some(&action) = self.leaves.get(&point.block) {
+            log!("contains: {:?} is a tail upto {:?}", point.block, action);
+            return point.action <= action;
+        }
+        log!("contains: comparing leaves");
+        self.leaves
+            .keys()
+            .any(|&tail| env.dominators.is_dominated_by(tail, point.block))
     }
 
     pub fn add_point(&mut self, env: &Environment, point: Point) -> bool {
+        log!("add_point(self={:?}, point={:?})", self, point);
         assert!(point.action < env.end_action(point.block));
 
         if self.contains(env, point) {
             return false;
         }
 
-        // Grow the region in a minimal way so that it contains
-        // `block`.
-        log!("add_point: exits={:?} point={:?}", self.exits, point);
-        let mut contained_nodes = self.contained_nodes(env);
-        let new_head = env.mutual_interval(self.exits
-                                               .keys()
-                                               .cloned()
-                                               .chain(Some(point.block)))
-                          .unwrap();
+        // Update entry point to be the mutual dominator
+        self.entry = env.dominators.mutual_dominator_node(self.entry, point.block);
 
-        log!("add_point: new_head={:?}", new_head);
+        // Compute the minimal consistent region beginning at
+        // `new_entry` that contains all the leaves and the new point.
+        let mut rev_dfs = RevDfs::new(env, self.entry);
+        for tail in self.leaves() {
+            rev_dfs.walk(tail);
+        }
+        rev_dfs.walk(point);
 
-        contained_nodes[point.block] = cmp::max(point.action + 1, contained_nodes[point.block]);
+        // Distill that into just the leaves and update our internal map.
+        self.leaves.clear();
+        let mut stack = vec![self.entry];
+        while let Some(node) = stack.pop() {
+            let upto_action = rev_dfs.contained[node];
+            let end_action = env.end_action(node);
 
-        let mut changed = true;
-        while changed {
-            changed = false;
+            log!("node {:?} contained up to action {:?} out of {:?}",
+                 node,
+                 upto_action,
+                 end_action);
 
-            log!("propagate");
-            for node in env.dominator_tree.iter_children_of(new_head).skip(1) {
-                log!("propagate: node={:?}/{:?} end-action={} contained={}",
-                     node,
-                     env.graph.block_name(node),
-                     env.end_action(node),
-                     contained_nodes[node]);
-                if contained_nodes[node] > 0 {
-                    for pred in env.graph.predecessors(node) {
-                        let pred_actions = env.end_action(pred);
-                        log!("propagate: pred={:?}/{:?} pred_actions={} \
-                                  contained={}",
-                             pred,
-                             env.graph.block_name(pred),
-                             pred_actions,
-                             contained_nodes[pred]);
-                        if contained_nodes[pred] != pred_actions {
-                            contained_nodes[pred] = pred_actions;
-                            changed = true;
-                        }
-                    }
+            assert!(upto_action <= end_action);
+            if upto_action == end_action {
+                // Block is fully contained; visit its children,
+                // unless this is a leaf of the tree, in which case we
+                // have to record is as one of our leaves.
+                let children = env.dominator_tree.children(node);
+                if children.is_empty() {
+                    self.leaves.insert(node, upto_action - 1);
+                } else {
+                    stack.extend(children);
                 }
-            }
-        }
-
-        assert!(contained_nodes[new_head] == env.end_action(new_head));
-
-        self.exits.clear();
-        let mut stack = vec![new_head];
-        while let Some(node) = stack.pop() {
-            if contained_nodes[node] < env.end_action(node) {
-                self.exits.insert(node, contained_nodes[node]);
-            } else {
-                stack.extend(env.dominator_tree.children(node));
-            }
-        }
-
-        log!("add_point: exits={:?}", self.exits);
-        true
-    }
-
-    /// Returns a vector such that `v[x] = a` means that all action in
-    /// `x` up to (but not including) action a are included.
-    pub fn contained_nodes<'func, 'arena>(&self,
-                                          env: &Environment<'func, 'arena>)
-                                          -> NodeVec<FuncGraph<'arena>, usize> {
-        let mut contained = NodeVec::from_default(env.graph);
-        let entry = self.entry(env);
-        log!("contained_nodes: entry={:?} / {:?}",
-             entry,
-             env.graph.block_name(entry));
-        let mut stack = vec![entry];
-        while let Some(node) = stack.pop() {
-            log!("contained_nodes: node={:?}", node);
-
-            if let Some(&upto_action) = self.exits.get(&node) {
-                log!("contained_nodes: exit at {}", upto_action);
-                contained[node] = upto_action;
                 continue;
             }
 
-            contained[node] = env.end_action(node);
-            stack.extend(env.dominator_tree.children(node));
+            if upto_action == 0 {
+                // Block is not contained at all. Stop walking.
+                continue;
+            }
+
+            // Block is partially contained. Record as a tail but stop
+            // walking.
+            self.leaves.insert(node, upto_action - 1);
         }
-        log!("contained_nodes: contained_nodes={:?}", contained.vec);
-        contained
+
+        log!("add_point: leaves={:?}", self.leaves);
+        assert!(self.contains(env, point));
+        true
+    }
+}
+
+struct RevDfs<'env, 'func: 'env, 'arena: 'func> {
+    env: &'env Environment<'func, 'arena>,
+
+    // for each block, stores the number of actions that are contained
+    // in the set; hence a value of `0` means that a block is not
+    // contained at all; a value of `1` means the first action is
+    // contained but not any others; and a value of `N` where `N` is
+    // the number of actions means the block is fully contained.
+    contained: NodeVec<FuncGraph<'arena>, usize>,
+    stack: Vec<BasicBlockIndex>,
+    entry: BasicBlockIndex,
+}
+
+impl<'env, 'func, 'arena> RevDfs<'env, 'func, 'arena> {
+    fn new(env: &'env Environment<'func, 'arena>, entry: BasicBlockIndex) -> Self {
+        RevDfs {
+            env: env,
+            contained: NodeVec::from_default(env.graph),
+            stack: vec![],
+            entry: entry,
+        }
+    }
+
+    fn walk(&mut self, mut start: Point) {
+        log!("walk({:?})", start);
+        assert!(self.env.dominators.is_dominated_by(start.block, self.entry));
+        assert!(self.stack.is_empty());
+
+        // convert `start` to be exclusive (one past the included point)
+        start.action += 1;
+
+        self.push(start);
+
+        // Visit reachable predecessors, unless this is the region entry
+        while let Some(p) = self.pop() {
+            log!("walk: walking preds of {:?}", p);
+            if p == self.entry {
+                continue;
+            }
+            for pred_block in self.env.graph.predecessors(p) {
+                self.push(self.env.end_point(pred_block));
+            }
+        }
+    }
+
+    fn push(&mut self, p: Point) {
+        log!("push({:?})", p);
+        if self.contained[p.block] > 0 {
+            log!("push: already visited {:?} up to action {:?} out of {:?}, \
+                  adjusting to {:?}",
+                 p.block,
+                 self.contained[p.block],
+                 self.env.end_action(p.block),
+                 cmp::max(p.action, self.contained[p.block]));
+            self.contained[p.block] = cmp::max(p.action, self.contained[p.block]);
+        } else {
+            log!("push: enstacking {:?} up to action {:?}", p.block, p.action);
+            self.contained[p.block] = p.action;
+            self.stack.push(p.block); // still have to visit preds too
+        }
+    }
+
+    fn pop(&mut self) -> Option<BasicBlockIndex> {
+        self.stack.pop()
+    }
+}
+
+pub struct Leaves<'iter> {
+    iter: Box<Iterator<Item = Point> + 'iter>,
+}
+
+impl<'iter> Iterator for Leaves<'iter> {
+    type Item = Point;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl fmt::Debug for Region {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        try!(write!(fmt, "{{{:?} -> ", self.entry));
+        for leaf in self.leaves() {
+            try!(write!(fmt, "{:?}", leaf));
+        }
+        write!(fmt, "}}")
     }
 }
