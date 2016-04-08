@@ -100,6 +100,6 @@ impl<'func, 'arena> Environment<'func, 'arena> {
 
 impl fmt::Debug for Point {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(fmt, "({:?} @ {})", self.block, self.action)
+        write!(fmt, "{:?}/{}", self.block, self.action)
     }
 }
