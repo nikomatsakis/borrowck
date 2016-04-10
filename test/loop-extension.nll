@@ -8,15 +8,12 @@ block START {
 //    println("{}", r);
 block LOOP {
     *$L;
-    goto PUSH static;
+    goto PUSH;
 }
 
 // data.push(22);
 block PUSH {
     goto LOOP;
-}
-
-block static {
 }
 
 assert PUSH/0 in $L;
