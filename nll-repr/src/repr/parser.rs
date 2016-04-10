@@ -154,7 +154,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action30(arena, input, __sym0);
+                let __nt = super::__action31(arena, input, __sym0);
                 let __nt = __Nonterminal::BasicBlockData_2b((
                     __start,
                     __nt,
@@ -202,7 +202,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action62(arena, input, __sym0);
+                let __nt = super::__action63(arena, input, __sym0);
                 let __nt = __Nonterminal::Func((
                     __start,
                     __nt,
@@ -268,7 +268,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action34(arena, input, __sym0);
+                let __nt = super::__action35(arena, input, __sym0);
                 let __nt = __Nonterminal::Comment_2b((
                     __start,
                     __nt,
@@ -439,7 +439,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action15(arena, input, __sym0);
+                let __nt = super::__action16(arena, input, __sym0);
                 let __nt = __Nonterminal::Comment((
                     __start,
                     __nt,
@@ -476,7 +476,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action32(arena, input, __sym0);
+                let __nt = super::__action33(arena, input, __sym0);
                 let __nt = __Nonterminal::Assertion_2b((
                     __start,
                     __nt,
@@ -518,7 +518,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action63(arena, input, __sym0, __sym1);
+                let __nt = super::__action64(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::Func((
                     __start,
                     __nt,
@@ -572,7 +572,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action31(arena, input, __sym0, __sym1);
+                let __nt = super::__action32(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::BasicBlockData_2b((
                     __start,
                     __nt,
@@ -684,7 +684,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action35(arena, input, __sym0, __sym1);
+                let __nt = super::__action36(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::Comment_2b((
                     __start,
                     __nt,
@@ -840,7 +840,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = super::__action10(arena, input, __sym0);
                 let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
@@ -879,7 +879,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action33(arena, input, __sym0, __sym1);
+                let __nt = super::__action34(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::Assertion_2b((
                     __start,
                     __nt,
@@ -1044,7 +1044,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action10(arena, input, __sym0);
+                let __nt = super::__action11(arena, input, __sym0);
                 let __nt = __Nonterminal::Region((
                     __start,
                     __nt,
@@ -1080,7 +1080,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action11(arena, input, __sym0);
+                let __nt = super::__action12(arena, input, __sym0);
                 let __nt = __Nonterminal::RegionData((
                     __start,
                     __nt,
@@ -1214,7 +1214,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = super::__action10(arena, input, __sym0);
                 let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
@@ -1291,17 +1291,21 @@ mod __parse__Func {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
                 __result = try!(__state45(arena, input, __tokens, __sym3));
             }
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state46(arena, input, __tokens, __sym3));
+            }
             Some((__loc1, (10, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state46(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
+                __result = try!(__state47(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state47(arena, input, __tokens, __sym3));
+                __result = try!(__state48(arena, input, __tokens, __sym3));
             }
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state48(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
+                __result = try!(__state49(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1363,7 +1367,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (16, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state49(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state50(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1398,11 +1402,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (0, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state53(arena, input, __tokens, __sym3));
+                __result = try!(__state54(arena, input, __tokens, __sym3));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state54(arena, input, __tokens, __sym3));
+                __result = try!(__state55(arena, input, __tokens, __sym3));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1416,15 +1420,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Region(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state50(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
+                    __result = try!(__state51(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
                 }
                 __Nonterminal::RegionData(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state51(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state53(arena, input, __tokens, __lookahead, __sym3));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -1457,7 +1461,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (11, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state55(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
+                __result = try!(__state56(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1492,11 +1496,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (0, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state53(arena, input, __tokens, __sym3));
+                __result = try!(__state54(arena, input, __tokens, __sym3));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state54(arena, input, __tokens, __sym3));
+                __result = try!(__state55(arena, input, __tokens, __sym3));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1510,15 +1514,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Region(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state56(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
+                    __result = try!(__state57(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
                 }
                 __Nonterminal::RegionData(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state51(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state53(arena, input, __tokens, __lookahead, __sym3));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -1549,7 +1553,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action13(arena, input, __sym0, __sym1);
+                let __nt = super::__action14(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::RegionVariable((
                     __start,
                     __nt,
@@ -1589,7 +1593,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = super::__action10(arena, input, __sym0);
                 let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
@@ -1624,7 +1628,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (3, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state57(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state58(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1695,7 +1699,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = super::__action10(arena, input, __sym0);
                 let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
@@ -1742,17 +1746,21 @@ mod __parse__Func {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
                 __result = try!(__state45(arena, input, __tokens, __sym4));
             }
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state46(arena, input, __tokens, __sym4));
+            }
             Some((__loc1, (10, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state59(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state60(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state47(arena, input, __tokens, __sym4));
+                __result = try!(__state48(arena, input, __tokens, __sym4));
             }
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state60(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state61(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1770,7 +1778,7 @@ mod __parse__Func {
                 }
                 __Nonterminal::Action_2b(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state58(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
+                    __result = try!(__state59(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
                 }
                 __Nonterminal::Region(__nt) => {
                     let __sym4 = &mut Some(__nt);
@@ -1809,13 +1817,14 @@ mod __parse__Func {
         match __lookahead {
             Some((_, (0, _), _)) |
             Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
             Some((_, (10, _), _)) |
             Some((_, (13, _), _)) |
             Some((_, (14, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action36(arena, input, __sym0);
+                let __nt = super::__action37(arena, input, __sym0);
                 let __nt = __Nonterminal::Action_2b((
                     __start,
                     __nt,
@@ -1858,17 +1867,21 @@ mod __parse__Func {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
                 __result = try!(__state45(arena, input, __tokens, __sym4));
             }
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state46(arena, input, __tokens, __sym4));
+            }
             Some((__loc1, (10, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state62(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state63(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state47(arena, input, __tokens, __sym4));
+                __result = try!(__state48(arena, input, __tokens, __sym4));
             }
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state63(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state64(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1882,7 +1895,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Action(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state61(arena, input, __tokens, __lookahead, __sym3, __sym4));
+                    __result = try!(__state62(arena, input, __tokens, __lookahead, __sym3, __sym4));
                 }
                 __Nonterminal::Region(__nt) => {
                     let __sym4 = &mut Some(__nt);
@@ -1921,7 +1934,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (6, __tok0), __loc2)) => {
                 let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state64(arena, input, __tokens, __sym0, __sym1));
+                __result = try!(__state65(arena, input, __tokens, __sym0, __sym1));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -1952,7 +1965,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action10(arena, input, __sym0);
+                let __nt = super::__action11(arena, input, __sym0);
                 let __nt = __Nonterminal::Region((
                     __start,
                     __nt,
@@ -1988,7 +2001,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action11(arena, input, __sym0);
+                let __nt = super::__action12(arena, input, __sym0);
                 let __nt = __Nonterminal::RegionData((
                     __start,
                     __nt,
@@ -2026,7 +2039,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state66(arena, input, __tokens, __sym1));
+                __result = try!(__state67(arena, input, __tokens, __sym1));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2040,7 +2053,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Ident(__nt) => {
                     let __sym1 = &mut Some(__nt);
-                    __result = try!(__state65(arena, input, __tokens, __lookahead, __sym0, __sym1));
+                    __result = try!(__state66(arena, input, __tokens, __lookahead, __sym0, __sym1));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2071,7 +2084,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (0, __tok0), __loc2)) => {
                 let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state53(arena, input, __tokens, __sym1));
+                __result = try!(__state54(arena, input, __tokens, __sym1));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2085,7 +2098,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym1 = &mut Some(__nt);
-                    __result = try!(__state67(arena, input, __tokens, __lookahead, __sym0, __sym1));
+                    __result = try!(__state68(arena, input, __tokens, __lookahead, __sym0, __sym1));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2096,6 +2109,51 @@ mod __parse__Func {
     }
 
     pub fn __state46<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((_, (0, _), _)) |
+            Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
+            Some((_, (10, _), _)) |
+            Some((_, (13, _), _)) |
+            Some((_, (14, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym0.2.clone();
+                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = __Nonterminal::Action((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state47<
         'input,
         'parse,
         'arena,
@@ -2119,11 +2177,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state71(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state72(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym4));
+                __result = try!(__state73(arena, input, __tokens, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2137,15 +2195,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state68(arena, input, __tokens, __lookahead, __sym4));
+                    __result = try!(__state69(arena, input, __tokens, __lookahead, __sym4));
                 }
                 __Nonterminal::BasicBlock_2b(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state69(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
+                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym4));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym4));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2155,7 +2213,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state47<
+    pub fn __state48<
         'input,
         'parse,
         'arena,
@@ -2190,7 +2248,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym1 = &mut Some(__nt);
-                    __result = try!(__state73(arena, input, __tokens, __lookahead, __sym0, __sym1));
+                    __result = try!(__state74(arena, input, __tokens, __lookahead, __sym0, __sym1));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym1 = &mut Some(__nt);
@@ -2204,7 +2262,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state48<
+    pub fn __state49<
         'input,
         'parse,
         'arena,
@@ -2236,7 +2294,7 @@ mod __parse__Func {
                 let __sym3 = __sym3.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym3.2.clone();
-                let __nt = super::__action74(arena, input, __sym0, __sym1, __sym2, __sym3);
+                let __nt = super::__action75(arena, input, __sym0, __sym1, __sym2, __sym3);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -2253,7 +2311,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state49<
+    pub fn __state50<
         'input,
         'parse,
         'arena,
@@ -2281,7 +2339,7 @@ mod __parse__Func {
                 let __sym2 = __sym2.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym2.2.clone();
-                let __nt = super::__action14(arena, input, __sym0, __sym1, __sym2);
+                let __nt = super::__action15(arena, input, __sym0, __sym1, __sym2);
                 let __nt = __Nonterminal::Point((
                     __start,
                     __nt,
@@ -2298,7 +2356,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state50<
+    pub fn __state51<
         'input,
         'parse,
         'arena,
@@ -2318,7 +2376,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state74(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state75(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2330,7 +2388,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state51<
+    pub fn __state52<
         'input,
         'parse,
         'arena,
@@ -2349,44 +2407,8 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action10(arena, input, __sym0);
-                let __nt = __Nonterminal::Region((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state52<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, RegionVariable, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        match __lookahead {
-            Some((_, (5, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym0.2.clone();
                 let __nt = super::__action11(arena, input, __sym0);
-                let __nt = __Nonterminal::RegionData((
+                let __nt = __Nonterminal::Region((
                     __start,
                     __nt,
                     __end,
@@ -2411,6 +2433,42 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, RegionVariable, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        match __lookahead {
+            Some((_, (5, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym0.2.clone();
+                let __nt = super::__action12(arena, input, __sym0);
+                let __nt = __Nonterminal::RegionData((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state54<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
         __sym0: &mut Option<(usize, &'input str, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
@@ -2423,7 +2481,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state76(arena, input, __tokens, __sym1));
+                __result = try!(__state77(arena, input, __tokens, __sym1));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2437,7 +2495,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Ident(__nt) => {
                     let __sym1 = &mut Some(__nt);
-                    __result = try!(__state75(arena, input, __tokens, __lookahead, __sym0, __sym1));
+                    __result = try!(__state76(arena, input, __tokens, __lookahead, __sym0, __sym1));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2447,7 +2505,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state54<
+    pub fn __state55<
         'input,
         'parse,
         'arena,
@@ -2482,7 +2540,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym1 = &mut Some(__nt);
-                    __result = try!(__state77(arena, input, __tokens, __lookahead, __sym0, __sym1));
+                    __result = try!(__state78(arena, input, __tokens, __lookahead, __sym0, __sym1));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym1 = &mut Some(__nt);
@@ -2496,7 +2554,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state55<
+    pub fn __state56<
         'input,
         'parse,
         'arena,
@@ -2520,11 +2578,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (0, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state53(arena, input, __tokens, __sym4));
+                __result = try!(__state54(arena, input, __tokens, __sym4));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state54(arena, input, __tokens, __sym4));
+                __result = try!(__state55(arena, input, __tokens, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2538,15 +2596,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Region(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state78(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
+                    __result = try!(__state79(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
                 }
                 __Nonterminal::RegionData(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state51(arena, input, __tokens, __lookahead, __sym4));
+                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym4));
                 }
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym4 = &mut Some(__nt);
-                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym4));
+                    __result = try!(__state53(arena, input, __tokens, __lookahead, __sym4));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2556,7 +2614,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state56<
+    pub fn __state57<
         'input,
         'parse,
         'arena,
@@ -2576,7 +2634,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state79(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state80(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2588,7 +2646,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state57<
+    pub fn __state58<
         'input,
         'parse,
         'arena,
@@ -2616,7 +2674,7 @@ mod __parse__Func {
             Some((_, (14, _), _)) => {
                 let __start = __sym2.as_ref().unwrap().2.clone();
                 let __end = __lookahead.as_ref().map(|o| o.0.clone()).unwrap_or_else(|| __start.clone());
-                let __nt = super::__action65(arena, input, &__start, &__end);
+                let __nt = super::__action66(arena, input, &__start, &__end);
                 let __nt = __Nonterminal::Comma0_3cPoint_3e((
                     __start,
                     __nt,
@@ -2636,19 +2694,19 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state80(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state81(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Comma0_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state81(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
+                    __result = try!(__state82(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
                 }
                 __Nonterminal::Comma1_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state82(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Comma_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym3 = &mut Some(__nt);
@@ -2656,7 +2714,7 @@ mod __parse__Func {
                 }
                 __Nonterminal::Point(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state85(arena, input, __tokens, __lookahead, __sym3));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2666,7 +2724,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state58<
+    pub fn __state59<
         'input,
         'parse,
         'arena,
@@ -2693,17 +2751,21 @@ mod __parse__Func {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
                 __result = try!(__state45(arena, input, __tokens, __sym5));
             }
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state46(arena, input, __tokens, __sym5));
+            }
             Some((__loc1, (10, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state85(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state86(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state47(arena, input, __tokens, __sym5));
+                __result = try!(__state48(arena, input, __tokens, __sym5));
             }
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state86(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state87(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2717,7 +2779,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Action(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state61(arena, input, __tokens, __lookahead, __sym4, __sym5));
+                    __result = try!(__state62(arena, input, __tokens, __lookahead, __sym4, __sym5));
                 }
                 __Nonterminal::Region(__nt) => {
                     let __sym5 = &mut Some(__nt);
@@ -2730,67 +2792,6 @@ mod __parse__Func {
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym5 = &mut Some(__nt);
                     __result = try!(__state43(arena, input, __tokens, __lookahead, __sym5));
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-        return Ok(__result);
-    }
-
-    pub fn __state59<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, BasicBlock, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((__loc1, (5, __tok0), __loc2)) => {
-                let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state88(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
-            }
-            Some((__loc1, (17, __tok0), __loc2)) => {
-                let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym5));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-        while __sym4.is_some() {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::BasicBlock(__nt) => {
-                    let __sym5 = &mut Some(__nt);
-                    __result = try!(__state68(arena, input, __tokens, __lookahead, __sym5));
-                }
-                __Nonterminal::BasicBlock_2b(__nt) => {
-                    let __sym5 = &mut Some(__nt);
-                    __result = try!(__state87(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
-                }
-                __Nonterminal::Ident(__nt) => {
-                    let __sym5 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym5));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2823,106 +2824,13 @@ mod __parse__Func {
             Some(Err(e)) => return Err(e),
         };
         match __lookahead {
-            None |
-            Some((_, (8, _), _)) |
-            Some((_, (9, _), _)) |
-            Some((_, (15, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __sym1 = __sym1.take().unwrap();
-                let __sym2 = __sym2.take().unwrap();
-                let __sym3 = __sym3.take().unwrap();
-                let __sym4 = __sym4.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym4.2.clone();
-                let __nt = super::__action75(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
-                let __nt = __Nonterminal::BasicBlockData((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state61<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
-        __sym1: &mut Option<(usize, Action<'arena>, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        match __lookahead {
-            Some((_, (0, _), _)) |
-            Some((_, (1, _), _)) |
-            Some((_, (10, _), _)) |
-            Some((_, (13, _), _)) |
-            Some((_, (14, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __sym1 = __sym1.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym1.2.clone();
-                let __nt = super::__action37(arena, input, __sym0, __sym1);
-                let __nt = __Nonterminal::Action_2b((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state62<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state90(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state89(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym5));
+                __result = try!(__state73(arena, input, __tokens, __sym5));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -2936,15 +2844,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state68(arena, input, __tokens, __lookahead, __sym5));
+                    __result = try!(__state69(arena, input, __tokens, __lookahead, __sym5));
                 }
                 __Nonterminal::BasicBlock_2b(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state89(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                    __result = try!(__state88(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym5));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym5));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -2954,7 +2862,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state63<
+    pub fn __state61<
         'input,
         'parse,
         'arena,
@@ -2963,10 +2871,10 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, BasicBlock, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
         __sym4: &mut Option<(usize, &'input str, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
@@ -3005,7 +2913,162 @@ mod __parse__Func {
         }
     }
 
+    pub fn __state62<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym1: &mut Option<(usize, Action<'arena>, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        match __lookahead {
+            Some((_, (0, _), _)) |
+            Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
+            Some((_, (10, _), _)) |
+            Some((_, (13, _), _)) |
+            Some((_, (14, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __sym1 = __sym1.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym1.2.clone();
+                let __nt = super::__action38(arena, input, __sym0, __sym1);
+                let __nt = __Nonterminal::Action_2b((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state63<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state91(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+            }
+            Some((__loc1, (17, __tok0), __loc2)) => {
+                let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state73(arena, input, __tokens, __sym5));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        while __sym4.is_some() {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::BasicBlock(__nt) => {
+                    let __sym5 = &mut Some(__nt);
+                    __result = try!(__state69(arena, input, __tokens, __lookahead, __sym5));
+                }
+                __Nonterminal::BasicBlock_2b(__nt) => {
+                    let __sym5 = &mut Some(__nt);
+                    __result = try!(__state90(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                }
+                __Nonterminal::Ident(__nt) => {
+                    let __sym5 = &mut Some(__nt);
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym5));
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+        return Ok(__result);
+    }
+
     pub fn __state64<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            None |
+            Some((_, (8, _), _)) |
+            Some((_, (9, _), _)) |
+            Some((_, (15, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __sym1 = __sym1.take().unwrap();
+                let __sym2 = __sym2.take().unwrap();
+                let __sym3 = __sym3.take().unwrap();
+                let __sym4 = __sym4.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym4.2.clone();
+                let __nt = super::__action77(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = __Nonterminal::BasicBlockData((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state65<
         'input,
         'parse,
         'arena,
@@ -3027,11 +3090,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (0, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state53(arena, input, __tokens, __sym2));
+                __result = try!(__state54(arena, input, __tokens, __sym2));
             }
             Some((__loc1, (13, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state54(arena, input, __tokens, __sym2));
+                __result = try!(__state55(arena, input, __tokens, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3045,15 +3108,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Region(__nt) => {
                     let __sym2 = &mut Some(__nt);
-                    __result = try!(__state91(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2));
+                    __result = try!(__state92(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2));
                 }
                 __Nonterminal::RegionData(__nt) => {
                     let __sym2 = &mut Some(__nt);
-                    __result = try!(__state51(arena, input, __tokens, __lookahead, __sym2));
+                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym2));
                 }
                 __Nonterminal::RegionVariable(__nt) => {
                     let __sym2 = &mut Some(__nt);
-                    __result = try!(__state52(arena, input, __tokens, __lookahead, __sym2));
+                    __result = try!(__state53(arena, input, __tokens, __lookahead, __sym2));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -3063,7 +3126,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state65<
+    pub fn __state66<
         'input,
         'parse,
         'arena,
@@ -3084,48 +3147,8 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action13(arena, input, __sym0, __sym1);
+                let __nt = super::__action14(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::RegionVariable((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state66<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((_, (6, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
-                let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
                     __end,
@@ -3150,6 +3173,46 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((_, (6, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym0.2.clone();
+                let __nt = super::__action10(arena, input, __sym0);
+                let __nt = __Nonterminal::Ident((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state68<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
         __sym0: &mut Option<(usize, &'input str, usize)>,
         __sym1: &mut Option<(usize, RegionVariable, usize)>,
@@ -3159,7 +3222,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state92(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state93(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3171,7 +3234,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state68<
+    pub fn __state69<
         'input,
         'parse,
         'arena,
@@ -3191,7 +3254,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action38(arena, input, __sym0);
+                let __nt = super::__action39(arena, input, __sym0);
                 let __nt = __Nonterminal::BasicBlock_2b((
                     __start,
                     __nt,
@@ -3208,7 +3271,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state69<
+    pub fn __state70<
         'input,
         'parse,
         'arena,
@@ -3229,11 +3292,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state94(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state95(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym5));
+                __result = try!(__state73(arena, input, __tokens, __sym5));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3247,11 +3310,11 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state93(arena, input, __tokens, __lookahead, __sym4, __sym5));
+                    __result = try!(__state94(arena, input, __tokens, __lookahead, __sym4, __sym5));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym5 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym5));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym5));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -3261,7 +3324,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state70<
+    pub fn __state71<
         'input,
         'parse,
         'arena,
@@ -3298,7 +3361,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state71<
+    pub fn __state72<
         'input,
         'parse,
         'arena,
@@ -3323,7 +3386,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state95(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state96(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3335,7 +3398,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state72<
+    pub fn __state73<
         'input,
         'parse,
         'arena,
@@ -3359,7 +3422,7 @@ mod __parse__Func {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
+                let __nt = super::__action10(arena, input, __sym0);
                 let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
@@ -3376,7 +3439,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state73<
+    pub fn __state74<
         'input,
         'parse,
         'arena,
@@ -3394,7 +3457,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (3, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state96(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state97(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3406,7 +3469,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state74<
+    pub fn __state75<
         'input,
         'parse,
         'arena,
@@ -3455,7 +3518,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state75<
+    pub fn __state76<
         'input,
         'parse,
         'arena,
@@ -3476,48 +3539,8 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action13(arena, input, __sym0, __sym1);
+                let __nt = super::__action14(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::RegionVariable((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state76<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((_, (5, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym0.2.clone();
-                let __nt = super::__action9(arena, input, __sym0);
-                let __nt = __Nonterminal::Ident((
                     __start,
                     __nt,
                     __end,
@@ -3542,6 +3565,46 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((_, (5, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym0.2.clone();
+                let __nt = super::__action10(arena, input, __sym0);
+                let __nt = __Nonterminal::Ident((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state78<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
         __sym0: &mut Option<(usize, &'input str, usize)>,
         __sym1: &mut Option<(usize, BasicBlock, usize)>,
@@ -3551,7 +3614,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (3, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state97(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state98(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3563,7 +3626,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state78<
+    pub fn __state79<
         'input,
         'parse,
         'arena,
@@ -3584,7 +3647,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym5 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state98(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
+                __result = try!(__state99(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3596,7 +3659,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state79<
+    pub fn __state80<
         'input,
         'parse,
         'arena,
@@ -3645,7 +3708,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state80<
+    pub fn __state81<
         'input,
         'parse,
         'arena,
@@ -3662,39 +3725,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (4, __tok0), __loc2)) => {
                 let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state99(arena, input, __tokens, __sym0, __sym1));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-        return Ok(__result);
-    }
-
-    pub fn __state81<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        match __lookahead {
-            Some((__loc1, (14, __tok0), __loc2)) => {
-                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state100(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+                __result = try!(__state100(arena, input, __tokens, __sym0, __sym1));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3716,26 +3747,17 @@ mod __parse__Func {
         input: &'input str,
         __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, Vec<Point>, usize)>,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
         match __lookahead {
-            Some((__loc1, (2, __tok0), __loc2)) => {
-                let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state101(arena, input, __tokens, __sym0, __sym1));
-            }
-            Some((_, (14, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym0.2.clone();
-                let __nt = super::__action48(arena, input, __sym0);
-                let __nt = __Nonterminal::Comma_3cPoint_3e((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
+            Some((__loc1, (14, __tok0), __loc2)) => {
+                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state101(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3762,12 +3784,16 @@ mod __parse__Func {
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
         match __lookahead {
+            Some((__loc1, (2, __tok0), __loc2)) => {
+                let mut __sym1 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state102(arena, input, __tokens, __sym0, __sym1));
+            }
             Some((_, (14, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action64(arena, input, __sym0);
-                let __nt = __Nonterminal::Comma0_3cPoint_3e((
+                let __nt = super::__action49(arena, input, __sym0);
+                let __nt = __Nonterminal::Comma_3cPoint_3e((
                     __start,
                     __nt,
                     __end,
@@ -3781,6 +3807,7 @@ mod __parse__Func {
                 });
             }
         }
+        return Ok(__result);
     }
 
     pub fn __state84<
@@ -3793,18 +3820,17 @@ mod __parse__Func {
         input: &'input str,
         __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, Point, usize)>,
+        __sym0: &mut Option<(usize, Vec<Point>, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
         match __lookahead {
-            Some((_, (2, _), _)) |
             Some((_, (14, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action45(arena, input, __sym0);
-                let __nt = __Nonterminal::Comma1_3cPoint_3e((
+                let __nt = super::__action65(arena, input, __sym0);
+                let __nt = __Nonterminal::Comma0_3cPoint_3e((
                     __start,
                     __nt,
                     __end,
@@ -3829,28 +3855,24 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, BasicBlock, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
-        __sym5: &mut Option<(usize, &'input str, usize)>,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, Point, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
         match __lookahead {
-            Some((__loc1, (5, __tok0), __loc2)) => {
-                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state103(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
-            }
-            Some((__loc1, (17, __tok0), __loc2)) => {
-                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym6));
+            Some((_, (2, _), _)) |
+            Some((_, (14, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym0.2.clone();
+                let __nt = super::__action46(arena, input, __sym0);
+                let __nt = __Nonterminal::Comma1_3cPoint_3e((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3859,27 +3881,6 @@ mod __parse__Func {
                 });
             }
         }
-        while __sym5.is_some() {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::BasicBlock(__nt) => {
-                    let __sym6 = &mut Some(__nt);
-                    __result = try!(__state68(arena, input, __tokens, __lookahead, __sym6));
-                }
-                __Nonterminal::BasicBlock_2b(__nt) => {
-                    let __sym6 = &mut Some(__nt);
-                    __result = try!(__state102(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
-                }
-                __Nonterminal::Ident(__nt) => {
-                    let __sym6 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym6));
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-        return Ok(__result);
     }
 
     pub fn __state86<
@@ -3906,6 +3907,68 @@ mod __parse__Func {
             Some(Err(e)) => return Err(e),
         };
         match __lookahead {
+            Some((__loc1, (5, __tok0), __loc2)) => {
+                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state104(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+            }
+            Some((__loc1, (17, __tok0), __loc2)) => {
+                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state73(arena, input, __tokens, __sym6));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        while __sym5.is_some() {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::BasicBlock(__nt) => {
+                    let __sym6 = &mut Some(__nt);
+                    __result = try!(__state69(arena, input, __tokens, __lookahead, __sym6));
+                }
+                __Nonterminal::BasicBlock_2b(__nt) => {
+                    let __sym6 = &mut Some(__nt);
+                    __result = try!(__state103(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+                }
+                __Nonterminal::Ident(__nt) => {
+                    let __sym6 = &mut Some(__nt);
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym6));
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+        return Ok(__result);
+    }
+
+    pub fn __state87<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, BasicBlock, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
+        __sym4: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym5: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
             None |
             Some((_, (8, _), _)) |
             Some((_, (9, _), _)) |
@@ -3918,7 +3981,7 @@ mod __parse__Func {
                 let __sym5 = __sym5.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym5.2.clone();
-                let __nt = super::__action77(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5);
+                let __nt = super::__action78(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -3935,7 +3998,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state87<
+    pub fn __state88<
         'input,
         'parse,
         'arena,
@@ -3957,11 +4020,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state104(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+                __result = try!(__state105(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym6));
+                __result = try!(__state73(arena, input, __tokens, __sym6));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -3975,53 +4038,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym6 = &mut Some(__nt);
-                    __result = try!(__state93(arena, input, __tokens, __lookahead, __sym5, __sym6));
+                    __result = try!(__state94(arena, input, __tokens, __lookahead, __sym5, __sym6));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym6 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym6));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym6));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
                 }
-            }
-        }
-        return Ok(__result);
-    }
-
-    pub fn __state88<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, BasicBlock, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
-        __sym5: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((__loc1, (14, __tok0), __loc2)) => {
-                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state105(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
             }
         }
         return Ok(__result);
@@ -4036,6 +4061,44 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, BasicBlock, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+        __sym5: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((__loc1, (14, __tok0), __loc2)) => {
+                let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state106(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        return Ok(__result);
+    }
+
+    pub fn __state90<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, (usize, &'input str), usize)>,
         __sym0: &mut Option<(usize, &'input str, usize)>,
         __sym1: &mut Option<(usize, BasicBlock, usize)>,
@@ -4049,11 +4112,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state106(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+                __result = try!(__state107(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym6));
+                __result = try!(__state73(arena, input, __tokens, __sym6));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4067,11 +4130,11 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym6 = &mut Some(__nt);
-                    __result = try!(__state93(arena, input, __tokens, __lookahead, __sym5, __sym6));
+                    __result = try!(__state94(arena, input, __tokens, __lookahead, __sym5, __sym6));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym6 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym6));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym6));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -4081,7 +4144,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state90<
+    pub fn __state91<
         'input,
         'parse,
         'arena,
@@ -4107,7 +4170,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state107(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+                __result = try!(__state108(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4119,7 +4182,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state91<
+    pub fn __state92<
         'input,
         'parse,
         'arena,
@@ -4138,7 +4201,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state108(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
+                __result = try!(__state109(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4150,7 +4213,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state92<
+    pub fn __state93<
         'input,
         'parse,
         'arena,
@@ -4173,10 +4236,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (15, __tok0), __loc2)) => {
                 let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state110(arena, input, __tokens, __sym3));
+                __result = try!(__state111(arena, input, __tokens, __sym3));
             }
             Some((_, (0, _), _)) |
             Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
             Some((_, (10, _), _)) |
             Some((_, (13, _), _)) |
             Some((_, (14, _), _)) => {
@@ -4185,7 +4249,7 @@ mod __parse__Func {
                 let __sym2 = __sym2.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym2.2.clone();
-                let __nt = super::__action81(arena, input, __sym0, __sym1, __sym2);
+                let __nt = super::__action82(arena, input, __sym0, __sym1, __sym2);
                 let __nt = __Nonterminal::Action((
                     __start,
                     __nt,
@@ -4205,7 +4269,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::Comment(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state109(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
+                    __result = try!(__state110(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -4215,7 +4279,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state93<
+    pub fn __state94<
         'input,
         'parse,
         'arena,
@@ -4237,7 +4301,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action39(arena, input, __sym0, __sym1);
+                let __nt = super::__action40(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::BasicBlock_2b((
                     __start,
                     __nt,
@@ -4254,7 +4318,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state94<
+    pub fn __state95<
         'input,
         'parse,
         'arena,
@@ -4280,7 +4344,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym6 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state111(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
+                __result = try!(__state112(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4292,7 +4356,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state95<
+    pub fn __state96<
         'input,
         'parse,
         'arena,
@@ -4328,7 +4392,7 @@ mod __parse__Func {
                 let __sym5 = __sym5.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym5.2.clone();
-                let __nt = super::__action66(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5);
+                let __nt = super::__action67(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -4343,84 +4407,6 @@ mod __parse__Func {
                 });
             }
         }
-    }
-
-    pub fn __state96<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((__loc1, (17, __tok0), __loc2)) => {
-                let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state26(arena, input, __tokens, __sym3));
-            }
-            Some((_, (14, _), _)) => {
-                let __start = __sym2.as_ref().unwrap().2.clone();
-                let __end = __lookahead.as_ref().map(|o| o.0.clone()).unwrap_or_else(|| __start.clone());
-                let __nt = super::__action65(arena, input, &__start, &__end);
-                let __nt = __Nonterminal::Comma0_3cPoint_3e((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                __result = (__lookahead, __nt);
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-        while __sym2.is_some() {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::BasicBlock(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state80(arena, input, __tokens, __lookahead, __sym3));
-                }
-                __Nonterminal::Comma0_3cPoint_3e(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state112(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
-                }
-                __Nonterminal::Comma1_3cPoint_3e(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state82(arena, input, __tokens, __lookahead, __sym3));
-                }
-                __Nonterminal::Comma_3cPoint_3e(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
-                }
-                __Nonterminal::Ident(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state19(arena, input, __tokens, __lookahead, __sym3));
-                }
-                __Nonterminal::Point(__nt) => {
-                    let __sym3 = &mut Some(__nt);
-                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-        return Ok(__result);
     }
 
     pub fn __state97<
@@ -4451,7 +4437,7 @@ mod __parse__Func {
             Some((_, (14, _), _)) => {
                 let __start = __sym2.as_ref().unwrap().2.clone();
                 let __end = __lookahead.as_ref().map(|o| o.0.clone()).unwrap_or_else(|| __start.clone());
-                let __nt = super::__action65(arena, input, &__start, &__end);
+                let __nt = super::__action66(arena, input, &__start, &__end);
                 let __nt = __Nonterminal::Comma0_3cPoint_3e((
                     __start,
                     __nt,
@@ -4471,7 +4457,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state80(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state81(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Comma0_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
@@ -4479,11 +4465,11 @@ mod __parse__Func {
                 }
                 __Nonterminal::Comma1_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state82(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Comma_3cPoint_3e(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym3 = &mut Some(__nt);
@@ -4491,7 +4477,7 @@ mod __parse__Func {
                 }
                 __Nonterminal::Point(__nt) => {
                     let __sym3 = &mut Some(__nt);
-                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
+                    __result = try!(__state85(arena, input, __tokens, __lookahead, __sym3));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -4502,6 +4488,84 @@ mod __parse__Func {
     }
 
     pub fn __state98<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((__loc1, (17, __tok0), __loc2)) => {
+                let mut __sym3 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state26(arena, input, __tokens, __sym3));
+            }
+            Some((_, (14, _), _)) => {
+                let __start = __sym2.as_ref().unwrap().2.clone();
+                let __end = __lookahead.as_ref().map(|o| o.0.clone()).unwrap_or_else(|| __start.clone());
+                let __nt = super::__action66(arena, input, &__start, &__end);
+                let __nt = __Nonterminal::Comma0_3cPoint_3e((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                __result = (__lookahead, __nt);
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        while __sym2.is_some() {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::BasicBlock(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state81(arena, input, __tokens, __lookahead, __sym3));
+                }
+                __Nonterminal::Comma0_3cPoint_3e(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state114(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3));
+                }
+                __Nonterminal::Comma1_3cPoint_3e(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state83(arena, input, __tokens, __lookahead, __sym3));
+                }
+                __Nonterminal::Comma_3cPoint_3e(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state84(arena, input, __tokens, __lookahead, __sym3));
+                }
+                __Nonterminal::Ident(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state19(arena, input, __tokens, __lookahead, __sym3));
+                }
+                __Nonterminal::Point(__nt) => {
+                    let __sym3 = &mut Some(__nt);
+                    __result = try!(__state85(arena, input, __tokens, __lookahead, __sym3));
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+        return Ok(__result);
+    }
+
+    pub fn __state99<
         'input,
         'parse,
         'arena,
@@ -4552,7 +4616,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state99<
+    pub fn __state100<
         'input,
         'parse,
         'arena,
@@ -4574,7 +4638,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (16, __tok0), __loc2)) => {
                 let mut __sym2 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state114(arena, input, __tokens, __sym0, __sym1, __sym2));
+                __result = try!(__state115(arena, input, __tokens, __sym0, __sym1, __sym2));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4586,7 +4650,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state100<
+    pub fn __state101<
         'input,
         'parse,
         'arena,
@@ -4617,7 +4681,7 @@ mod __parse__Func {
                 let __sym4 = __sym4.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym4.2.clone();
-                let __nt = super::__action12(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = super::__action13(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
                 let __nt = __Nonterminal::RegionData((
                     __start,
                     __nt,
@@ -4634,7 +4698,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state101<
+    pub fn __state102<
         'input,
         'parse,
         'arena,
@@ -4663,7 +4727,7 @@ mod __parse__Func {
                 let __sym1 = __sym1.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym1.2.clone();
-                let __nt = super::__action47(arena, input, __sym0, __sym1);
+                let __nt = super::__action48(arena, input, __sym0, __sym1);
                 let __nt = __Nonterminal::Comma_3cPoint_3e((
                     __start,
                     __nt,
@@ -4683,7 +4747,7 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym2 = &mut Some(__nt);
-                    __result = try!(__state80(arena, input, __tokens, __lookahead, __sym2));
+                    __result = try!(__state81(arena, input, __tokens, __lookahead, __sym2));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym2 = &mut Some(__nt);
@@ -4691,7 +4755,7 @@ mod __parse__Func {
                 }
                 __Nonterminal::Point(__nt) => {
                     let __sym2 = &mut Some(__nt);
-                    __result = try!(__state115(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2));
+                    __result = try!(__state116(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -4701,7 +4765,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state102<
+    pub fn __state103<
         'input,
         'parse,
         'arena,
@@ -4724,11 +4788,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (5, __tok0), __loc2)) => {
                 let mut __sym7 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state116(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7));
+                __result = try!(__state117(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7));
             }
             Some((__loc1, (17, __tok0), __loc2)) => {
                 let mut __sym7 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state72(arena, input, __tokens, __sym7));
+                __result = try!(__state73(arena, input, __tokens, __sym7));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -4742,54 +4806,15 @@ mod __parse__Func {
             match __nt {
                 __Nonterminal::BasicBlock(__nt) => {
                     let __sym7 = &mut Some(__nt);
-                    __result = try!(__state93(arena, input, __tokens, __lookahead, __sym6, __sym7));
+                    __result = try!(__state94(arena, input, __tokens, __lookahead, __sym6, __sym7));
                 }
                 __Nonterminal::Ident(__nt) => {
                     let __sym7 = &mut Some(__nt);
-                    __result = try!(__state70(arena, input, __tokens, __lookahead, __sym7));
+                    __result = try!(__state71(arena, input, __tokens, __lookahead, __sym7));
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
                 }
-            }
-        }
-        return Ok(__result);
-    }
-
-    pub fn __state103<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, BasicBlock, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
-        __sym5: &mut Option<(usize, &'input str, usize)>,
-        __sym6: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            Some((__loc1, (14, __tok0), __loc2)) => {
-                let mut __sym7 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state117(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
             }
         }
         return Ok(__result);
@@ -4808,8 +4833,8 @@ mod __parse__Func {
         __sym1: &mut Option<(usize, &'input str, usize)>,
         __sym2: &mut Option<(usize, BasicBlock, usize)>,
         __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
-        __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
+        __sym4: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym5: &mut Option<(usize, &'input str, usize)>,
         __sym6: &mut Option<(usize, &'input str, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
@@ -4848,61 +4873,6 @@ mod __parse__Func {
         __sym2: &mut Option<(usize, BasicBlock, usize)>,
         __sym3: &mut Option<(usize, &'input str, usize)>,
         __sym4: &mut Option<(usize, &'input str, usize)>,
-        __sym5: &mut Option<(usize, &'input str, usize)>,
-        __sym6: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            None |
-            Some((_, (8, _), _)) |
-            Some((_, (9, _), _)) |
-            Some((_, (15, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __sym1 = __sym1.take().unwrap();
-                let __sym2 = __sym2.take().unwrap();
-                let __sym3 = __sym3.take().unwrap();
-                let __sym4 = __sym4.take().unwrap();
-                let __sym5 = __sym5.take().unwrap();
-                let __sym6 = __sym6.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym6.2.clone();
-                let __nt = super::__action67(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6);
-                let __nt = __Nonterminal::BasicBlockData((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state106<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
         __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
         __sym6: &mut Option<(usize, &'input str, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
@@ -4928,7 +4898,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state107<
+    pub fn __state106<
         'input,
         'parse,
         'arena,
@@ -4937,10 +4907,10 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, BasicBlock, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
         __sym4: &mut Option<(usize, &'input str, usize)>,
         __sym5: &mut Option<(usize, &'input str, usize)>,
         __sym6: &mut Option<(usize, &'input str, usize)>,
@@ -4983,7 +4953,101 @@ mod __parse__Func {
         }
     }
 
+    pub fn __state107<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+        __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
+        __sym6: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((__loc1, (14, __tok0), __loc2)) => {
+                let mut __sym7 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state120(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        return Ok(__result);
+    }
+
     pub fn __state108<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+        __sym5: &mut Option<(usize, &'input str, usize)>,
+        __sym6: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            None |
+            Some((_, (8, _), _)) |
+            Some((_, (9, _), _)) |
+            Some((_, (15, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __sym1 = __sym1.take().unwrap();
+                let __sym2 = __sym2.take().unwrap();
+                let __sym3 = __sym3.take().unwrap();
+                let __sym4 = __sym4.take().unwrap();
+                let __sym5 = __sym5.take().unwrap();
+                let __sym6 = __sym6.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym6.2.clone();
+                let __nt = super::__action69(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6);
+                let __nt = __Nonterminal::BasicBlockData((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state109<
         'input,
         'parse,
         'arena,
@@ -5007,69 +5071,11 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (15, __tok0), __loc2)) => {
                 let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state110(arena, input, __tokens, __sym4));
+                __result = try!(__state111(arena, input, __tokens, __sym4));
             }
             Some((_, (0, _), _)) |
             Some((_, (1, _), _)) |
-            Some((_, (10, _), _)) |
-            Some((_, (13, _), _)) |
-            Some((_, (14, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __sym1 = __sym1.take().unwrap();
-                let __sym2 = __sym2.take().unwrap();
-                let __sym3 = __sym3.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym3.2.clone();
-                let __nt = super::__action79(arena, input, __sym0, __sym1, __sym2, __sym3);
-                let __nt = __Nonterminal::Action((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-        while __sym3.is_some() {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::Comment(__nt) => {
-                    let __sym4 = &mut Some(__nt);
-                    __result = try!(__state120(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-        return Ok(__result);
-    }
-
-    pub fn __state109<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, RegionVariable, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, (), usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        match __lookahead {
-            Some((_, (0, _), _)) |
-            Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
             Some((_, (10, _), _)) |
             Some((_, (13, _), _)) |
             Some((_, (14, _), _)) => {
@@ -5094,9 +5100,69 @@ mod __parse__Func {
                 });
             }
         }
+        while __sym3.is_some() {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::Comment(__nt) => {
+                    let __sym4 = &mut Some(__nt);
+                    __result = try!(__state121(arena, input, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4));
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+        return Ok(__result);
     }
 
     pub fn __state110<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, RegionVariable, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, (), usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        match __lookahead {
+            Some((_, (0, _), _)) |
+            Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
+            Some((_, (10, _), _)) |
+            Some((_, (13, _), _)) |
+            Some((_, (14, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __sym1 = __sym1.take().unwrap();
+                let __sym2 = __sym2.take().unwrap();
+                let __sym3 = __sym3.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym3.2.clone();
+                let __nt = super::__action81(arena, input, __sym0, __sym1, __sym2, __sym3);
+                let __nt = __Nonterminal::Action((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state111<
         'input,
         'parse,
         'arena,
@@ -5117,13 +5183,14 @@ mod __parse__Func {
         match __lookahead {
             Some((_, (0, _), _)) |
             Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
             Some((_, (10, _), _)) |
             Some((_, (13, _), _)) |
             Some((_, (14, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym0.2.clone();
-                let __nt = super::__action15(arena, input, __sym0);
+                let __nt = super::__action16(arena, input, __sym0);
                 let __nt = __Nonterminal::Comment((
                     __start,
                     __nt,
@@ -5140,7 +5207,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state111<
+    pub fn __state112<
         'input,
         'parse,
         'arena,
@@ -5178,7 +5245,7 @@ mod __parse__Func {
                 let __sym6 = __sym6.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym6.2.clone();
-                let __nt = super::__action70(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6);
+                let __nt = super::__action71(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -5193,38 +5260,6 @@ mod __parse__Func {
                 });
             }
         }
-    }
-
-    pub fn __state112<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        match __lookahead {
-            Some((__loc1, (14, __tok0), __loc2)) => {
-                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state121(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-        return Ok(__result);
     }
 
     pub fn __state113<
@@ -5268,6 +5303,38 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        match __lookahead {
+            Some((__loc1, (14, __tok0), __loc2)) => {
+                let mut __sym4 = &mut Some((__loc1, (__tok0), __loc2));
+                __result = try!(__state123(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+        return Ok(__result);
+    }
+
+    pub fn __state115<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
         __sym0: &mut Option<(usize, BasicBlock, usize)>,
         __sym1: &mut Option<(usize, &'input str, usize)>,
         __sym2: &mut Option<(usize, &'input str, usize)>,
@@ -5287,7 +5354,7 @@ mod __parse__Func {
                 let __sym2 = __sym2.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym2.2.clone();
-                let __nt = super::__action14(arena, input, __sym0, __sym1, __sym2);
+                let __nt = super::__action15(arena, input, __sym0, __sym1, __sym2);
                 let __nt = __Nonterminal::Point((
                     __start,
                     __nt,
@@ -5304,7 +5371,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state115<
+    pub fn __state116<
         'input,
         'parse,
         'arena,
@@ -5328,7 +5395,7 @@ mod __parse__Func {
                 let __sym2 = __sym2.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym2.2.clone();
-                let __nt = super::__action46(arena, input, __sym0, __sym1, __sym2);
+                let __nt = super::__action47(arena, input, __sym0, __sym1, __sym2);
                 let __nt = __Nonterminal::Comma1_3cPoint_3e((
                     __start,
                     __nt,
@@ -5345,7 +5412,7 @@ mod __parse__Func {
         }
     }
 
-    pub fn __state116<
+    pub fn __state117<
         'input,
         'parse,
         'arena,
@@ -5373,7 +5440,7 @@ mod __parse__Func {
         match __lookahead {
             Some((__loc1, (14, __tok0), __loc2)) => {
                 let mut __sym8 = &mut Some((__loc1, (__tok0), __loc2));
-                __result = try!(__state123(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8));
+                __result = try!(__state124(arena, input, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8));
             }
             _ => {
                 return Err(__ParseError::UnrecognizedToken {
@@ -5385,7 +5452,7 @@ mod __parse__Func {
         return Ok(__result);
     }
 
-    pub fn __state117<
+    pub fn __state118<
         'input,
         'parse,
         'arena,
@@ -5425,64 +5492,7 @@ mod __parse__Func {
                 let __sym7 = __sym7.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym7.2.clone();
-                let __nt = super::__action69(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7);
-                let __nt = __Nonterminal::BasicBlockData((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                return Ok((__lookahead, __nt));
-            }
-            _ => {
-                return Err(__ParseError::UnrecognizedToken {
-                    token: __lookahead,
-                    expected: vec![],
-                });
-            }
-        }
-    }
-
-    pub fn __state118<
-        'input,
-        'parse,
-        'arena,
-        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
-    >(
-        arena: &'parse mut Arena<'arena>,
-        input: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, BasicBlock, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
-        __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
-        __sym6: &mut Option<(usize, &'input str, usize)>,
-        __sym7: &mut Option<(usize, &'input str, usize)>,
-    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
-    {
-        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
-        match __lookahead {
-            None |
-            Some((_, (8, _), _)) |
-            Some((_, (9, _), _)) |
-            Some((_, (15, _), _)) => {
-                let __sym0 = __sym0.take().unwrap();
-                let __sym1 = __sym1.take().unwrap();
-                let __sym2 = __sym2.take().unwrap();
-                let __sym3 = __sym3.take().unwrap();
-                let __sym4 = __sym4.take().unwrap();
-                let __sym5 = __sym5.take().unwrap();
-                let __sym6 = __sym6.take().unwrap();
-                let __sym7 = __sym7.take().unwrap();
-                let __start = __sym0.0.clone();
-                let __end = __sym7.2.clone();
-                let __nt = super::__action71(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7);
+                let __nt = super::__action70(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -5508,10 +5518,10 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym0: &mut Option<(usize, ::std::vec::Vec<()>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, BasicBlock, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
         __sym4: &mut Option<(usize, &'input str, usize)>,
         __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
         __sym6: &mut Option<(usize, &'input str, usize)>,
@@ -5565,30 +5575,39 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, (usize, &'input str), usize)>,
-        __sym0: &mut Option<(usize, Region<'arena>, usize)>,
-        __sym1: &mut Option<(usize, &'input str, usize)>,
-        __sym2: &mut Option<(usize, Region<'arena>, usize)>,
-        __sym3: &mut Option<(usize, &'input str, usize)>,
-        __sym4: &mut Option<(usize, (), usize)>,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, ::std::vec::Vec<Action<'arena>>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+        __sym5: &mut Option<(usize, ::std::vec::Vec<BasicBlock>, usize)>,
+        __sym6: &mut Option<(usize, &'input str, usize)>,
+        __sym7: &mut Option<(usize, &'input str, usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
         match __lookahead {
-            Some((_, (0, _), _)) |
-            Some((_, (1, _), _)) |
-            Some((_, (10, _), _)) |
-            Some((_, (13, _), _)) |
-            Some((_, (14, _), _)) => {
+            None |
+            Some((_, (8, _), _)) |
+            Some((_, (9, _), _)) |
+            Some((_, (15, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __sym1 = __sym1.take().unwrap();
                 let __sym2 = __sym2.take().unwrap();
                 let __sym3 = __sym3.take().unwrap();
                 let __sym4 = __sym4.take().unwrap();
+                let __sym5 = __sym5.take().unwrap();
+                let __sym6 = __sym6.take().unwrap();
+                let __sym7 = __sym7.take().unwrap();
                 let __start = __sym0.0.clone();
-                let __end = __sym4.2.clone();
-                let __nt = super::__action78(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
-                let __nt = __Nonterminal::Action((
+                let __end = __sym7.2.clone();
+                let __nt = super::__action73(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7);
+                let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
                     __end,
@@ -5613,21 +5632,22 @@ mod __parse__Func {
         arena: &'parse mut Arena<'arena>,
         input: &'input str,
         __tokens: &mut __TOKENS,
-        __sym0: &mut Option<(usize, &'input str, usize)>,
-        __sym1: &mut Option<(usize, BasicBlock, usize)>,
-        __sym2: &mut Option<(usize, &'input str, usize)>,
-        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
-        __sym4: &mut Option<(usize, &'input str, usize)>,
+        __lookahead: Option<(usize, (usize, &'input str), usize)>,
+        __sym0: &mut Option<(usize, Region<'arena>, usize)>,
+        __sym1: &mut Option<(usize, &'input str, usize)>,
+        __sym2: &mut Option<(usize, Region<'arena>, usize)>,
+        __sym3: &mut Option<(usize, &'input str, usize)>,
+        __sym4: &mut Option<(usize, (), usize)>,
     ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
     {
         let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            None => None,
-            Some(Err(e)) => return Err(e),
-        };
         match __lookahead {
-            Some((_, (6, _), _)) => {
+            Some((_, (0, _), _)) |
+            Some((_, (1, _), _)) |
+            Some((_, (5, _), _)) |
+            Some((_, (10, _), _)) |
+            Some((_, (13, _), _)) |
+            Some((_, (14, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __sym1 = __sym1.take().unwrap();
                 let __sym2 = __sym2.take().unwrap();
@@ -5635,8 +5655,8 @@ mod __parse__Func {
                 let __sym4 = __sym4.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym4.2.clone();
-                let __nt = super::__action12(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
-                let __nt = __Nonterminal::RegionData((
+                let __nt = super::__action79(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = __Nonterminal::Action((
                     __start,
                     __nt,
                     __end,
@@ -5675,7 +5695,7 @@ mod __parse__Func {
             Some(Err(e)) => return Err(e),
         };
         match __lookahead {
-            Some((_, (5, _), _)) => {
+            Some((_, (6, _), _)) => {
                 let __sym0 = __sym0.take().unwrap();
                 let __sym1 = __sym1.take().unwrap();
                 let __sym2 = __sym2.take().unwrap();
@@ -5683,7 +5703,7 @@ mod __parse__Func {
                 let __sym4 = __sym4.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym4.2.clone();
-                let __nt = super::__action12(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = super::__action13(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
                 let __nt = __Nonterminal::RegionData((
                     __start,
                     __nt,
@@ -5701,6 +5721,54 @@ mod __parse__Func {
     }
 
     pub fn __state123<
+        'input,
+        'parse,
+        'arena,
+        __TOKENS: Iterator<Item=Result<(usize, (usize, &'input str), usize),__ParseError<usize,(usize, &'input str),()>>>,
+    >(
+        arena: &'parse mut Arena<'arena>,
+        input: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: &mut Option<(usize, &'input str, usize)>,
+        __sym1: &mut Option<(usize, BasicBlock, usize)>,
+        __sym2: &mut Option<(usize, &'input str, usize)>,
+        __sym3: &mut Option<(usize, Vec<Point>, usize)>,
+        __sym4: &mut Option<(usize, &'input str, usize)>,
+    ) -> Result<(Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>), __ParseError<usize,(usize, &'input str),()>>
+    {
+        let mut __result: (Option<(usize, (usize, &'input str), usize)>, __Nonterminal<'input, 'arena>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            None => None,
+            Some(Err(e)) => return Err(e),
+        };
+        match __lookahead {
+            Some((_, (5, _), _)) => {
+                let __sym0 = __sym0.take().unwrap();
+                let __sym1 = __sym1.take().unwrap();
+                let __sym2 = __sym2.take().unwrap();
+                let __sym3 = __sym3.take().unwrap();
+                let __sym4 = __sym4.take().unwrap();
+                let __start = __sym0.0.clone();
+                let __end = __sym4.2.clone();
+                let __nt = super::__action13(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = __Nonterminal::RegionData((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                return Ok((__lookahead, __nt));
+            }
+            _ => {
+                return Err(__ParseError::UnrecognizedToken {
+                    token: __lookahead,
+                    expected: vec![],
+                });
+            }
+        }
+    }
+
+    pub fn __state124<
         'input,
         'parse,
         'arena,
@@ -5742,7 +5810,7 @@ mod __parse__Func {
                 let __sym8 = __sym8.take().unwrap();
                 let __start = __sym0.0.clone();
                 let __end = __sym8.2.clone();
-                let __nt = super::__action73(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8);
+                let __nt = super::__action74(arena, input, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8);
                 let __nt = __Nonterminal::BasicBlockData((
                     __start,
                     __nt,
@@ -78653,12 +78721,25 @@ pub fn __action9<
     arena: &'parse mut Arena<'arena>,
     input: &'input str,
     (_, __0, _): (usize, &'input str, usize),
+) -> Action<'arena>
+{
+    Action::Noop
+}
+
+pub fn __action10<
+    'input,
+    'parse,
+    'arena,
+>(
+    arena: &'parse mut Arena<'arena>,
+    input: &'input str,
+    (_, __0, _): (usize, &'input str, usize),
 ) -> InternedString
 {
     intern::intern(__0)
 }
 
-pub fn __action10<
+pub fn __action11<
     'input,
     'parse,
     'arena,
@@ -78671,7 +78752,7 @@ pub fn __action10<
     arena.intern(__0)
 }
 
-pub fn __action11<
+pub fn __action12<
     'input,
     'parse,
     'arena,
@@ -78684,7 +78765,7 @@ pub fn __action11<
     RegionData::Variable(v)
 }
 
-pub fn __action12<
+pub fn __action13<
     'input,
     'parse,
     'arena,
@@ -78701,7 +78782,7 @@ pub fn __action12<
     RegionData::Literal(__0, __1)
 }
 
-pub fn __action13<
+pub fn __action14<
     'input,
     'parse,
     'arena,
@@ -78715,7 +78796,7 @@ pub fn __action13<
     RegionVariable(name)
 }
 
-pub fn __action14<
+pub fn __action15<
     'input,
     'parse,
     'arena,
@@ -78730,7 +78811,7 @@ pub fn __action14<
     Point { block: b, action: usize::from_str(a).unwrap() }
 }
 
-pub fn __action15<
+pub fn __action16<
     'input,
     'parse,
     'arena,
@@ -78743,7 +78824,7 @@ pub fn __action15<
     ()
 }
 
-pub fn __action16<
+pub fn __action17<
     'input,
     'parse,
     'arena,
@@ -78756,7 +78837,7 @@ pub fn __action16<
     v.unwrap_or(vec![])
 }
 
-pub fn __action17<
+pub fn __action18<
     'input,
     'parse,
     'arena,
@@ -78769,7 +78850,7 @@ pub fn __action17<
     Some(__0)
 }
 
-pub fn __action18<
+pub fn __action19<
     'input,
     'parse,
     'arena,
@@ -78783,7 +78864,7 @@ pub fn __action18<
     None
 }
 
-pub fn __action19<
+pub fn __action20<
     'input,
     'parse,
     'arena,
@@ -78796,7 +78877,7 @@ pub fn __action19<
     Some(__0)
 }
 
-pub fn __action20<
+pub fn __action21<
     'input,
     'parse,
     'arena,
@@ -78810,7 +78891,7 @@ pub fn __action20<
     None
 }
 
-pub fn __action21<
+pub fn __action22<
     'input,
     'parse,
     'arena,
@@ -78825,7 +78906,7 @@ pub fn __action21<
     (__0)
 }
 
-pub fn __action22<
+pub fn __action23<
     'input,
     'parse,
     'arena,
@@ -78839,7 +78920,7 @@ pub fn __action22<
     vec![]
 }
 
-pub fn __action23<
+pub fn __action24<
     'input,
     'parse,
     'arena,
@@ -78852,7 +78933,7 @@ pub fn __action23<
     v
 }
 
-pub fn __action24<
+pub fn __action25<
     'input,
     'parse,
     'arena,
@@ -78866,7 +78947,7 @@ pub fn __action24<
     vec![]
 }
 
-pub fn __action25<
+pub fn __action26<
     'input,
     'parse,
     'arena,
@@ -78879,7 +78960,7 @@ pub fn __action25<
     v
 }
 
-pub fn __action26<
+pub fn __action27<
     'input,
     'parse,
     'arena,
@@ -78893,7 +78974,7 @@ pub fn __action26<
     vec![]
 }
 
-pub fn __action27<
+pub fn __action28<
     'input,
     'parse,
     'arena,
@@ -78906,7 +78987,7 @@ pub fn __action27<
     v
 }
 
-pub fn __action28<
+pub fn __action29<
     'input,
     'parse,
     'arena,
@@ -78920,7 +79001,7 @@ pub fn __action28<
     vec![]
 }
 
-pub fn __action29<
+pub fn __action30<
     'input,
     'parse,
     'arena,
@@ -78933,7 +79014,7 @@ pub fn __action29<
     v
 }
 
-pub fn __action30<
+pub fn __action31<
     'input,
     'parse,
     'arena,
@@ -78946,7 +79027,7 @@ pub fn __action30<
     vec![__0]
 }
 
-pub fn __action31<
+pub fn __action32<
     'input,
     'parse,
     'arena,
@@ -78960,7 +79041,7 @@ pub fn __action31<
     { let mut v = v; v.push(e); v }
 }
 
-pub fn __action32<
+pub fn __action33<
     'input,
     'parse,
     'arena,
@@ -78973,7 +79054,7 @@ pub fn __action32<
     vec![__0]
 }
 
-pub fn __action33<
+pub fn __action34<
     'input,
     'parse,
     'arena,
@@ -78987,7 +79068,7 @@ pub fn __action33<
     { let mut v = v; v.push(e); v }
 }
 
-pub fn __action34<
+pub fn __action35<
     'input,
     'parse,
     'arena,
@@ -79000,7 +79081,7 @@ pub fn __action34<
     vec![__0]
 }
 
-pub fn __action35<
+pub fn __action36<
     'input,
     'parse,
     'arena,
@@ -79014,7 +79095,7 @@ pub fn __action35<
     { let mut v = v; v.push(e); v }
 }
 
-pub fn __action36<
+pub fn __action37<
     'input,
     'parse,
     'arena,
@@ -79027,7 +79108,7 @@ pub fn __action36<
     vec![__0]
 }
 
-pub fn __action37<
+pub fn __action38<
     'input,
     'parse,
     'arena,
@@ -79041,7 +79122,7 @@ pub fn __action37<
     { let mut v = v; v.push(e); v }
 }
 
-pub fn __action38<
+pub fn __action39<
     'input,
     'parse,
     'arena,
@@ -79054,7 +79135,7 @@ pub fn __action38<
     vec![__0]
 }
 
-pub fn __action39<
+pub fn __action40<
     'input,
     'parse,
     'arena,
@@ -79068,7 +79149,7 @@ pub fn __action39<
     { let mut v = v; v.push(e); v }
 }
 
-pub fn __action40<
+pub fn __action41<
     'input,
     'parse,
     'arena,
@@ -79081,7 +79162,7 @@ pub fn __action40<
     Some(__0)
 }
 
-pub fn __action41<
+pub fn __action42<
     'input,
     'parse,
     'arena,
@@ -79095,7 +79176,7 @@ pub fn __action41<
     None
 }
 
-pub fn __action42<
+pub fn __action43<
     'input,
     'parse,
     'arena,
@@ -79109,7 +79190,7 @@ pub fn __action42<
     (__0)
 }
 
-pub fn __action43<
+pub fn __action44<
     'input,
     'parse,
     'arena,
@@ -79122,7 +79203,7 @@ pub fn __action43<
     Some(__0)
 }
 
-pub fn __action44<
+pub fn __action45<
     'input,
     'parse,
     'arena,
@@ -79136,7 +79217,7 @@ pub fn __action44<
     None
 }
 
-pub fn __action45<
+pub fn __action46<
     'input,
     'parse,
     'arena,
@@ -79149,7 +79230,7 @@ pub fn __action45<
     vec![__0]
 }
 
-pub fn __action46<
+pub fn __action47<
     'input,
     'parse,
     'arena,
@@ -79168,7 +79249,7 @@ pub fn __action46<
     }
 }
 
-pub fn __action47<
+pub fn __action48<
     'input,
     'parse,
     'arena,
@@ -79181,40 +79262,13 @@ pub fn __action47<
 {
     let __start0 = __1.0.clone();
     let __end0 = __1.2.clone();
-    let __temp0 = __action43(
+    let __temp0 = __action44(
         arena,
         input,
         __1,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action42(
-        arena,
-        input,
-        __0,
-        __temp0,
-    )
-}
-
-pub fn __action48<
-    'input,
-    'parse,
-    'arena,
->(
-    arena: &'parse mut Arena<'arena>,
-    input: &'input str,
-    __0: (usize, Vec<Point>, usize),
-) -> Vec<Point>
-{
-    let __start0 = __0.2.clone();
-    let __end0 = __0.2.clone();
-    let __temp0 = __action44(
-        arena,
-        input,
-        &__start0,
-        &__end0,
-    );
-    let __temp0 = (__start0, __temp0, __end0);
-    __action42(
+    __action43(
         arena,
         input,
         __0,
@@ -79229,20 +79283,47 @@ pub fn __action49<
 >(
     arena: &'parse mut Arena<'arena>,
     input: &'input str,
-    __0: (usize, &'input str, usize),
-    __1: (usize, &'input str, usize),
-) -> ::std::vec::Vec<BasicBlock>
+    __0: (usize, Vec<Point>, usize),
+) -> Vec<Point>
 {
     let __start0 = __0.2.clone();
-    let __end0 = __1.0.clone();
-    let __temp0 = __action22(
+    let __end0 = __0.2.clone();
+    let __temp0 = __action45(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action21(
+    __action43(
+        arena,
+        input,
+        __0,
+        __temp0,
+    )
+}
+
+pub fn __action50<
+    'input,
+    'parse,
+    'arena,
+>(
+    arena: &'parse mut Arena<'arena>,
+    input: &'input str,
+    __0: (usize, &'input str, usize),
+    __1: (usize, &'input str, usize),
+) -> ::std::vec::Vec<BasicBlock>
+{
+    let __start0 = __0.2.clone();
+    let __end0 = __1.0.clone();
+    let __temp0 = __action23(
+        arena,
+        input,
+        &__start0,
+        &__end0,
+    );
+    let __temp0 = (__start0, __temp0, __end0);
+    __action22(
         arena,
         input,
         __0,
@@ -79251,7 +79332,7 @@ pub fn __action49<
     )
 }
 
-pub fn __action50<
+pub fn __action51<
     'input,
     'parse,
     'arena,
@@ -79265,13 +79346,13 @@ pub fn __action50<
 {
     let __start0 = __1.0.clone();
     let __end0 = __1.2.clone();
-    let __temp0 = __action23(
+    let __temp0 = __action24(
         arena,
         input,
         __1,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action21(
+    __action22(
         arena,
         input,
         __0,
@@ -79280,7 +79361,7 @@ pub fn __action50<
     )
 }
 
-pub fn __action51<
+pub fn __action52<
     'input,
     'parse,
     'arena,
@@ -79293,21 +79374,21 @@ pub fn __action51<
 {
     let __start0 = __0.0.clone();
     let __end0 = __1.2.clone();
-    let __temp0 = __action49(
+    let __temp0 = __action50(
         arena,
         input,
         __0,
         __1,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action19(
+    __action20(
         arena,
         input,
         __temp0,
     )
 }
 
-pub fn __action52<
+pub fn __action53<
     'input,
     'parse,
     'arena,
@@ -79321,7 +79402,7 @@ pub fn __action52<
 {
     let __start0 = __0.0.clone();
     let __end0 = __2.2.clone();
-    let __temp0 = __action50(
+    let __temp0 = __action51(
         arena,
         input,
         __0,
@@ -79329,14 +79410,14 @@ pub fn __action52<
         __2,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action19(
+    __action20(
         arena,
         input,
         __temp0,
     )
 }
 
-pub fn __action53<
+pub fn __action54<
     'input,
     'parse,
     'arena,
@@ -79355,7 +79436,7 @@ pub fn __action53<
 {
     let __start0 = __5.0.clone();
     let __end0 = __6.2.clone();
-    let __temp0 = __action51(
+    let __temp0 = __action52(
         arena,
         input,
         __5,
@@ -79375,7 +79456,7 @@ pub fn __action53<
     )
 }
 
-pub fn __action54<
+pub fn __action55<
     'input,
     'parse,
     'arena,
@@ -79395,7 +79476,7 @@ pub fn __action54<
 {
     let __start0 = __5.0.clone();
     let __end0 = __7.2.clone();
-    let __temp0 = __action52(
+    let __temp0 = __action53(
         arena,
         input,
         __5,
@@ -79416,7 +79497,7 @@ pub fn __action54<
     )
 }
 
-pub fn __action55<
+pub fn __action56<
     'input,
     'parse,
     'arena,
@@ -79433,7 +79514,7 @@ pub fn __action55<
 {
     let __start0 = __4.2.clone();
     let __end0 = __5.0.clone();
-    let __temp0 = __action20(
+    let __temp0 = __action21(
         arena,
         input,
         &__start0,
@@ -79453,7 +79534,7 @@ pub fn __action55<
     )
 }
 
-pub fn __action56<
+pub fn __action57<
     'input,
     'parse,
     'arena,
@@ -79471,14 +79552,14 @@ pub fn __action56<
 {
     let __start0 = __3.2.clone();
     let __end0 = __4.0.clone();
-    let __temp0 = __action24(
+    let __temp0 = __action25(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action53(
+    __action54(
         arena,
         input,
         __0,
@@ -79492,7 +79573,7 @@ pub fn __action56<
     )
 }
 
-pub fn __action57<
+pub fn __action58<
     'input,
     'parse,
     'arena,
@@ -79511,50 +79592,10 @@ pub fn __action57<
 {
     let __start0 = __4.0.clone();
     let __end0 = __4.2.clone();
-    let __temp0 = __action25(
+    let __temp0 = __action26(
         arena,
         input,
         __4,
-    );
-    let __temp0 = (__start0, __temp0, __end0);
-    __action53(
-        arena,
-        input,
-        __0,
-        __1,
-        __2,
-        __3,
-        __temp0,
-        __5,
-        __6,
-        __7,
-    )
-}
-
-pub fn __action58<
-    'input,
-    'parse,
-    'arena,
->(
-    arena: &'parse mut Arena<'arena>,
-    input: &'input str,
-    __0: (usize, ::std::vec::Vec<()>, usize),
-    __1: (usize, &'input str, usize),
-    __2: (usize, BasicBlock, usize),
-    __3: (usize, &'input str, usize),
-    __4: (usize, &'input str, usize),
-    __5: (usize, ::std::vec::Vec<BasicBlock>, usize),
-    __6: (usize, &'input str, usize),
-    __7: (usize, &'input str, usize),
-) -> BasicBlockData<'arena>
-{
-    let __start0 = __3.2.clone();
-    let __end0 = __4.0.clone();
-    let __temp0 = __action24(
-        arena,
-        input,
-        &__start0,
-        &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
     __action54(
@@ -79565,7 +79606,6 @@ pub fn __action58<
         __2,
         __3,
         __temp0,
-        __4,
         __5,
         __6,
         __7,
@@ -79583,6 +79623,47 @@ pub fn __action59<
     __1: (usize, &'input str, usize),
     __2: (usize, BasicBlock, usize),
     __3: (usize, &'input str, usize),
+    __4: (usize, &'input str, usize),
+    __5: (usize, ::std::vec::Vec<BasicBlock>, usize),
+    __6: (usize, &'input str, usize),
+    __7: (usize, &'input str, usize),
+) -> BasicBlockData<'arena>
+{
+    let __start0 = __3.2.clone();
+    let __end0 = __4.0.clone();
+    let __temp0 = __action25(
+        arena,
+        input,
+        &__start0,
+        &__end0,
+    );
+    let __temp0 = (__start0, __temp0, __end0);
+    __action55(
+        arena,
+        input,
+        __0,
+        __1,
+        __2,
+        __3,
+        __temp0,
+        __4,
+        __5,
+        __6,
+        __7,
+    )
+}
+
+pub fn __action60<
+    'input,
+    'parse,
+    'arena,
+>(
+    arena: &'parse mut Arena<'arena>,
+    input: &'input str,
+    __0: (usize, ::std::vec::Vec<()>, usize),
+    __1: (usize, &'input str, usize),
+    __2: (usize, BasicBlock, usize),
+    __3: (usize, &'input str, usize),
     __4: (usize, ::std::vec::Vec<Action<'arena>>, usize),
     __5: (usize, &'input str, usize),
     __6: (usize, ::std::vec::Vec<BasicBlock>, usize),
@@ -79592,13 +79673,13 @@ pub fn __action59<
 {
     let __start0 = __4.0.clone();
     let __end0 = __4.2.clone();
-    let __temp0 = __action25(
+    let __temp0 = __action26(
         arena,
         input,
         __4,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action54(
+    __action55(
         arena,
         input,
         __0,
@@ -79613,7 +79694,7 @@ pub fn __action59<
     )
 }
 
-pub fn __action60<
+pub fn __action61<
     'input,
     'parse,
     'arena,
@@ -79629,14 +79710,14 @@ pub fn __action60<
 {
     let __start0 = __3.2.clone();
     let __end0 = __4.0.clone();
-    let __temp0 = __action24(
+    let __temp0 = __action25(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action55(
+    __action56(
         arena,
         input,
         __0,
@@ -79648,7 +79729,7 @@ pub fn __action60<
     )
 }
 
-pub fn __action61<
+pub fn __action62<
     'input,
     'parse,
     'arena,
@@ -79665,13 +79746,13 @@ pub fn __action61<
 {
     let __start0 = __4.0.clone();
     let __end0 = __4.2.clone();
-    let __temp0 = __action25(
+    let __temp0 = __action26(
         arena,
         input,
         __4,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action55(
+    __action56(
         arena,
         input,
         __0,
@@ -79683,7 +79764,7 @@ pub fn __action61<
     )
 }
 
-pub fn __action62<
+pub fn __action63<
     'input,
     'parse,
     'arena,
@@ -79695,38 +79776,11 @@ pub fn __action62<
 {
     let __start0 = __0.2.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action28(
+    let __temp0 = __action29(
         arena,
         input,
         &__start0,
         &__end0,
-    );
-    let __temp0 = (__start0, __temp0, __end0);
-    __action1(
-        arena,
-        input,
-        __0,
-        __temp0,
-    )
-}
-
-pub fn __action63<
-    'input,
-    'parse,
-    'arena,
->(
-    arena: &'parse mut Arena<'arena>,
-    input: &'input str,
-    __0: (usize, ::std::vec::Vec<BasicBlockData<'arena>>, usize),
-    __1: (usize, ::std::vec::Vec<Assertion<'arena>>, usize),
-) -> Func<'arena>
-{
-    let __start0 = __1.0.clone();
-    let __end0 = __1.2.clone();
-    let __temp0 = __action29(
-        arena,
-        input,
-        __1,
     );
     let __temp0 = (__start0, __temp0, __end0);
     __action1(
@@ -79744,25 +79798,52 @@ pub fn __action64<
 >(
     arena: &'parse mut Arena<'arena>,
     input: &'input str,
+    __0: (usize, ::std::vec::Vec<BasicBlockData<'arena>>, usize),
+    __1: (usize, ::std::vec::Vec<Assertion<'arena>>, usize),
+) -> Func<'arena>
+{
+    let __start0 = __1.0.clone();
+    let __end0 = __1.2.clone();
+    let __temp0 = __action30(
+        arena,
+        input,
+        __1,
+    );
+    let __temp0 = (__start0, __temp0, __end0);
+    __action1(
+        arena,
+        input,
+        __0,
+        __temp0,
+    )
+}
+
+pub fn __action65<
+    'input,
+    'parse,
+    'arena,
+>(
+    arena: &'parse mut Arena<'arena>,
+    input: &'input str,
     __0: (usize, Vec<Point>, usize),
 ) -> Vec<Point>
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action40(
+    let __temp0 = __action41(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action16(
+    __action17(
         arena,
         input,
         __temp0,
     )
 }
 
-pub fn __action65<
+pub fn __action66<
     'input,
     'parse,
     'arena,
@@ -79775,21 +79856,21 @@ pub fn __action65<
 {
     let __start0 = __lookbehind.clone();
     let __end0 = __lookahead.clone();
-    let __temp0 = __action41(
+    let __temp0 = __action42(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action16(
+    __action17(
         arena,
         input,
         __temp0,
     )
 }
 
-pub fn __action66<
+pub fn __action67<
     'input,
     'parse,
     'arena,
@@ -79806,14 +79887,14 @@ pub fn __action66<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action56(
+    __action57(
         arena,
         input,
         __temp0,
@@ -79826,7 +79907,7 @@ pub fn __action66<
     )
 }
 
-pub fn __action67<
+pub fn __action68<
     'input,
     'parse,
     'arena,
@@ -79844,13 +79925,13 @@ pub fn __action67<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action56(
+    __action57(
         arena,
         input,
         __temp0,
@@ -79863,7 +79944,7 @@ pub fn __action67<
     )
 }
 
-pub fn __action68<
+pub fn __action69<
     'input,
     'parse,
     'arena,
@@ -79881,14 +79962,14 @@ pub fn __action68<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action57(
+    __action58(
         arena,
         input,
         __temp0,
@@ -79902,7 +79983,7 @@ pub fn __action68<
     )
 }
 
-pub fn __action69<
+pub fn __action70<
     'input,
     'parse,
     'arena,
@@ -79921,13 +80002,13 @@ pub fn __action69<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action57(
+    __action58(
         arena,
         input,
         __temp0,
@@ -79941,7 +80022,7 @@ pub fn __action69<
     )
 }
 
-pub fn __action70<
+pub fn __action71<
     'input,
     'parse,
     'arena,
@@ -79959,14 +80040,14 @@ pub fn __action70<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action58(
+    __action59(
         arena,
         input,
         __temp0,
@@ -79980,7 +80061,7 @@ pub fn __action70<
     )
 }
 
-pub fn __action71<
+pub fn __action72<
     'input,
     'parse,
     'arena,
@@ -79999,13 +80080,13 @@ pub fn __action71<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action58(
+    __action59(
         arena,
         input,
         __temp0,
@@ -80019,7 +80100,7 @@ pub fn __action71<
     )
 }
 
-pub fn __action72<
+pub fn __action73<
     'input,
     'parse,
     'arena,
@@ -80038,14 +80119,14 @@ pub fn __action72<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action59(
+    __action60(
         arena,
         input,
         __temp0,
@@ -80060,7 +80141,7 @@ pub fn __action72<
     )
 }
 
-pub fn __action73<
+pub fn __action74<
     'input,
     'parse,
     'arena,
@@ -80080,13 +80161,13 @@ pub fn __action73<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action59(
+    __action60(
         arena,
         input,
         __temp0,
@@ -80101,7 +80182,7 @@ pub fn __action73<
     )
 }
 
-pub fn __action74<
+pub fn __action75<
     'input,
     'parse,
     'arena,
@@ -80116,14 +80197,14 @@ pub fn __action74<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action60(
+    __action61(
         arena,
         input,
         __temp0,
@@ -80134,7 +80215,7 @@ pub fn __action74<
     )
 }
 
-pub fn __action75<
+pub fn __action76<
     'input,
     'parse,
     'arena,
@@ -80150,13 +80231,13 @@ pub fn __action75<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action60(
+    __action61(
         arena,
         input,
         __temp0,
@@ -80167,7 +80248,7 @@ pub fn __action75<
     )
 }
 
-pub fn __action76<
+pub fn __action77<
     'input,
     'parse,
     'arena,
@@ -80183,14 +80264,14 @@ pub fn __action76<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.0.clone();
-    let __temp0 = __action26(
+    let __temp0 = __action27(
         arena,
         input,
         &__start0,
         &__end0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action61(
+    __action62(
         arena,
         input,
         __temp0,
@@ -80202,7 +80283,7 @@ pub fn __action76<
     )
 }
 
-pub fn __action77<
+pub fn __action78<
     'input,
     'parse,
     'arena,
@@ -80219,13 +80300,13 @@ pub fn __action77<
 {
     let __start0 = __0.0.clone();
     let __end0 = __0.2.clone();
-    let __temp0 = __action27(
+    let __temp0 = __action28(
         arena,
         input,
         __0,
     );
     let __temp0 = (__start0, __temp0, __end0);
-    __action61(
+    __action62(
         arena,
         input,
         __temp0,
@@ -80237,7 +80318,7 @@ pub fn __action77<
     )
 }
 
-pub fn __action78<
+pub fn __action79<
     'input,
     'parse,
     'arena,
@@ -80253,43 +80334,10 @@ pub fn __action78<
 {
     let __start0 = __4.0.clone();
     let __end0 = __4.2.clone();
-    let __temp0 = __action17(
-        arena,
-        input,
-        __4,
-    );
-    let __temp0 = (__start0, __temp0, __end0);
-    __action7(
-        arena,
-        input,
-        __0,
-        __1,
-        __2,
-        __3,
-        __temp0,
-    )
-}
-
-pub fn __action79<
-    'input,
-    'parse,
-    'arena,
->(
-    arena: &'parse mut Arena<'arena>,
-    input: &'input str,
-    __0: (usize, Region<'arena>, usize),
-    __1: (usize, &'input str, usize),
-    __2: (usize, Region<'arena>, usize),
-    __3: (usize, &'input str, usize),
-) -> Action<'arena>
-{
-    let __start0 = __3.2.clone();
-    let __end0 = __3.2.clone();
     let __temp0 = __action18(
         arena,
         input,
-        &__start0,
-        &__end0,
+        __4,
     );
     let __temp0 = (__start0, __temp0, __end0);
     __action7(
@@ -80310,6 +80358,39 @@ pub fn __action80<
 >(
     arena: &'parse mut Arena<'arena>,
     input: &'input str,
+    __0: (usize, Region<'arena>, usize),
+    __1: (usize, &'input str, usize),
+    __2: (usize, Region<'arena>, usize),
+    __3: (usize, &'input str, usize),
+) -> Action<'arena>
+{
+    let __start0 = __3.2.clone();
+    let __end0 = __3.2.clone();
+    let __temp0 = __action19(
+        arena,
+        input,
+        &__start0,
+        &__end0,
+    );
+    let __temp0 = (__start0, __temp0, __end0);
+    __action7(
+        arena,
+        input,
+        __0,
+        __1,
+        __2,
+        __3,
+        __temp0,
+    )
+}
+
+pub fn __action81<
+    'input,
+    'parse,
+    'arena,
+>(
+    arena: &'parse mut Arena<'arena>,
+    input: &'input str,
     __0: (usize, &'input str, usize),
     __1: (usize, RegionVariable, usize),
     __2: (usize, &'input str, usize),
@@ -80318,7 +80399,7 @@ pub fn __action80<
 {
     let __start0 = __3.0.clone();
     let __end0 = __3.2.clone();
-    let __temp0 = __action17(
+    let __temp0 = __action18(
         arena,
         input,
         __3,
@@ -80334,7 +80415,7 @@ pub fn __action80<
     )
 }
 
-pub fn __action81<
+pub fn __action82<
     'input,
     'parse,
     'arena,
@@ -80348,7 +80429,7 @@ pub fn __action81<
 {
     let __start0 = __2.2.clone();
     let __end0 = __2.2.clone();
-    let __temp0 = __action18(
+    let __temp0 = __action19(
         arena,
         input,
         &__start0,

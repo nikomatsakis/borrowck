@@ -17,7 +17,8 @@ block CAPITALIZE {
 //    data.push('f');
 // }
 block PUSH {
+   ;
 }
 
-assert CAPITALIZE/1 not in $P;
+assert PUSH/0 not in $P;
 

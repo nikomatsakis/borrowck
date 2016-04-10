@@ -34,6 +34,8 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
                             changed = true;
                         }
                     }
+                    repr::Action::Noop => {
+                    }
                 }
             }
         }

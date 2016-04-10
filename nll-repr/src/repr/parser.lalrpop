@@ -47,6 +47,7 @@ BasicBlock: BasicBlock = {
 Action: Action<'arena> = {
     <a:Region> "<=" <b:Region> ";" Comment? => Action::Subregion(a, b),
     "*" <r:RegionVariable> ";" Comment? => Action::Deref(r),
+    ";" => Action::Noop,
 };
 
 Ident: InternedString = {

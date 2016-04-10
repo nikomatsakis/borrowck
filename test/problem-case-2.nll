@@ -13,6 +13,7 @@ block SOME {
 
 //    None => { map.insert(..) }
 block NONE {
+    ;
     goto EXIT;
 }
 
@@ -23,3 +24,4 @@ block EXIT {
 
 assert $R = {START -> SOME/0};
 assert SOME/0 in $R;
+assert NONE/0 not in $R;
