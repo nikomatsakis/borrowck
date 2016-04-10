@@ -1,0 +1,22 @@
+// let r = &data[22];
+block START {
+   *$L;
+   goto LOOP;
+}
+
+// loop {
+//    println("{}", r);
+block LOOP {
+    *$L;
+    goto PUSH static;
+}
+
+// data.push(22);
+block PUSH {
+    goto LOOP;
+}
+
+block static {
+}
+
+assert PUSH/0 in $L;

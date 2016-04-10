@@ -67,10 +67,6 @@ impl<'arena> FuncGraph<'arena> {
         }
     }
 
-    pub fn block_index_str(&self, name: &str) -> BasicBlockIndex {
-        self.block_index(repr::BasicBlock(intern(name)))
-    }
-
     pub fn block_index(&self, name: repr::BasicBlock) -> BasicBlockIndex {
         self.block_indices.get(&name).cloned().unwrap_or_else(|| {
             panic!("no index for `{:?}`", name)

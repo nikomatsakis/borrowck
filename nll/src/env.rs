@@ -4,14 +4,12 @@ use graph_algorithms::dominators::{self, Dominators, DominatorTree};
 use graph_algorithms::iterate::reverse_post_order;
 use graph_algorithms::loop_tree::{self, LoopTree};
 use graph_algorithms::reachable::{self, Reachability};
-use graph_algorithms::transpose::TransposedGraph;
 use std::fmt;
 
 pub struct Environment<'func, 'arena: 'func> {
     pub graph: &'func FuncGraph<'arena>,
     pub dominators: Dominators<FuncGraph<'arena>>,
     pub dominator_tree: DominatorTree<FuncGraph<'arena>>,
-    pub postdominators: Dominators<TransposedGraph<&'func FuncGraph<'arena>>>,
     pub reachable: Reachability<FuncGraph<'arena>>,
     pub loop_tree: LoopTree<FuncGraph<'arena>>,
     pub reverse_post_order: Vec<BasicBlockIndex>,
@@ -31,17 +29,10 @@ impl<'func, 'arena> Environment<'func, 'arena> {
         let reachable = reachable::reachable_given_rpo(graph, &rpo);
         let loop_tree = loop_tree::loop_tree_given(graph, &dominators);
 
-        let postdominators = {
-            let exit = graph.block_index_str("EXIT");
-            let transpose = &TransposedGraph::with_start(graph, exit);
-            dominators::dominators(transpose)
-        };
-
         Environment {
             graph: graph,
             dominators: dominators,
             dominator_tree: dominator_tree,
-            postdominators: postdominators,
             reachable: reachable,
             loop_tree: loop_tree,
             reverse_post_order: rpo,
@@ -50,11 +41,6 @@ impl<'func, 'arena> Environment<'func, 'arena> {
 
     pub fn dump_dominators(&self) {
         let tree = self.dominators.dominator_tree();
-        self.dump_dominator_tree(&tree, tree.root(), 0)
-    }
-
-    pub fn dump_postdominators(&self) {
-        let tree = self.postdominators.dominator_tree();
         self.dump_dominator_tree(&tree, tree.root(), 0)
     }
 
