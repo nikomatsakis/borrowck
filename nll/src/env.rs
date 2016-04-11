@@ -68,13 +68,6 @@ impl<'func, 'arena> Environment<'func, 'arena> {
         self.last_action(block) + 1
     }
 
-    pub fn end_point(&self, block: BasicBlockIndex) -> Point {
-        Point {
-            block: block,
-            action: self.end_action(block)
-        }
-    }
-
     pub fn can_reach(&self, pred: Point, succ: Point) -> bool {
         if pred.block == succ.block {
             pred.action <= succ.action

@@ -1,19 +1,21 @@
 // {
 //   match map.get_mut(&key) {
 block START {
-    * $R ;
+    * $GET1;
     goto SOME NONE;
 }
 
-//    Some(value) => process(value)
+//    Some(value) => value,
 block SOME {
-    * $R ;
+    * $GET1;
+    {START -> m/0 } <= $GET1;
     goto EXIT;
 }
 
-//    None => { map.insert(..) }
+//    None => { map.insert(..); map.get(&key) }
 block NONE {
-    ;
+    * $GET2;
+    {START -> m/0 } <= $GET2;
     goto EXIT;
 }
 
@@ -26,6 +28,10 @@ block EXIT {
 block m {
 }
 
-assert $R = {START -> SOME/0};
-assert SOME/0 in $R;
-assert NONE/0 not in $R;
+assert $GET1 = {START -> SOME/1, m/0};
+assert SOME/0 in $GET1;
+assert NONE/0 not in $GET1;
+assert m/0 in $GET1;
+
+assert NONE/0 in $GET2;
+assert m/0 in $GET2;

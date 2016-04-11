@@ -5,14 +5,16 @@ block START {
 }
 
 // loop {
-//    println("{}", r);
+//   println("{}", r);
 block LOOP {
     *$L;
     goto PUSH;
 }
 
-// data.push(22);
+//   data.push(22);
+// }
 block PUSH {
+    *$L; // `r` is still live here
     goto LOOP;
 }
 

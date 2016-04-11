@@ -21,6 +21,7 @@ block OK {
 }
 
 block ERR {
+    * $R ;
     goto CHECK;
 }    
 
@@ -35,6 +36,5 @@ assert $U = {OK -> EXIT/1};
 assert START/1 in $R;
 assert FIND/0 in $R;
 assert FIND/0 in $Q;
-assert ERR/0 in $R;
 assert ERR/0 not in $Q;
 assert ERR/0 not in $U;

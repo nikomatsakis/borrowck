@@ -30,6 +30,7 @@ block SOME {
 // map.insert(key, 0)
 block NONE {
     *$key;
+    *$p; // `p` is live
     goto FOR;
 }    
 
@@ -55,8 +56,8 @@ block k {
 block static {
 }
 
-assert $v = { FOR -> PRINTLN/0, SOME/1 };
-assert $p = { INIT -> NONE/1, PRINTLN/0, SOME/1 };
+assert $v = { FOR -> PRINTLN/0, SOME/0 };
+assert $p = { INIT -> NONE/1, PRINTLN/0 };
 assert NONE/0 not in $v;
 assert PRINTLN/0 in $v;
 assert PRINTLN/0 in $p;
