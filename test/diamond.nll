@@ -18,6 +18,4 @@ block EXIT {
    * $R;
 }
 
-assert $R = {A1 -> B/0, EXIT/0};
-assert $Q = {A1 -> B/1, C/0};
-assert $S = {C -> C/1};
+assert $R = {B/[0..1], EXIT/[0..1]};

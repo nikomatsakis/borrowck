@@ -60,7 +60,7 @@ Region: Region<'arena> = {
 
 RegionData: RegionData = {
     <v:RegionVariable> => RegionData::Variable(v),
-    "{" <BasicBlock> "->" <Comma0<Point>> "}" => RegionData::Literal(<>),
+    "{" <Comma<PointRange>> "}" => RegionData::Literal(<>),
 };
 
 RegionVariable: RegionVariable = {
@@ -70,6 +70,14 @@ RegionVariable: RegionVariable = {
 Point: Point = {
     <b:BasicBlock> "/" <a:r"[0-9]+"> =>
         Point { block: b, action: usize::from_str(a).unwrap() },
+};
+
+PointRange: PointRange = {
+    <b:BasicBlock> "/" "[" <s:r"[0-9]+"> ".." <e:r"[0-9]+"> "]" => PointRange {
+        block: b,
+        start_action: usize::from_str(s).unwrap(),
+        end_action: usize::from_str(e).unwrap()
+    },
 };
 
 Comma<T>: Vec<T> = {

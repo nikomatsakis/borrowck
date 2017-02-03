@@ -59,22 +59,6 @@ impl<'func, 'arena> Environment<'func, 'arena> {
             self.dump_dominator_tree(tree, child, indent + 2)
         }
     }
-
-    pub fn last_action(&self, block: BasicBlockIndex) -> usize {
-        self.graph.block_data(block).actions.len()
-    }
-
-    pub fn end_action(&self, block: BasicBlockIndex) -> usize {
-        self.last_action(block) + 1
-    }
-
-    pub fn can_reach(&self, pred: Point, succ: Point) -> bool {
-        if pred.block == succ.block {
-            pred.action <= succ.action
-        } else {
-            self.reachable.can_reach(pred.block, succ.block)
-        }
-    }
 }
 
 impl fmt::Debug for Point {

@@ -23,13 +23,13 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
                 };
                 match *action {
                     repr::Action::Subregion(sub, sup) => {
-                        if subregion(env, &mut region_map, sub, sup, current_point) {
+                        if subregion(env, &mut region_map, sub, sup) {
                             log!("changed!");
                             changed = true;
                         }
                     }
                     repr::Action::Deref(name) => {
-                        if grow(env, &mut region_map, name, current_point) {
+                        if grow(&mut region_map, name, current_point) {
                             log!("changed!");
                             changed = true;
                         }
@@ -61,7 +61,7 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
             repr::Assertion::RegionContains(r, ref p) => {
                 let rr = lookup(env, &region_map, r);
                 let pp = point(env, p);
-                if !rr.contains(env, pp) {
+                if !rr.contains(pp) {
                     if errors > 0 {
                         println!("");
                     }
@@ -75,7 +75,7 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
             repr::Assertion::RegionNotContains(r, ref p) => {
                 let rr = lookup(env, &region_map, r);
                 let pp = point(env, p);
-                if rr.contains(env, pp) {
+                if rr.contains(pp) {
                     if errors > 0 {
                         println!("");
                     }
@@ -102,10 +102,16 @@ fn lookup<'func, 'arena>(env: &Environment<'func, 'arena>,
     match *region.data {
         repr::RegionData::Variable(name) => region_map[&name].clone(),
 
-        repr::RegionData::Literal(entry, ref leaves) => {
-            let entry = env.graph.block_index(entry);
-            let leaves = leaves.iter().map(|exit| point(env, exit));
-            Region::new(entry, leaves)
+        repr::RegionData::Literal(ref range) => {
+            let mut region = Region::new();
+            for r in range {
+                let block = env.graph.block_index(r.block);
+                if r.end_action > r.start_action {
+                    region.add_point(Point { block: block, action: r.start_action });
+                    region.add_point(Point { block: block, action: r.end_action - 1 });
+                }
+            }
+            region
         }
     }
 }
@@ -117,42 +123,28 @@ fn point<'func, 'arena>(env: &Environment<'func, 'arena>, point: &repr::Point) -
     }
 }
 
-fn grow(env: &Environment,
-        region_map: &mut HashMap<repr::RegionVariable, Region>,
+fn grow(region_map: &mut HashMap<repr::RegionVariable, Region>,
         name: repr::RegionVariable,
         point: Point)
         -> bool {
-    if let Some(region) = region_map.get_mut(&name) {
-        return region.add_point(env, point);
-    }
-
-    region_map.insert(name, Region::with_point(point));
-    true
+    region_map.entry(name)
+              .or_insert(Region::new())
+              .add_point(point)
 }
 
 fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
                             region_map: &mut HashMap<repr::RegionVariable, Region>,
                             sub: repr::Region<'arena>,
-                            sup: repr::Region<'arena>,
-                            current_point: Point)
+                            sup: repr::Region<'arena>)
                             -> bool {
-    let mut changed = false;
     let sub_region = lookup(env, region_map, sub);
 
     let sup_name = match *sup.data {
         repr::RegionData::Variable(name) => name,
         repr::RegionData::Literal(..) => return false,
     };
-    let sup_region = region_map.entry(sup_name)
-                               .or_insert_with(|| Region::with_point(current_point));
 
-    changed |= sup_region.add_point(env, current_point);
-
-    for leaf in sub_region.leaves() {
-        if env.can_reach(current_point, leaf) {
-            changed |= sup_region.add_point(env, leaf);
-        }
-    }
-
-    changed
+    region_map.entry(sup_name)
+              .or_insert(Region::new())
+              .add_region(&sub_region)
 }

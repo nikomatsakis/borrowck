@@ -1,3 +1,5 @@
+#![feature(field_init_shorthand)]
+
 extern crate docopt;
 extern crate lalrpop_intern;
 extern crate graph_algorithms;

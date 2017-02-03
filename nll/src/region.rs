@@ -1,165 +1,91 @@
 use graph::BasicBlockIndex;
-use env::{Environment, Point};
+use env::Point;
 use std::collections::BTreeMap;
 use std::cmp;
 use std::fmt;
 
-/// A region is characterized by an entry point and a set of leaves.
+/// A region is a set of points where, within any given basic block,
+/// the points must be continuous. We represent this as a map:
 ///
-/// The region contains all blocks B where:
-/// - `entry dom B`
-/// - and `exists leaf in leaves. B dom leaf`.
+///     B -> start..end
 ///
-/// To be valid, two conditions must be met:
-/// - entry must dominate all leaves
-/// - there must not exist an edge U->V in the graph where:
-///   - V is in the region and not the entry
-///   - but U is not
+/// where `B` is a basic block identifier and start/end are indices.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Region {
-    entry: BasicBlockIndex,
-    leaves: BTreeMap<BasicBlockIndex, usize>,
+    ranges: BTreeMap<BasicBlockIndex, ActionRange>,
 }
 
 impl Region {
-    pub fn with_point(point: Point) -> Self {
-        // The minimal region containing point just has `point` as a tail.
-        Self::new(point.block, Some(point))
+    pub fn new() -> Self {
+        Region { ranges: BTreeMap::new() }
     }
 
-    pub fn new<I>(entry: BasicBlockIndex, leaves: I) -> Self
-        where I: IntoIterator<Item = Point>
-    {
-        Region {
-            entry: entry,
-            leaves: leaves.into_iter()
-                          .map(|p| (p.block, p.action))
-                          .collect(),
-        }
+    pub fn add_point(&mut self, point: Point) -> bool {
+        let range = self.ranges.entry(point.block).or_insert(ActionRange::new());
+        range.add(point.action)
     }
 
-    pub fn leaves(&self) -> Leaves {
-        Leaves {
-            iter: Box::new(self.leaves
-                               .iter()
-                               .map(|(&block, &action)| {
-                                   Point {
-                                       block: block,
-                                       action: action,
-                                   }
-                               })),
+    pub fn add_region(&mut self, region: &Region) -> bool {
+        let mut result = false;
+        for (&block, range) in &region.ranges {
+            let (start, end) = range.to_points(block);
+            result |= self.add_point(start);
+            result |= self.add_point(end);
         }
+        result
     }
 
-    pub fn contains(&self, env: &Environment, point: Point) -> bool {
-        log!("contains(self={:?}, point={:?})", self, point);
-
-        // no leaves is the empty region, which contains no points
-        if self.leaves.is_empty() {
-            return false;
-        }
-
-        // point must be dominated by the entry
-        if !env.dominators.is_dominated_by(point.block, self.entry) {
-            log!("contains: {:?} not dominated by entry {:?}",
-                 point.block,
-                 self.entry);
-            return false;
-        }
-
-        // point dominate one of the leaves; if it is in a tail block,
-        // compare the actions, otherwise consult the dominator graph
-        if let Some(&action) = self.leaves.get(&point.block) {
-            log!("contains: {:?} is a tail upto {:?}", point.block, action);
-            return point.action <= action;
-        }
-        log!("contains: comparing leaves");
-        self.leaves
-            .keys()
-            .any(|&tail| env.dominators.is_dominated_by(tail, point.block))
-    }
-
-    pub fn add_point(&mut self, env: &Environment, point: Point) -> bool {
-        log!("add_point(self={:?}, point={:?})", self, point);
-        assert!(point.action < env.end_action(point.block));
-
-        let mut changed = false;
-
-        // Ensure that `self.entry` dominates `point.block`
-        let new_entry = env.dominators.mutual_dominator_node(self.entry, point.block);
-        if self.entry != new_entry {
-            log!("add_point: new_entry={:?} self.entry={:?}", new_entry, self.entry);
-            changed |= self.entry.update(new_entry);
-        }
-
-        // If `point.block` *is* one of the leaves, we may want to update
-        // statement, but otherwise we're done.
-        if let Some(action) = self.leaves.get_mut(&point.block) {
-            log!("add_point: existing tail, action={}, point.action={}",
-                 action, point.action);
-            let max = cmp::max(*action, point.action);
-            changed |= action.update(max);
-            return changed;
-        }
-
-        // If `point.block` dominates any of the leaves, we're all done.
-        let mut dead_leaves = vec![];
-        for &leaf_block in self.leaves.keys() {
-            if env.dominators.is_dominated_by(leaf_block, point.block) {
-                return changed;
-            } else if env.dominators.is_dominated_by(point.block, leaf_block) {
-                // track the leaves that dominated the new point, see below
-                dead_leaves.push(leaf_block);
-            }
-        }
-
-        // Otherwise, have to add `point.block` as a new leaf.
-        // If any of the old leaves dominate `point.block`, that means the
-        // old leaf can be removed, because its inclusion is implied by the
-        // presence of `point.block` as a leaf.
-        for dead_leaf in dead_leaves {
-            self.leaves.remove(&dead_leaf);
-        }
-        self.leaves.insert(point.block, point.action);
-        return true;
-    }
-}
-
-pub struct Leaves<'iter> {
-    iter: Box<Iterator<Item = Point> + 'iter>,
-}
-
-impl<'iter> Iterator for Leaves<'iter> {
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+    pub fn contains(&self, point: Point) -> bool {
+        let result = self.ranges.get(&point.block)
+                                .unwrap_or(&ActionRange::new())
+                                .contains(point.action);
+        log!("contains(self={:?}, point={:?}) = {}", self, point, result);
+        result
     }
 }
 
 impl fmt::Debug for Region {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        try!(write!(fmt, "{{{:?} -> ", self.entry));
-        for (index, leaf) in self.leaves().enumerate() {
-            if index > 0 { try!(write!(fmt, ", ")); }
-            try!(write!(fmt, "{:?}", leaf));
+        write!(fmt, "{{")?;
+        for (index, (&block, range)) in self.ranges.iter().enumerate() {
+            if index > 0 { write!(fmt, ", ")?; }
+            write!(fmt, "{:?}/{:?}", block, range)?;
         }
-        write!(fmt, "}}")
+        write!(fmt, "}}")?;
+        Ok(())
     }
 }
 
-trait Update {
-    fn update(&mut self, value: Self) -> bool;
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub struct ActionRange {
+    start: usize,
+    end: usize
 }
 
-impl<T: PartialEq> Update for T {
-    fn update(&mut self, value: T) -> bool {
-        if *self != value {
-            *self = value;
-            true
-        } else {
-            false
-        }
+impl ActionRange {
+    pub fn new() -> ActionRange {
+        ActionRange { start: 0, end: 0 }
+    }
+
+    pub fn add(&mut self, i: usize) -> bool {
+        let (start, end) = (self.start, self.end);
+        self.start = cmp::min(i, start);
+        self.end = cmp::max(i+1, end);
+        start != self.start || end != self.end
+    }
+
+    pub fn to_points(&self, block: BasicBlockIndex) -> (Point, Point) {
+        (Point { block: block, action: self.start }, Point { block: block, action: self.end })
+    }
+
+    pub fn contains(&self, i: usize) -> bool {
+        (i >= self.start) && (i < self.end)
+    }
+}
+
+impl fmt::Debug for ActionRange {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "[{:?}..{:?}]", self.start, self.end)
     }
 }
 

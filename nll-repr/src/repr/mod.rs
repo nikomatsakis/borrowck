@@ -108,13 +108,20 @@ pub struct Region<'arena> {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum RegionData {
     Variable(RegionVariable),
-    Literal(BasicBlock, Vec<Point>),
+    Literal(Vec<PointRange>),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Point {
     pub block: BasicBlock,
     pub action: usize,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub struct PointRange {
+    pub block: BasicBlock,
+    pub start_action: usize,
+    pub end_action: usize,
 }
 
 impl<'arena> Intern<'arena> for RegionData {
