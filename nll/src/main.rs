@@ -1,5 +1,3 @@
-#![feature(question_mark)]
-
 extern crate docopt;
 extern crate lalrpop_intern;
 extern crate graph_algorithms;
