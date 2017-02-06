@@ -1,19 +1,23 @@
 block START {
    goto A1;
 }
+
 block A1 {
    goto B C;
 }
+
 block B {
    * $R;
    * $Q;
    goto EXIT;
 }
+
 block C {
    * $Q;
    * $S;
    goto EXIT;
 }
+
 block EXIT {
    * $R;
 }

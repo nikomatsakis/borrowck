@@ -8,11 +8,10 @@ use std::mem;
 use std::iter;
 use std::slice;
 
-pub struct FuncGraph<'arena> {
-    func: repr::Func<'arena>,
+pub struct FuncGraph {
+    func: repr::Func,
     start_block: BasicBlockIndex,
     blocks: Vec<repr::BasicBlock>,
-    block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
 }
@@ -22,8 +21,8 @@ pub struct BasicBlockIndex {
     index: usize
 }
 
-impl<'arena> FuncGraph<'arena> {
-    pub fn new(func: repr::Func<'arena>) -> Self {
+impl FuncGraph {
+    pub fn new(func: repr::Func) -> Self {
         let blocks: Vec<_> =
             func.data.keys().cloned().collect();
         let block_indices: BTreeMap<_, _> =
@@ -61,29 +60,22 @@ impl<'arena> FuncGraph<'arena> {
             func: func,
             blocks: blocks,
             start_block: start_block,
-            block_indices: block_indices,
             predecessors: predecessors,
             successors: successors,
         }
     }
 
-    pub fn block_index(&self, name: repr::BasicBlock) -> BasicBlockIndex {
-        self.block_indices.get(&name).cloned().unwrap_or_else(|| {
-            panic!("no index for `{:?}`", name)
-        })
-    }
-
-    pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData<'arena> {
+    pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData {
         let block = self.blocks[index.index];
         &self.func.data[&block]
     }
 
-    pub fn assertions(&self) -> &[repr::Assertion<'arena>] {
-        &self.func.assertions
+    pub fn decls(&self) -> &[repr::VarDecl] {
+        &self.func.decls
     }
 }
 
-impl<'arena> ga::Graph for FuncGraph<'arena> {
+impl ga::Graph for FuncGraph {
     type Node = BasicBlockIndex;
 
     fn num_nodes(&self) -> usize {
@@ -105,12 +97,12 @@ impl<'arena> ga::Graph for FuncGraph<'arena> {
     }
 }
 
-impl<'arena, 'graph> ga::GraphPredecessors<'graph> for FuncGraph<'arena> {
+impl<'graph> ga::GraphPredecessors<'graph> for FuncGraph {
     type Item = BasicBlockIndex;
     type Iter = iter::Cloned<slice::Iter<'graph, BasicBlockIndex>>;
 }
 
-impl<'arena, 'graph> ga::GraphSuccessors<'graph> for FuncGraph<'arena> {
+impl<'graph> ga::GraphSuccessors<'graph> for FuncGraph {
     type Item = BasicBlockIndex;
     type Iter = iter::Cloned<slice::Iter<'graph, BasicBlockIndex>>;
 }

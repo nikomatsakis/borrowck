@@ -1,19 +1,39 @@
 use intern::{self, InternedString};
 use repr::*;
-use std::str::FromStr;
 
-grammar<'parse, 'arena>(arena: &'parse mut Arena<'arena>);
+grammar;
 
-pub Func: Func<'arena> = {
-    <blocks:BasicBlockData+> <assertions:Assertion*> => Func {
+pub Func: Func = {
+    <decls:VarDecl+> <blocks:BasicBlockData+> => Func {
+        decls: decls,
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
                     .collect(),
-        assertions: assertions,
     }
 };
 
-BasicBlockData: BasicBlockData<'arena> = {
+VarDecl: VarDecl = {
+    "let" <n:Variable> ":" <t:Ty> ";" => VarDecl {
+        name: n,
+        ty: t,
+    }
+};
+
+Ty: Ty<()> = {
+    <n:Ident> <a:TyArgs> => Ty { name: n, args: a },
+};
+
+TyArgs: Vec<TyArg<()>> = {
+    "<" <Comma0<TyArg>> ">",
+    () => vec![]
+};
+
+TyArg: TyArg<()> = {
+    "'" => TyArg::Region(()),
+    <t:Ty> => TyArg::Ty(t),
+};
+
+BasicBlockData: BasicBlockData = {
     Comment* "block" <name:BasicBlock> "{"
         <actions:Action*>
         <gotos:("goto" <BasicBlock*> ";")?>
@@ -26,58 +46,28 @@ BasicBlockData: BasicBlockData<'arena> = {
     }
 };
 
-Assertion: Assertion<'arena> = {
-    "assert" <a:Region> "=" <b:Region> ";" => {
-        Assertion::RegionEq(a, b)
-    },
+Action: Action = {
+    <a:Variable> "=" "&" ";" Comment? => Action::Assign(a),
+    "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
+    "assert" <a:Assertion> ";" Comment? => Action::Assert(a),
+    ";" Comment? => Action::Noop,
+};
 
-    "assert" <p:Point> "in" <b:Region> ";" => {
-        Assertion::RegionContains(b, p)
-    },
+Variable: Variable = {
+    <n:Ident> => Variable { name: n }
+};
 
-    "assert" <p:Point> "not" "in" <b:Region> ";" => {
-        Assertion::RegionNotContains(b, p)
-    },
+Assertion: Assertion = {
+    "in" "(" <v:Variable> ")" => Assertion::In(v),
+    "out" "(" <v:Variable> ")" => Assertion::Out(v),
 };
 
 BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
 };
 
-Action: Action<'arena> = {
-    <a:Region> "<=" <b:Region> ";" Comment? => Action::Subregion(a, b),
-    "*" <r:RegionVariable> ";" Comment? => Action::Deref(r),
-    ";" => Action::Noop,
-};
-
 Ident: InternedString = {
     r"[a-zA-Z_]\w*" => intern::intern(<>)
-};
-
-Region: Region<'arena> = {
-    RegionData => arena.intern(<>),
-};
-
-RegionData: RegionData = {
-    <v:RegionVariable> => RegionData::Variable(v),
-    "{" <Comma<PointRange>> "}" => RegionData::Literal(<>),
-};
-
-RegionVariable: RegionVariable = {
-    "$" <name:Ident> => RegionVariable(name),
-};
-
-Point: Point = {
-    <b:BasicBlock> "/" <a:r"[0-9]+"> =>
-        Point { block: b, action: usize::from_str(a).unwrap() },
-};
-
-PointRange: PointRange = {
-    <b:BasicBlock> "/" "[" <s:r"[0-9]+"> ".." <e:r"[0-9]+"> "]" => PointRange {
-        block: b,
-        start_action: usize::from_str(s).unwrap(),
-        end_action: usize::from_str(e).unwrap()
-    },
 };
 
 Comma<T>: Vec<T> = {

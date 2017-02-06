@@ -6,10 +6,10 @@ authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 build = "build.rs"
 
 [dependencies]
-lalrpop-intern = "0.11.0"
-lalrpop-util = "0.11.0"
-lalrpop = "0.11.0"
+lalrpop-intern = "0.12.4"
+lalrpop-util = "0.12.4"
+lalrpop = "0.12.4"
 typed-arena = "1.1.0"
 
 [build-dependencies]
-lalrpop = "0.11.0"
+lalrpop = "0.12.4"

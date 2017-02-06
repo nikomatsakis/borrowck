@@ -6,12 +6,12 @@ use graph_algorithms::loop_tree::{self, LoopTree};
 use graph_algorithms::reachable::{self, Reachability};
 use std::fmt;
 
-pub struct Environment<'func, 'arena: 'func> {
-    pub graph: &'func FuncGraph<'arena>,
-    pub dominators: Dominators<FuncGraph<'arena>>,
-    pub dominator_tree: DominatorTree<FuncGraph<'arena>>,
-    pub reachable: Reachability<FuncGraph<'arena>>,
-    pub loop_tree: LoopTree<FuncGraph<'arena>>,
+pub struct Environment<'func> {
+    pub graph: &'func FuncGraph,
+    pub dominators: Dominators<FuncGraph>,
+    pub dominator_tree: DominatorTree<FuncGraph>,
+    pub reachable: Reachability<FuncGraph>,
+    pub loop_tree: LoopTree<FuncGraph>,
     pub reverse_post_order: Vec<BasicBlockIndex>,
 }
 
@@ -21,8 +21,8 @@ pub struct Point {
     pub action: usize,
 }
 
-impl<'func, 'arena> Environment<'func, 'arena> {
-    pub fn new(graph: &'func FuncGraph<'arena>) -> Self {
+impl<'func> Environment<'func> {
+    pub fn new(graph: &'func FuncGraph) -> Self {
         let rpo = reverse_post_order(graph, graph.start_node());
         let dominators = dominators::dominators_given_rpo(graph, &rpo);
         let dominator_tree = dominators.dominator_tree();

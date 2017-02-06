@@ -1,92 +1,49 @@
 use env::{Environment, Point};
-use region::Region;
-use std::collections::HashMap;
-use std::error::Error;
+use graph::BasicBlockIndex;
+use graph_algorithms::Graph;
 use nll_repr::repr;
+use std::error::Error;
+use region_map::RegionMap;
+use type_map::{Assignments, TypeMap};
 
 pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
-    let mut region_map = HashMap::new();
+    let mut type_map = TypeMap::new(&env.graph);
+    let mut region_map = RegionMap::new();
 
-    // Visit the blocks in reverse post order, for no particular
-    // reason, just because it's convenient.
-    let mut changed = true;
-    while changed {
-        changed = false;
-        for &block in &env.reverse_post_order {
-            let actions = &env.graph.block_data(block).actions;
-            for (index, action) in actions.iter().enumerate() {
-                log!("Action {:?} from {:?} is {:?}",
-                     index, block, action);
-                let current_point = Point {
-                    block: block,
-                    action: index,
-                };
-                match *action {
-                    repr::Action::Subregion(sub, sup) => {
-                        if subregion(env, &mut region_map, sub, sup) {
-                            log!("changed!");
-                            changed = true;
-                        }
-                    }
-                    repr::Action::Deref(name) => {
-                        if grow(&mut region_map, name, current_point) {
-                            log!("changed!");
-                            changed = true;
-                        }
-                    }
-                    repr::Action::Noop => {
-                    }
-                }
+    // Step 1. Visit blocks and, for each block, create a unique copy
+    // of the types.
+    for &block in &env.reverse_post_order {
+        let assignments = type_map.assignments_mut(block);
+        populate_entry(&env.graph.decls(), &mut assignments.entry, &mut region_map);
+
+        // Walk through the actions, updating the type assignment as
+        // we go. Create intra-block constraints and assertions.
+        assignments.exit = walk_actions(&assignments.entry,
+                                        block,
+                                        &env.graph.block_data(block).actions,
+                                        &mut region_map);
+    }
+
+    // Step 2. Visit blocks and create inter-block subtyping constraints.
+    //
+    // If B1 -> B2, then B1.exit <: B2.entry.
+    for &pred in &env.reverse_post_order {
+        let pred_assignments = &type_map.assignments(pred).exit;
+        for succ in env.graph.successors(pred) {
+            let succ_assignments = &type_map.assignments(succ).entry;
+            for var in env.graph.decls().iter().map(|d| d.name) {
+                let pred_ty = pred_assignments.get(var);
+                let succ_ty = succ_assignments.get(var);
+                region_map.subtype(pred_ty, succ_ty);
             }
         }
     }
 
-    let mut errors = 0;
-    for assertion in env.graph.assertions() {
-        match *assertion {
-            repr::Assertion::RegionEq(r1, r2) => {
-                let rr1 = lookup(env, &region_map, r1);
-                let rr2 = lookup(env, &region_map, r2);
-                if rr1 != rr2 {
-                    if errors > 0 {
-                        println!("");
-                    }
-                    println!("Region {:?} is {:#?}", r1, rr1);
-                    println!("Region {:?} is {:#?}", r2, rr2);
-                    println!("Regions are not equal (but they should be).");
-                    errors += 1;
-                }
-            }
+    // Step 3. Find solutions.
+    let solution = region_map.solve();
 
-            repr::Assertion::RegionContains(r, ref p) => {
-                let rr = lookup(env, &region_map, r);
-                let pp = point(env, p);
-                if !rr.contains(pp) {
-                    if errors > 0 {
-                        println!("");
-                    }
-                    println!("Region {:?} is {:#?}", r, rr);
-                    println!("Point {:?} is {:#?}", p, pp);
-                    println!("Region does not contain point (but should).");
-                    errors += 1;
-                }
-            }
-
-            repr::Assertion::RegionNotContains(r, ref p) => {
-                let rr = lookup(env, &region_map, r);
-                let pp = point(env, p);
-                if rr.contains(pp) {
-                    if errors > 0 {
-                        println!("");
-                    }
-                    println!("Region {:?} is {:#?}", r, rr);
-                    println!("Point {:?} is {:#?}", p, pp);
-                    println!("Region contains point (but should not).");
-                    errors += 1;
-                }
-            }
-        }
-    }
+    // Step 4. Check assertions.
+    let errors = solution.check();
 
     if errors > 0 {
         try!(Err(format!("{} errors found", errors)));
@@ -95,56 +52,57 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn lookup<'func, 'arena>(env: &Environment<'func, 'arena>,
-                         region_map: &HashMap<repr::RegionVariable, Region>,
-                         region: repr::Region<'arena>)
-                         -> Region {
-    match *region.data {
-        repr::RegionData::Variable(name) => region_map[&name].clone(),
+fn populate_entry(decls: &[repr::VarDecl],
+                  assignment: &mut Assignments,
+                  region_map: &mut RegionMap)
+{
+    for decl in decls {
+        let ty = region_map.instantiate_ty(&decl.ty);
+        assignment.set_var(decl.name, ty);
+    }
+}
 
-        repr::RegionData::Literal(ref range) => {
-            let mut region = Region::new();
-            for r in range {
-                let block = env.graph.block_index(r.block);
-                if r.end_action > r.start_action {
-                    region.add_point(Point { block: block, action: r.start_action });
-                    region.add_point(Point { block: block, action: r.end_action - 1 });
-                }
+fn walk_actions(assignment_on_entry: &Assignments,
+                block: BasicBlockIndex,
+                actions: &[repr::Action],
+                region_map: &mut RegionMap)
+                -> Assignments
+{
+    let mut assignments = assignment_on_entry.clone();
+    for (index, action) in actions.iter().enumerate() {
+        let current_point = Point { block: block, action: index };
+        match *action {
+            // `p = &` -- create a new type for `p`, since it is being
+            // overridden. The old type is dead so it need not contain
+            // this point.
+            repr::Action::Assign(var) => {
+                let new_ty = {
+                    let old_ty = assignments.get(var);
+                    region_map.instantiate_ty(old_ty)
+                };
+                assignments.set_var(var, new_ty);
+                region_map.use_ty(assignments.get(var), current_point);
             }
-            region
+
+            repr::Action::Use(var) => {
+                let var_ty = assignments.get(var);
+                region_map.use_ty(var_ty, current_point);
+            }
+
+            repr::Action::Assert(repr::Assertion::In(var)) => {
+                let var_ty = assignments.get(var);
+                region_map.assert_in(var_ty, current_point);
+            }
+
+            repr::Action::Assert(repr::Assertion::Out(var)) => {
+                let var_ty = assignments.get(var);
+                region_map.assert_out(var_ty, current_point);
+            }
+
+            repr::Action::Noop => {
+            }
         }
     }
-}
 
-fn point<'func, 'arena>(env: &Environment<'func, 'arena>, point: &repr::Point) -> Point {
-    Point {
-        block: env.graph.block_index(point.block),
-        action: point.action,
-    }
-}
-
-fn grow(region_map: &mut HashMap<repr::RegionVariable, Region>,
-        name: repr::RegionVariable,
-        point: Point)
-        -> bool {
-    region_map.entry(name)
-              .or_insert(Region::new())
-              .add_point(point)
-}
-
-fn subregion<'func, 'arena>(env: &Environment<'func, 'arena>,
-                            region_map: &mut HashMap<repr::RegionVariable, Region>,
-                            sub: repr::Region<'arena>,
-                            sup: repr::Region<'arena>)
-                            -> bool {
-    let sub_region = lookup(env, region_map, sub);
-
-    let sup_name = match *sup.data {
-        repr::RegionData::Variable(name) => name,
-        repr::RegionData::Literal(..) => return false,
-    };
-
-    region_map.entry(sup_name)
-              .or_insert(Region::new())
-              .add_region(&sub_region)
+    assignments
 }

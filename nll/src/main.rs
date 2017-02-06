@@ -20,7 +20,8 @@ use self::env::Environment;
 mod graph;
 mod region;
 mod regionck;
-mod relate;
+mod region_map;
+mod type_map;
 use self::graph::FuncGraph;
 
 fn main() {
@@ -41,14 +42,12 @@ fn main() {
 }
 
 fn process_input(args: &Args, input: &str) -> Result<(), Box<Error>> {
-    let ballast = Ballast::new();
-    let mut arena = Arena::new(&ballast);
     let mut file_text = String::new();
     let mut file = try!(File::open(input));
     if file.read_to_string(&mut file_text).is_err() {
         return try!(Err(String::from("not UTF-8")));
     }
-    let func = try!(Func::parse(&mut arena, &file_text));
+    let func = try!(Func::parse(&file_text));
     let graph = FuncGraph::new(func);
     graph::with_graph(&graph, || {
         let env = Environment::new(&graph);
