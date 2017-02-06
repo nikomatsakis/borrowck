@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 
 use env::Point;
+use graph::BasicBlockIndex;
 use nll_repr::repr;
 use region::Region;
 
 pub struct RegionMap {
     num_vars: usize,
     use_constraints: Vec<(RegionVariable, Point)>,
+    enter_constraints: Vec<(RegionVariable, BasicBlockIndex)>,
     goto_constraints: Vec<(RegionVariable, Point, RegionVariable, Point)>,
     in_assertions: Vec<(RegionVariable, Point)>,
     out_assertions: Vec<(RegionVariable, Point)>,
@@ -37,6 +39,7 @@ impl RegionMap {
         RegionMap {
             num_vars: 0,
             use_constraints: vec![],
+            enter_constraints: vec![],
             goto_constraints: vec![],
             in_assertions: vec![],
             out_assertions: vec![],
@@ -64,6 +67,10 @@ impl RegionMap {
 
     pub fn use_ty(&mut self, ty: &repr::Ty<RegionVariable>, point: Point) {
         for_each_region_variable(ty, &mut |var| self.use_constraints.push((var, point)));
+    }
+
+    pub fn enter_ty(&mut self, ty: &repr::Ty<RegionVariable>, block: BasicBlockIndex) {
+        for_each_region_variable(ty, &mut |var| self.enter_constraints.push((var, block)));
     }
 
     pub fn assert_in(&mut self, ty: &repr::Ty<RegionVariable>, point: Point) {
@@ -144,6 +151,17 @@ impl<'m> RegionSolution<'m> {
         let mut changed = true;
         while changed {
             changed = false;
+
+            // The region `a` appears in the entry set for a block, so
+            // if it is used anywhere in the block, it must include
+            // also the entry of the block (since that would be the
+            // only origin of data).
+            for &(a, block) in &self.region_map.enter_constraints {
+                let value = &mut self.values[a.index];
+                if value.contains_any_point_in(block) {
+                    changed |= value.add_point(Point { block: block, action: 0 });
+                }
+            }
 
             // There is an edge from A -> B, so data from region `a`
             // is flowing into region `b`.

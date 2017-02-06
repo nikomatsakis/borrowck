@@ -47,7 +47,8 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" ";" Comment? => Action::Assign(a),
+    <a:Variable> "=" "&" ";" Comment? => Action::Borrow(a),
+    <a:Variable> "=" <b:Variable> ";" Comment? => Action::Assign(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
     "assert" <a:Assertion> ";" Comment? => Action::Assert(a),
     ";" Comment? => Action::Noop,

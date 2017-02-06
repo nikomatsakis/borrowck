@@ -16,6 +16,10 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
         let assignments = type_map.assignments_mut(block);
         populate_entry(&env.graph.decls(), &mut assignments.entry, &mut region_map);
 
+        for var_decl in env.graph.decls() {
+            region_map.enter_ty(&assignments.entry.get(var_decl.name), block);
+        }
+
         // Walk through the actions, updating the type assignment as
         // we go. Create intra-block constraints and assertions.
         assignments.exit = walk_actions(&assignments.entry,
@@ -78,13 +82,27 @@ fn walk_actions(assignment_on_entry: &Assignments,
             // `p = &` -- create a new type for `p`, since it is being
             // overridden. The old type is dead so it need not contain
             // this point.
-            repr::Action::Assign(var) => {
+            repr::Action::Borrow(var) => {
                 let new_ty = {
                     let old_ty = assignments.get(var);
                     region_map.instantiate_ty(old_ty)
                 };
                 assignments.set_var(var, new_ty);
                 region_map.use_ty(assignments.get(var), current_point);
+            }
+
+            // a = b
+            repr::Action::Assign(a, b) => {
+                let a_ty = {
+                    let old_a_ty = assignments.get(a);
+                    region_map.instantiate_ty(old_a_ty)
+                };
+                assignments.set_var(a, a_ty);
+
+                let a_ty = assignments.get(a);
+                let b_ty = assignments.get(b);
+                let next_point = Point { block, action: index + 1 };
+                region_map.goto(b_ty, current_point, a_ty, next_point);
             }
 
             repr::Action::Use(var) => {

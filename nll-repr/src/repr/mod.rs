@@ -57,7 +57,8 @@ pub struct BasicBlockData {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
-    Assign(Variable), // p = &;
+    Borrow(Variable), // p = &;
+    Assign(Variable, Variable), // p = q;
     Use(Variable), // use(p);
     Assert(Assertion), // assert X
     Noop,

@@ -28,7 +28,7 @@ impl Region {
     pub fn add_region(&mut self, region: &Region) -> bool {
         let mut result = false;
         for (&block, range) in &region.ranges {
-            if range.start != range.end {
+            if !range.is_empty() {
                 let start = Point { block: block, action: range.start };
                 let end = Point { block: block, action: range.end - 1 };
                 result |= self.add_point(start);
@@ -44,6 +44,12 @@ impl Region {
                                 .contains(point.action);
         log!("contains(self={:?}, point={:?}) = {}", self, point, result);
         result
+    }
+
+    pub fn contains_any_point_in(&self, block: BasicBlockIndex) -> bool {
+        self.ranges.get(&block)
+                   .map(|r| !r.is_empty())
+                   .unwrap_or(false)
     }
 }
 
@@ -71,14 +77,24 @@ impl ActionRange {
     }
 
     pub fn add(&mut self, i: usize) -> bool {
-        let (start, end) = (self.start, self.end);
-        self.start = cmp::min(i, start);
-        self.end = cmp::max(i+1, end);
-        start != self.start || end != self.end
+        if self.is_empty() {
+            self.start = i;
+            self.end = i + 1;
+            true
+        } else {
+            let (start, end) = (self.start, self.end);
+            self.start = cmp::min(i, start);
+            self.end = cmp::max(i+1, end);
+            start != self.start || end != self.end
+        }
     }
 
     pub fn contains(&self, i: usize) -> bool {
         (i >= self.start) && (i < self.end)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.start == self.end
     }
 }
 
