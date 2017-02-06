@@ -13,7 +13,7 @@ pub Func: Func = {
 };
 
 VarDecl: VarDecl = {
-    "let" <n:Variable> ":" <t:Ty> ";" => VarDecl {
+    Comment* "let" <n:Variable> ":" <t:Ty> ";" => VarDecl {
         name: n,
         ty: t,
     }

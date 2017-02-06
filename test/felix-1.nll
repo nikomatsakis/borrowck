@@ -1,0 +1,27 @@
+// let mut p: &0 Foo;
+// p = &1 foo; // point A
+// if {
+//     p = &2 bar; // point B
+//     &mut foo; // point C
+// }
+// *p // point D
+
+let p: Ref<', Foo>;
+
+block START {
+    p = &;
+    goto B C;
+}
+
+block B {
+    assert out(p);
+    p = &;
+    assert in(p);
+    goto C;
+}
+
+block C {
+    assert in(p);
+    use(p);
+    assert out(p);
+}

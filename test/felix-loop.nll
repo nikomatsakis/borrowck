@@ -1,0 +1,26 @@
+let p: Ref<', Foo>;
+
+block START {
+    p = &;
+    use(p);
+    goto A;
+}
+
+block A {
+    assert in(p);
+    goto B C EXIT;
+}
+
+block B {
+    p = &;
+    goto C;
+}
+
+block C {
+    assert in(p);
+    use(p);
+    goto A;
+}
+
+block EXIT {
+}

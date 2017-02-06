@@ -7,7 +7,7 @@ use region::Region;
 pub struct RegionMap {
     num_vars: usize,
     use_constraints: Vec<(RegionVariable, Point)>,
-    outlives_constraints: Vec<(RegionVariable, RegionVariable)>,
+    goto_constraints: Vec<(RegionVariable, Point, RegionVariable, Point)>,
     in_assertions: Vec<(RegionVariable, Point)>,
     out_assertions: Vec<(RegionVariable, Point)>,
 }
@@ -37,7 +37,7 @@ impl RegionMap {
         RegionMap {
             num_vars: 0,
             use_constraints: vec![],
-            outlives_constraints: vec![],
+            goto_constraints: vec![],
             in_assertions: vec![],
             out_assertions: vec![],
         }
@@ -81,19 +81,21 @@ impl RegionMap {
     ///
     /// We also assume all regions are contravariant for the time
     /// being.
-    pub fn subtype(&mut self,
-                   sub_ty: &repr::Ty<RegionVariable>,
-                   super_ty: &repr::Ty<RegionVariable>) {
-        let mut sub_regions = vec![];
-        for_each_region_variable(sub_ty, &mut |var| sub_regions.push(var));
+    pub fn goto(&mut self,
+                a_ty: &repr::Ty<RegionVariable>,
+                a_point: Point,
+                b_ty: &repr::Ty<RegionVariable>,
+                b_point: Point) {
+        let mut a_regions = vec![];
+        for_each_region_variable(a_ty, &mut |var| a_regions.push(var));
 
-        let mut super_regions = vec![];
-        for_each_region_variable(super_ty, &mut |var| super_regions.push(var));
+        let mut b_regions = vec![];
+        for_each_region_variable(b_ty, &mut |var| b_regions.push(var));
 
-        assert_eq!(sub_regions.len(), super_regions.len());
+        assert_eq!(a_regions.len(), b_regions.len());
 
-        for (&sub_region, &super_region) in sub_regions.iter().zip(&super_regions) {
-            self.outlives_constraints.push((sub_region, super_region));
+        for (&a_region, &b_region) in a_regions.iter().zip(&b_regions) {
+            self.goto_constraints.push((a_region, a_point, b_region, b_point));
         }
     }
 
@@ -143,16 +145,22 @@ impl<'m> RegionSolution<'m> {
         while changed {
             changed = false;
 
-            // For each `'a: 'b` constraint, we load value of `'b` and
-            // ensure that `'a` grows to accommodate it.
-            for &(a, b) in &self.region_map.outlives_constraints {
-                if a != b {
-                    // If I cared about perf, we could avoid this clone
-                    let b_value = self.values[b.index].clone();
-                    if self.values[a.index].add_region(&b_value) {
-                        changed = true;
-                    }
+            // There is an edge from A -> B, so data from region `a`
+            // is flowing into region `b`.
+            for &(a, a_point, b, b_point) in &self.region_map.goto_constraints {
+                assert!(a != b);
+
+                // If I compared about perf, we could avoid this clone.
+                let b_value = self.values[b.index].clone();
+
+                // If the data will be used at point the start of block `B`, then
+                // it must be live at the end of block `A`.
+                if b_value.contains(b_point) {
+                    changed |= self.values[a.index].add_point(a_point);
                 }
+
+                // In any case, we must include all points in B.
+                changed |= self.values[a.index].add_region(&b_value);
             }
         }
     }
@@ -176,7 +184,7 @@ impl<'m> RegionSolution<'m> {
 
         for &(var, point) in &self.region_map.out_assertions {
             if self.region(var).contains(point) {
-                println!("error: region for `{:?}` does not contain `{:?}`",
+                println!("error: region for `{:?}` contains `{:?}`",
                          var, point);
                 println!("    region computed for `{:?}` is {:?}`",
                          var, self.region(var));

@@ -29,12 +29,15 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     // If B1 -> B2, then B1.exit <: B2.entry.
     for &pred in &env.reverse_post_order {
         let pred_assignments = &type_map.assignments(pred).exit;
+        let pred_actions = env.graph.block_data(pred).actions.len();
+        let pred_end = Point { block: pred, action: pred_actions };
         for succ in env.graph.successors(pred) {
             let succ_assignments = &type_map.assignments(succ).entry;
+            let succ_start = Point { block: succ, action: 0 };
             for var in env.graph.decls().iter().map(|d| d.name) {
                 let pred_ty = pred_assignments.get(var);
                 let succ_ty = succ_assignments.get(var);
-                region_map.subtype(pred_ty, succ_ty);
+                region_map.goto(pred_ty, pred_end, succ_ty, succ_start);
             }
         }
     }

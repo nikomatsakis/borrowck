@@ -28,9 +28,12 @@ impl Region {
     pub fn add_region(&mut self, region: &Region) -> bool {
         let mut result = false;
         for (&block, range) in &region.ranges {
-            let (start, end) = range.to_points(block);
-            result |= self.add_point(start);
-            result |= self.add_point(end);
+            if range.start != range.end {
+                let start = Point { block: block, action: range.start };
+                let end = Point { block: block, action: range.end - 1 };
+                result |= self.add_point(start);
+                result |= self.add_point(end);
+            }
         }
         result
     }
@@ -72,10 +75,6 @@ impl ActionRange {
         self.start = cmp::min(i, start);
         self.end = cmp::max(i+1, end);
         start != self.start || end != self.end
-    }
-
-    pub fn to_points(&self, block: BasicBlockIndex) -> (Point, Point) {
-        (Point { block: block, action: self.start }, Point { block: block, action: self.end })
     }
 
     pub fn contains(&self, i: usize) -> bool {
