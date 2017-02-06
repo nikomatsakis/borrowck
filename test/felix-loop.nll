@@ -12,6 +12,7 @@ block A {
 }
 
 block B {
+    assert out(p);
     p = &;
     goto C;
 }
