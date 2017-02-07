@@ -214,9 +214,9 @@ impl<'m> RegionSolution<'m> {
             for &region_var in &self.region_map.user_region_names[&user_region] {
                 let actual_region = self.region(region_var);
                 if actual_region != expected_region {
-                    log!("error: region `{:?}` came to `{:?}`, which was not expected",
+                    println!("error: region `{:?}` came to `{:?}`, which was not expected",
                              user_region, actual_region);
-                    log!("    expected `{:?}`", expected_region);
+                    println!("    expected `{:?}`", expected_region);
                     errors += 1;
                 }
             }

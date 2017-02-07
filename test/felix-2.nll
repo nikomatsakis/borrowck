@@ -1,21 +1,17 @@
 let p: Ref<', Foo>;
 
 block START {
-    assert out(p);
-    p = &;
-    assert in(p);
+    p = &'A;
     use(p);
-    assert in(p);
     goto B;
 }
 
 block B {
-    assert in(p);
     use(p);
-    assert out(p);
     goto C;
 }
 
 block C {
-    assert out(p);
 }
+
+'A = {B/[0..1], START/[0..3]}
