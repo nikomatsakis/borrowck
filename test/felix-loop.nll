@@ -1,27 +1,29 @@
 let p: Ref<', Foo>;
 
 block START {
-    p = &;
+    p = &'A;
     use(p);
     goto A;
 }
 
 block A {
-    assert in(p);
     goto B C EXIT;
 }
 
 block B {
-    assert out(p);
-    p = &;
+    use(p);
+    ;
+    p = &'B;
     goto C;
 }
 
 block C {
-    assert in(p);
     use(p);
     goto A;
 }
 
 block EXIT {
 }
+
+'A = {A/[0..1], B/[0..1], C/[0..2], START/[0..3]}
+'B = {A/[0..1], B/[0..4], C/[0..2]}

@@ -4,14 +4,16 @@ use env::Point;
 use graph::BasicBlockIndex;
 use nll_repr::repr;
 use region::Region;
+use std::collections::HashMap;
 
 pub struct RegionMap {
     num_vars: usize,
     use_constraints: Vec<(RegionVariable, Point)>,
     enter_constraints: Vec<(RegionVariable, BasicBlockIndex)>,
+    flow_constraints: Vec<(RegionVariable, Point, Point)>,
     goto_constraints: Vec<(RegionVariable, Point, RegionVariable, Point)>,
-    in_assertions: Vec<(RegionVariable, Point)>,
-    out_assertions: Vec<(RegionVariable, Point)>,
+    user_region_names: HashMap<repr::RegionName, Vec<RegionVariable>>,
+    region_assertions: Vec<(repr::RegionName, Region)>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -40,9 +42,10 @@ impl RegionMap {
             num_vars: 0,
             use_constraints: vec![],
             enter_constraints: vec![],
+            flow_constraints: vec![],
             goto_constraints: vec![],
-            in_assertions: vec![],
-            out_assertions: vec![],
+            region_assertions: vec![],
+            user_region_names: HashMap::new(),
         }
     }
 
@@ -69,16 +72,26 @@ impl RegionMap {
         for_each_region_variable(ty, &mut |var| self.use_constraints.push((var, point)));
     }
 
+    pub fn user_names(&mut self, rn: repr::RegionName, ty: &repr::Ty<RegionVariable>) {
+        let mut regions = vec![];
+        for_each_region_variable(ty, &mut |var| regions.push(var));
+        self.user_region_names.insert(rn, regions);
+        log!("user_names: rn={:?} ty={:?}", rn, ty);
+    }
+
     pub fn enter_ty(&mut self, ty: &repr::Ty<RegionVariable>, block: BasicBlockIndex) {
         for_each_region_variable(ty, &mut |var| self.enter_constraints.push((var, block)));
     }
 
-    pub fn assert_in(&mut self, ty: &repr::Ty<RegionVariable>, point: Point) {
-        for_each_region_variable(ty, &mut |var| self.in_assertions.push((var, point)));
+    pub fn assert_region(&mut self, name: repr::RegionName, region: Region) {
+        self.region_assertions.push((name, region));
     }
 
-    pub fn assert_out(&mut self, ty: &repr::Ty<RegionVariable>, point: Point) {
-        for_each_region_variable(ty, &mut |var| self.out_assertions.push((var, point)));
+    pub fn flow(&mut self,
+                a_ty: &repr::Ty<RegionVariable>,
+                a_point: Point,
+                b_point: Point) {
+        for_each_region_variable(a_ty, &mut |var| self.flow_constraints.push((var, a_point, b_point));
     }
 
     /// Create the constraints such that `sub_ty <: super_ty`. Here we
@@ -146,6 +159,8 @@ impl<'m> RegionSolution<'m> {
     fn find(&mut self) {
         for &(var, point) in &self.region_map.use_constraints {
             self.values[var.index].add_point(point);
+            log!("user_constraints: var={:?} value={:?} point={:?}",
+                     var, self.values[var.index], point);
         }
 
         let mut changed = true;
@@ -158,8 +173,18 @@ impl<'m> RegionSolution<'m> {
             // only origin of data).
             for &(a, block) in &self.region_map.enter_constraints {
                 let value = &mut self.values[a.index];
+                log!("enter_constraints: a={:?} value={:?} block={:?}",
+                         a, value, block);
                 if value.contains_any_point_in(block) {
                     changed |= value.add_point(Point { block: block, action: 0 });
+                }
+            }
+
+            // Data in region R flows from point A to point B (without changing
+            // name). Therefore, if it is used in B, A must in R.
+            for &(a, a_point, b_point) in &self.region_map.goto_constraints {
+                if self.values[a.index].contains(b_point) {
+                    changed |= self.values[a.index].add_point(a_point);
                 }
             }
 
@@ -168,16 +193,19 @@ impl<'m> RegionSolution<'m> {
             for &(a, a_point, b, b_point) in &self.region_map.goto_constraints {
                 assert!(a != b);
 
-                // If I compared about perf, we could avoid this clone.
-                let b_value = self.values[b.index].clone();
+                log!("goto_constraints: a={:?} a_value={:?} a_point={:?}",
+                         a, self.values[a.index], a_point);
+                log!("                  b={:?} b_value={:?} b_point={:?}",
+                         b, self.values[b.index], b_point);
 
                 // If the data will be used at point the start of block `B`, then
                 // it must be live at the end of block `A`.
-                if b_value.contains(b_point) {
+                if self.values[b.index].contains(b_point) {
                     changed |= self.values[a.index].add_point(a_point);
                 }
 
-                // In any case, we must include all points in B.
+                // In any case, A must include all points in B.
+                let b_value = self.values[b.index].clone();
                 changed |= self.values[a.index].add_region(&b_value);
             }
         }
@@ -190,23 +218,15 @@ impl<'m> RegionSolution<'m> {
     pub fn check(&self) -> usize {
         let mut errors = 0;
 
-        for &(var, point) in &self.region_map.in_assertions {
-            if !self.region(var).contains(point) {
-                println!("error: region for `{:?}` does not contain `{:?}`",
-                         var, point);
-                println!("    region computed for `{:?}` is {:?}`",
-                         var, self.region(var));
-                errors += 1;
-            }
-        }
-
-        for &(var, point) in &self.region_map.out_assertions {
-            if self.region(var).contains(point) {
-                println!("error: region for `{:?}` contains `{:?}`",
-                         var, point);
-                println!("    region computed for `{:?}` is {:?}`",
-                         var, self.region(var));
-                errors += 1;
+        for &(user_region, ref expected_region) in &self.region_map.region_assertions {
+            for &region_var in &self.region_map.user_region_names[&user_region] {
+                let actual_region = self.region(region_var);
+                if actual_region != expected_region {
+                    log!("error: region `{:?}` came to `{:?}`, which was not expected",
+                             user_region, actual_region);
+                    log!("    expected `{:?}`", expected_region);
+                    errors += 1;
+                }
             }
         }
 

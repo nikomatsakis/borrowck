@@ -1,14 +1,16 @@
 use intern::{self, InternedString};
 use repr::*;
+use std::str::FromStr;
 
 grammar;
 
 pub Func: Func = {
-    <decls:VarDecl+> <blocks:BasicBlockData+> => Func {
+    <decls:VarDecl+> <blocks:BasicBlockData+> <asserts:Assertion*> => Func {
         decls: decls,
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
                     .collect(),
+        assertions: asserts,
     }
 };
 
@@ -47,10 +49,9 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" ";" Comment? => Action::Borrow(a),
+    <a:Variable> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
     <a:Variable> "=" <b:Variable> ";" Comment? => Action::Assign(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
-    "assert" <a:Assertion> ";" Comment? => Action::Assert(a),
     ";" Comment? => Action::Noop,
 };
 
@@ -59,12 +60,38 @@ Variable: Variable = {
 };
 
 Assertion: Assertion = {
-    "in" "(" <v:Variable> ")" => Assertion::In(v),
-    "out" "(" <v:Variable> ")" => Assertion::Out(v),
+    <n:RegionName> "=" <r:Region> => Assertion {
+        name: n,
+        region: r,
+    }
+};
+
+Region: Region = {
+    "{" <p:Comma0<RegionPart>> "}" => Region {
+        parts: p
+    }
+};
+
+RegionPart: RegionPart = {
+    <b:BasicBlock> "/" "[" <start:Usize> ".." <end:Usize> "]" => {
+        RegionPart {
+            block: b,
+            start: start,
+            end: end,
+        }
+    }
+};
+
+Usize: usize = {
+    r"[0-9]+" => usize::from_str(<>).unwrap()
 };
 
 BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
+};
+
+RegionName: RegionName = {
+    r"'[a-zA-Z_]\w*" => RegionName { name: intern::intern(<>) }
 };
 
 Ident: InternedString = {

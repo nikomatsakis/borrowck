@@ -3,6 +3,7 @@ use graph::BasicBlockIndex;
 use graph_algorithms::Graph;
 use nll_repr::repr;
 use std::error::Error;
+use region::Region;
 use region_map::RegionMap;
 use type_map::{Assignments, TypeMap};
 
@@ -46,10 +47,16 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
         }
     }
 
-    // Step 3. Find solutions.
+    // Step 3. Convert and register the user assertions.
+    for assertion in env.graph.assertions() {
+        let r = to_region(env, &assertion.region);
+        region_map.assert_region(assertion.name, r);
+    }
+
+    // Step 4. Find solutions.
     let solution = region_map.solve();
 
-    // Step 4. Check assertions.
+    // Step 5. Check assertions.
     let errors = solution.check();
 
     if errors > 0 {
@@ -82,13 +89,15 @@ fn walk_actions(assignment_on_entry: &Assignments,
             // `p = &` -- create a new type for `p`, since it is being
             // overridden. The old type is dead so it need not contain
             // this point.
-            repr::Action::Borrow(var) => {
+            repr::Action::Borrow(var, region_name) => {
                 let new_ty = {
                     let old_ty = assignments.get(var);
                     region_map.instantiate_ty(old_ty)
                 };
                 assignments.set_var(var, new_ty);
-                region_map.use_ty(assignments.get(var), current_point);
+                let new_ty = assignments.get(var);
+                region_map.use_ty(&new_ty, current_point);
+                region_map.user_names(region_name, new_ty);
             }
 
             // a = b
@@ -110,20 +119,24 @@ fn walk_actions(assignment_on_entry: &Assignments,
                 region_map.use_ty(var_ty, current_point);
             }
 
-            repr::Action::Assert(repr::Assertion::In(var)) => {
-                let var_ty = assignments.get(var);
-                region_map.assert_in(var_ty, current_point);
-            }
-
-            repr::Action::Assert(repr::Assertion::Out(var)) => {
-                let var_ty = assignments.get(var);
-                region_map.assert_out(var_ty, current_point);
-            }
-
             repr::Action::Noop => {
             }
         }
     }
 
     assignments
+}
+
+fn to_region(env: &Environment, region: &repr::Region) -> Region {
+    let mut result = Region::new();
+    for part in &region.parts {
+        let block = env.graph.block(part.block);
+        if part.start != part.end {
+            let start_point = Point { block: block, action: part.start };
+            let end_point = Point { block: block, action: part.end - 1 };
+            result.add_point(start_point);
+            result.add_point(end_point);
+        }
+    }
+    result
 }

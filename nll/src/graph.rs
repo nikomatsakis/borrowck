@@ -14,6 +14,7 @@ pub struct FuncGraph {
     blocks: Vec<repr::BasicBlock>,
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
+    block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
 }
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
@@ -62,7 +63,12 @@ impl FuncGraph {
             start_block: start_block,
             predecessors: predecessors,
             successors: successors,
+            block_indices: block_indices,
         }
+    }
+
+    pub fn block(&self, name: repr::BasicBlock) -> BasicBlockIndex {
+        self.block_indices[&name]
     }
 
     pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData {
@@ -72,6 +78,10 @@ impl FuncGraph {
 
     pub fn decls(&self) -> &[repr::VarDecl] {
         &self.func.decls
+    }
+
+    pub fn assertions(&self) -> &[repr::Assertion] {
+        &self.func.assertions
     }
 }
 

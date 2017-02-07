@@ -11,6 +11,7 @@ pub struct BasicBlock(pub InternedString);
 pub struct Func {
     pub decls: Vec<VarDecl>,
     pub data: BTreeMap<BasicBlock, BasicBlockData>,
+    pub assertions: Vec<Assertion>
 }
 
 impl Func {
@@ -57,10 +58,9 @@ pub struct BasicBlockData {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
-    Borrow(Variable), // p = &;
+    Borrow(Variable, RegionName), // p = &'X;
     Assign(Variable, Variable), // p = q;
     Use(Variable), // use(p);
-    Assert(Assertion), // assert X
     Noop,
 }
 
@@ -70,7 +70,25 @@ pub struct Variable {
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Assertion {
-    Out(Variable),
-    In(Variable),
+pub struct RegionName {
+    name: InternedString
 }
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct Assertion {
+    pub name: RegionName,
+    pub region: Region,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct Region {
+    pub parts: Vec<RegionPart>
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct RegionPart {
+    pub block: BasicBlock,
+    pub start: usize,
+    pub end: usize,
+}
+
