@@ -11,7 +11,7 @@ pub struct RegionMap {
     use_constraints: Vec<(RegionVariable, Point)>,
     enter_constraints: Vec<(RegionVariable, BasicBlockIndex)>,
     flow_constraints: Vec<(RegionVariable, Point, Point)>,
-    goto_constraints: Vec<(RegionVariable, Point, RegionVariable, Point)>,
+    outlive_constraints: Vec<(RegionVariable, RegionVariable)>,
     user_region_names: HashMap<repr::RegionName, Vec<RegionVariable>>,
     region_assertions: Vec<(repr::RegionName, Region)>,
 }
@@ -43,7 +43,7 @@ impl RegionMap {
             use_constraints: vec![],
             enter_constraints: vec![],
             flow_constraints: vec![],
-            goto_constraints: vec![],
+            outlive_constraints: vec![],
             region_assertions: vec![],
             user_region_names: HashMap::new(),
         }
@@ -91,7 +91,8 @@ impl RegionMap {
                 a_ty: &repr::Ty<RegionVariable>,
                 a_point: Point,
                 b_point: Point) {
-        for_each_region_variable(a_ty, &mut |var| self.flow_constraints.push((var, a_point, b_point));
+        for_each_region_variable(a_ty,
+                                 &mut |var| self.flow_constraints.push((var, a_point, b_point)));
     }
 
     /// Create the constraints such that `sub_ty <: super_ty`. Here we
@@ -101,11 +102,9 @@ impl RegionMap {
     ///
     /// We also assume all regions are contravariant for the time
     /// being.
-    pub fn goto(&mut self,
-                a_ty: &repr::Ty<RegionVariable>,
-                a_point: Point,
-                b_ty: &repr::Ty<RegionVariable>,
-                b_point: Point) {
+    pub fn subtype(&mut self,
+                   a_ty: &repr::Ty<RegionVariable>,
+                   b_ty: &repr::Ty<RegionVariable>) {
         let mut a_regions = vec![];
         for_each_region_variable(a_ty, &mut |var| a_regions.push(var));
 
@@ -115,7 +114,7 @@ impl RegionMap {
         assert_eq!(a_regions.len(), b_regions.len());
 
         for (&a_region, &b_region) in a_regions.iter().zip(&b_regions) {
-            self.goto_constraints.push((a_region, a_point, b_region, b_point));
+            self.outlive_constraints.push((a_region, b_region));
         }
     }
 
@@ -182,27 +181,20 @@ impl<'m> RegionSolution<'m> {
 
             // Data in region R flows from point A to point B (without changing
             // name). Therefore, if it is used in B, A must in R.
-            for &(a, a_point, b_point) in &self.region_map.goto_constraints {
+            for &(a, a_point, b_point) in &self.region_map.flow_constraints {
                 if self.values[a.index].contains(b_point) {
                     changed |= self.values[a.index].add_point(a_point);
                 }
             }
 
-            // There is an edge from A -> B, so data from region `a`
-            // is flowing into region `b`.
-            for &(a, a_point, b, b_point) in &self.region_map.goto_constraints {
+            // 'a: 'b -- add everything 'b into 'a
+            for &(a, b) in &self.region_map.outlive_constraints {
                 assert!(a != b);
 
-                log!("goto_constraints: a={:?} a_value={:?} a_point={:?}",
-                         a, self.values[a.index], a_point);
-                log!("                  b={:?} b_value={:?} b_point={:?}",
-                         b, self.values[b.index], b_point);
-
-                // If the data will be used at point the start of block `B`, then
-                // it must be live at the end of block `A`.
-                if self.values[b.index].contains(b_point) {
-                    changed |= self.values[a.index].add_point(a_point);
-                }
+                log!("outlive_constraints: a={:?} a_value={:?}",
+                         a, self.values[a.index]);
+                log!("                       b={:?} b_value={:?}",
+                         b, self.values[b.index]);
 
                 // In any case, A must include all points in B.
                 let b_value = self.values[b.index].clone();

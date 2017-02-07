@@ -42,7 +42,8 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
             for var in env.graph.decls().iter().map(|d| d.name) {
                 let pred_ty = pred_assignments.get(var);
                 let succ_ty = succ_assignments.get(var);
-                region_map.goto(pred_ty, pred_end, succ_ty, succ_start);
+                region_map.flow(pred_ty, pred_end, succ_start);
+                region_map.subtype(pred_ty, succ_ty); // pred_ty <: succ_ty
             }
         }
     }
@@ -110,8 +111,9 @@ fn walk_actions(assignment_on_entry: &Assignments,
 
                 let a_ty = assignments.get(a);
                 let b_ty = assignments.get(b);
-                let next_point = Point { block, action: index + 1 };
-                region_map.goto(b_ty, current_point, a_ty, next_point);
+                region_map.use_ty(a_ty, current_point);
+                region_map.use_ty(b_ty, current_point);
+                region_map.subtype(b_ty, a_ty);
             }
 
             repr::Action::Use(var) => {
