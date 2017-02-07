@@ -5,7 +5,7 @@ use std::str::FromStr;
 grammar;
 
 pub Func: Func = {
-    <decls:VarDecl+> <blocks:BasicBlockData+> <asserts:Assertion*> => Func {
+    <decls:VarDecl+> <blocks:BasicBlockData+> <asserts:(Comment* <Assertion>)*> => Func {
         decls: decls,
         data: blocks.into_iter()
                     .map(|block| (block.name, block))
@@ -60,10 +60,13 @@ Variable: Variable = {
 };
 
 Assertion: Assertion = {
-    <n:RegionName> "=" <r:Region> => Assertion {
-        name: n,
-        region: r,
-    }
+    "assert" <n:RegionName> "==" <r:Region> ";" => Assertion::Eq(n, r),
+    "assert" <p:Point> "in" <n:RegionName> ";" => Assertion::In(n, p),
+    "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
+};
+
+Point: Point = {
+    <b:BasicBlock> "/" <a:Usize> => Point { block: b, action: a }
 };
 
 Region: Region = {

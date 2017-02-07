@@ -14,4 +14,6 @@ block B {
 block C {
 }
 
-'A = {B/[0..1], START/[0..3]}
+assert B/0 in 'A;
+assert B/1 not in 'A;
+assert C/0 not in 'A;

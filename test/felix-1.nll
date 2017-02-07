@@ -14,6 +14,7 @@ block START {
 }
 
 block B {
+    ;
     p = &'B;
     goto C;
 }
@@ -22,5 +23,8 @@ block C {
     use(p);
 }
 
-'A = {C/[0..1], START/[0..2]}
-'B = {B/[0..2], C/[0..1]}
+assert B/0 not in 'A;
+assert C/0 in 'A;
+assert C/0 in 'B;
+assert C/1 not in 'A;
+assert C/1 not in 'B;

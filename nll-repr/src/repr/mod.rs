@@ -75,9 +75,10 @@ pub struct RegionName {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Assertion {
-    pub name: RegionName,
-    pub region: Region,
+pub enum Assertion {
+    Eq(RegionName, Region),
+    In(RegionName, Point),
+    NotIn(RegionName, Point),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -92,3 +93,8 @@ pub struct RegionPart {
     pub end: usize,
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct Point {
+    pub block: BasicBlock,
+    pub action: usize,
+}

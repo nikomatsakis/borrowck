@@ -47,8 +47,22 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
 
     // Step 3. Convert and register the user assertions.
     for assertion in env.graph.assertions() {
-        let r = to_region(env, &assertion.region);
-        region_map.assert_region(assertion.name, r);
+        match *assertion {
+            repr::Assertion::Eq(name, ref region) => {
+                let r = to_region(env, region);
+                region_map.assert_region_eq(name, r);
+            }
+
+            repr::Assertion::In(name, ref point) => {
+                let p = to_point(env, point);
+                region_map.assert_region_contains(name, p, true);
+            }
+
+            repr::Assertion::NotIn(name, ref point) => {
+                let p = to_point(env, point);
+                region_map.assert_region_contains(name, p, false);
+            }
+        }
     }
 
     // Step 4. Find solutions.
@@ -144,4 +158,9 @@ fn to_region(env: &Environment, region: &repr::Region) -> Region {
         }
     }
     result
+}
+
+fn to_point(env: &Environment, point: &repr::Point) -> Point {
+    let block = env.graph.block(point.block);
+    Point { block: block, action: point.action }
 }
