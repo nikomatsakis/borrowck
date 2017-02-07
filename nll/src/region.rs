@@ -45,12 +45,6 @@ impl Region {
         log!("contains(self={:?}, point={:?}) = {}", self, point, result);
         result
     }
-
-    pub fn contains_any_point_in(&self, block: BasicBlockIndex) -> bool {
-        self.ranges.get(&block)
-                   .map(|r| !r.is_empty())
-                   .unwrap_or(false)
-    }
 }
 
 impl fmt::Debug for Region {

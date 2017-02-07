@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use env::Point;
-use graph::BasicBlockIndex;
 use nll_repr::repr;
 use region::Region;
 use std::collections::HashMap;
@@ -9,7 +8,6 @@ use std::collections::HashMap;
 pub struct RegionMap {
     num_vars: usize,
     use_constraints: Vec<(RegionVariable, Point)>,
-    enter_constraints: Vec<(RegionVariable, BasicBlockIndex)>,
     flow_constraints: Vec<(RegionVariable, Point, Point)>,
     outlive_constraints: Vec<(RegionVariable, RegionVariable)>,
     user_region_names: HashMap<repr::RegionName, Vec<RegionVariable>>,
@@ -41,7 +39,6 @@ impl RegionMap {
         RegionMap {
             num_vars: 0,
             use_constraints: vec![],
-            enter_constraints: vec![],
             flow_constraints: vec![],
             outlive_constraints: vec![],
             region_assertions: vec![],
@@ -77,10 +74,6 @@ impl RegionMap {
         for_each_region_variable(ty, &mut |var| regions.push(var));
         self.user_region_names.insert(rn, regions);
         log!("user_names: rn={:?} ty={:?}", rn, ty);
-    }
-
-    pub fn enter_ty(&mut self, ty: &repr::Ty<RegionVariable>, block: BasicBlockIndex) {
-        for_each_region_variable(ty, &mut |var| self.enter_constraints.push((var, block)));
     }
 
     pub fn assert_region(&mut self, name: repr::RegionName, region: Region) {
@@ -165,19 +158,6 @@ impl<'m> RegionSolution<'m> {
         let mut changed = true;
         while changed {
             changed = false;
-
-            // The region `a` appears in the entry set for a block, so
-            // if it is used anywhere in the block, it must include
-            // also the entry of the block (since that would be the
-            // only origin of data).
-            for &(a, block) in &self.region_map.enter_constraints {
-                let value = &mut self.values[a.index];
-                log!("enter_constraints: a={:?} value={:?} block={:?}",
-                         a, value, block);
-                if value.contains_any_point_in(block) {
-                    changed |= value.add_point(Point { block: block, action: 0 });
-                }
-            }
 
             // Data in region R flows from point A to point B (without changing
             // name). Therefore, if it is used in B, A must in R.

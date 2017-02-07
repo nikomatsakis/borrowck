@@ -17,13 +17,10 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
         let assignments = type_map.assignments_mut(block);
         populate_entry(&env.graph.decls(), &mut assignments.entry, &mut region_map);
 
-        for var_decl in env.graph.decls() {
-            region_map.enter_ty(&assignments.entry.get(var_decl.name), block);
-        }
-
         // Walk through the actions, updating the type assignment as
         // we go. Create intra-block constraints and assertions.
-        assignments.exit = walk_actions(&assignments.entry,
+        assignments.exit = walk_actions(env.graph.decls(),
+                                        &assignments.entry,
                                         block,
                                         &env.graph.block_data(block).actions,
                                         &mut region_map);
@@ -77,7 +74,8 @@ fn populate_entry(decls: &[repr::VarDecl],
     }
 }
 
-fn walk_actions(assignment_on_entry: &Assignments,
+fn walk_actions(decls: &[repr::VarDecl],
+                assignment_on_entry: &Assignments,
                 block: BasicBlockIndex,
                 actions: &[repr::Action],
                 region_map: &mut RegionMap)
@@ -123,6 +121,11 @@ fn walk_actions(assignment_on_entry: &Assignments,
 
             repr::Action::Noop => {
             }
+        }
+
+        let next_point = Point { block: block, action: index + 1 };
+        for var in decls.iter().map(|decl| decl.name) {
+            region_map.flow(assignments.get(var), current_point, next_point);
         }
     }
 
