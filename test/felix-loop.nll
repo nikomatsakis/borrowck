@@ -25,14 +25,12 @@ block C {
 block EXIT {
 }
 
-// Broken assertions we have to fix:
-// assert B/1 not in 'B;
-
 assert A/0 in 'A;
 assert A/0 in 'B;
 assert B/0 in 'A;
 assert B/0 in 'B;
 assert B/1 not in 'A;
+assert B/1 not in 'B;
 assert C/0 in 'A;
 assert C/0 in 'B;
 assert EXIT/0 not in 'A;
