@@ -9,7 +9,7 @@ pub struct BasicBlock(pub InternedString);
 
 #[derive(Clone, Debug)]
 pub struct Func {
-    pub decls: Vec<VarDecl>,
+    pub decls: Vec<Variable>,
     pub data: BTreeMap<BasicBlock, BasicBlockData>,
     pub assertions: Vec<Assertion>
 }
@@ -32,24 +32,6 @@ impl Func {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct VarDecl {
-    pub name: Variable,
-    pub ty: Ty<()>
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Ty<R> {
-    pub name: InternedString,
-    pub args: Vec<TyArg<R>>,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum TyArg<R> {
-    Region(R),
-    Ty(Ty<R>),
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct BasicBlockData {
     pub name: BasicBlock,
     pub actions: Vec<Action>,
@@ -58,7 +40,7 @@ pub struct BasicBlockData {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
-    Borrow(Variable, RegionName), // p = &'X;
+    Borrow(Variable, RegionName, RegionName), // p = &<'X, 'Y>;
     Assign(Variable, Variable), // p = q;
     Use(Variable), // use(p);
     Noop,

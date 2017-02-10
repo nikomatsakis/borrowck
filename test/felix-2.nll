@@ -1,7 +1,7 @@
-let p: Ref<', Foo>;
+let p;
 
 block START {
-    p = &'A;
+    p = &<'A, 'Aw>;
     use(p);
     goto B;
 }

@@ -6,16 +6,16 @@
 // }
 // *p // point D
 
-let p: Ref<', Foo>;
+let p;
 
 block START {
-    p = &'A;
+    p = &<'A, 'Aw>;
     goto B C;
 }
 
 block B {
     ;
-    p = &'B;
+    p = &<'B, 'Bw>;
     goto C;
 }
 

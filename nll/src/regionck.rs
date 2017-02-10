@@ -36,7 +36,7 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
         for succ in env.graph.successors(pred) {
             let succ_assignments = &type_map.assignments(succ).entry;
             let succ_start = Point { block: succ, action: 0 };
-            for var in env.graph.decls().iter().map(|d| d.name) {
+            for &var in env.graph.decls() {
                 let pred_ty = pred_assignments.get(var);
                 let succ_ty = succ_assignments.get(var);
                 region_map.flow(pred_ty, pred_end, succ_start);
@@ -78,17 +78,17 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn populate_entry(decls: &[repr::VarDecl],
+fn populate_entry(decls: &[repr::Variable],
                   assignment: &mut Assignments,
                   region_map: &mut RegionMap)
 {
-    for decl in decls {
-        let ty = region_map.instantiate_ty(&decl.ty);
-        assignment.set_var(decl.name, ty);
+    for &decl in decls {
+        let ty = region_map.fresh_ty();
+        assignment.set_var(decl, ty);
     }
 }
 
-fn walk_actions(decls: &[repr::VarDecl],
+fn walk_actions(decls: &[repr::Variable],
                 assignment_on_entry: &Assignments,
                 block: BasicBlockIndex,
                 actions: &[repr::Action],
@@ -102,35 +102,26 @@ fn walk_actions(decls: &[repr::VarDecl],
             // `p = &` -- create a new type for `p`, since it is being
             // overridden. The old type is dead so it need not contain
             // this point.
-            repr::Action::Borrow(var, region_name) => {
-                let new_ty = {
-                    let old_ty = assignments.get(var);
-                    region_map.instantiate_ty(old_ty)
-                };
+            repr::Action::Borrow(var, read_name, write_name) => {
+                let new_ty = region_map.fresh_ty();
                 assignments.set_var(var, new_ty);
-                let new_ty = assignments.get(var);
-                region_map.use_ty(&new_ty, current_point);
-                region_map.user_names(region_name, new_ty);
+                region_map.read_ref(new_ty, current_point);
+                region_map.user_names(read_name, write_name, new_ty);
             }
 
             // a = b
             repr::Action::Assign(a, b) => {
-                let a_ty = {
-                    let old_a_ty = assignments.get(a);
-                    region_map.instantiate_ty(old_a_ty)
-                };
+                let a_ty = region_map.fresh_ty();
                 assignments.set_var(a, a_ty);
+                region_map.read_ref(a_ty, current_point);
 
-                let a_ty = assignments.get(a);
                 let b_ty = assignments.get(b);
-                region_map.use_ty(a_ty, current_point);
-                region_map.use_ty(b_ty, current_point);
                 region_map.subtype(b_ty, a_ty);
             }
 
             repr::Action::Use(var) => {
                 let var_ty = assignments.get(var);
-                region_map.use_ty(var_ty, current_point);
+                region_map.read_ref(var_ty, current_point);
             }
 
             repr::Action::Noop => {
@@ -138,7 +129,7 @@ fn walk_actions(decls: &[repr::VarDecl],
         }
 
         let next_point = Point { block: block, action: index + 1 };
-        for var in decls.iter().map(|decl| decl.name) {
+        for &var in decls {
             region_map.flow(assignments.get(var), current_point, next_point);
         }
     }

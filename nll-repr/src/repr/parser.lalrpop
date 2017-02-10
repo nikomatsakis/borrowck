@@ -14,25 +14,8 @@ pub Func: Func = {
     }
 };
 
-VarDecl: VarDecl = {
-    Comment* "let" <n:Variable> ":" <t:Ty> ";" => VarDecl {
-        name: n,
-        ty: t,
-    }
-};
-
-Ty: Ty<()> = {
-    <n:Ident> <a:TyArgs> => Ty { name: n, args: a },
-};
-
-TyArgs: Vec<TyArg<()>> = {
-    "<" <Comma0<TyArg>> ">",
-    () => vec![]
-};
-
-TyArg: TyArg<()> = {
-    "'" => TyArg::Region(()),
-    <t:Ty> => TyArg::Ty(t),
+VarDecl: Variable = {
+    Comment* "let" <n:Variable> ";" => n
 };
 
 BasicBlockData: BasicBlockData = {
@@ -49,10 +32,14 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
-    <a:Variable> "=" <b:Variable> ";" Comment? => Action::Assign(a, b),
-    "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
-    ";" Comment? => Action::Noop,
+    <a:Variable> "=" "&" "<" <r:RegionName> "," <w:RegionName> ">" ";" Comment? =>
+        Action::Borrow(a, r, w),
+    <a:Variable> "=" <b:Variable> ";" Comment? =>
+        Action::Assign(a, b),
+    "use" "(" <v:Variable> ")" ";" Comment? =>
+        Action::Use(v),
+    ";" Comment? =>
+        Action::Noop,
 };
 
 Variable: Variable = {

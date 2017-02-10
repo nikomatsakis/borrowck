@@ -3,7 +3,7 @@
 use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::node_vec::NodeVec;
 use nll_repr::repr;
-use region_map::RegionVariable;
+use region_map::RefTy;
 use std::collections::HashMap;
 
 pub struct TypeMap {
@@ -17,7 +17,7 @@ pub struct PerBlockAssignments {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Assignments {
-    map: HashMap<repr::Variable, repr::Ty<RegionVariable>>,
+    map: HashMap<repr::Variable, RefTy>,
 }
 
 impl TypeMap {
@@ -50,14 +50,11 @@ impl Assignments {
         Assignments { map: HashMap::new() }
     }
 
-    pub fn set_var(&mut self,
-                   name: repr::Variable,
-                   ty: repr::Ty<RegionVariable>)
-    {
+    pub fn set_var(&mut self, name: repr::Variable, ty: RefTy) {
         self.map.insert(name, ty);
     }
 
-    pub fn get(&self, v: repr::Variable) -> &repr::Ty<RegionVariable> {
-        self.map.get(&v).unwrap_or_else(|| panic!("no variable `{:?}`", v))
+    pub fn get(&self, v: repr::Variable) -> RefTy {
+        *self.map.get(&v).unwrap_or_else(|| panic!("no variable `{:?}`", v))
     }
 }

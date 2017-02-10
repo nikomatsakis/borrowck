@@ -7,12 +7,18 @@ use std::collections::HashMap;
 
 pub struct RegionMap {
     num_vars: usize,
-    use_constraints: Vec<(RegionVariable, Point)>,
+    in_constraints: Vec<(RegionVariable, Point)>,
     flow_constraints: Vec<(RegionVariable, Point, Point)>,
     outlive_constraints: Vec<(RegionVariable, RegionVariable)>,
-    user_region_names: HashMap<repr::RegionName, Vec<RegionVariable>>,
+    user_region_names: HashMap<repr::RegionName, RegionVariable>,
     region_eq_assertions: Vec<(repr::RegionName, Region)>,
     region_in_assertions: Vec<(repr::RegionName, Point, bool)>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct RefTy {
+    pub read: RegionVariable,
+    pub write: RegionVariable,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -39,12 +45,12 @@ impl RegionMap {
     pub fn new() -> Self {
         RegionMap {
             num_vars: 0,
-            use_constraints: vec![],
+            in_constraints: vec![],
             flow_constraints: vec![],
             outlive_constraints: vec![],
+            user_region_names: HashMap::new(),
             region_eq_assertions: vec![],
             region_in_assertions: vec![],
-            user_region_names: HashMap::new(),
         }
     }
 
@@ -53,29 +59,28 @@ impl RegionMap {
         RegionVariable { index: self.num_vars - 1 }
     }
 
-    pub fn instantiate_ty<T>(&mut self, ty: &repr::Ty<T>) -> repr::Ty<RegionVariable> {
-        repr::Ty {
-            name: ty.name,
-            args: ty.args.iter().map(|a| self.instantiate_arg(a)).collect(),
-        }
+    pub fn fresh_ty(&mut self) -> RefTy {
+        let ty = RefTy {
+            read: self.new_var(),
+            write: self.new_var(),
+        };
+        self.outlive_constraints.push((ty.read, ty.write));
+        ty
     }
 
-    fn instantiate_arg<T>(&mut self, arg: &repr::TyArg<T>) -> repr::TyArg<RegionVariable> {
-        match *arg {
-            repr::TyArg::Region(_) => repr::TyArg::Region(self.new_var()),
-            repr::TyArg::Ty(ref t) => repr::TyArg::Ty(self.instantiate_ty(t)),
-        }
+    pub fn read_ref(&mut self, ty: RefTy, point: Point) {
+        self.in_constraints.push((ty.read, point));
     }
 
-    pub fn use_ty(&mut self, ty: &repr::Ty<RegionVariable>, point: Point) {
-        for_each_region_variable(ty, &mut |var| self.use_constraints.push((var, point)));
+    pub fn write_ref(&mut self, ty: RefTy, point: Point) {
+        self.in_constraints.push((ty.write, point));
     }
 
-    pub fn user_names(&mut self, rn: repr::RegionName, ty: &repr::Ty<RegionVariable>) {
-        let mut regions = vec![];
-        for_each_region_variable(ty, &mut |var| regions.push(var));
-        self.user_region_names.insert(rn, regions);
-        log!("user_names: rn={:?} ty={:?}", rn, ty);
+    pub fn user_names(&mut self, read: repr::RegionName, write: repr::RegionName, ty: RefTy) {
+        self.user_region_names.insert(read, ty.read);
+        self.user_region_names.insert(write, ty.write);
+        log!("user_names: read {:?}={:?}", read, ty.read);
+        log!("user_names: write {:?}={:?}", write, ty.write);
     }
 
     pub fn assert_region_eq(&mut self, name: repr::RegionName, region: Region) {
@@ -89,9 +94,8 @@ impl RegionMap {
         self.region_in_assertions.push((name, point, expected));
     }
 
-    pub fn flow(&mut self, a_ty: &repr::Ty<RegionVariable>, a_point: Point, b_point: Point) {
-        for_each_region_variable(a_ty,
-                                 &mut |var| self.flow_constraints.push((var, a_point, b_point)));
+    pub fn flow(&mut self, ty: RefTy, a_point: Point, b_point: Point) {
+        self.flow_constraints.push((ty.read, a_point, b_point));
     }
 
     /// Create the constraints such that `sub_ty <: super_ty`. Here we
@@ -101,39 +105,13 @@ impl RegionMap {
     ///
     /// We also assume all regions are contravariant for the time
     /// being.
-    pub fn subtype(&mut self, a_ty: &repr::Ty<RegionVariable>, b_ty: &repr::Ty<RegionVariable>) {
-        let mut a_regions = vec![];
-        for_each_region_variable(a_ty, &mut |var| a_regions.push(var));
-
-        let mut b_regions = vec![];
-        for_each_region_variable(b_ty, &mut |var| b_regions.push(var));
-
-        assert_eq!(a_regions.len(), b_regions.len());
-
-        for (&a_region, &b_region) in a_regions.iter().zip(&b_regions) {
-            self.outlive_constraints.push((a_region, b_region));
-        }
+    pub fn subtype(&mut self, a_ty: RefTy, b_ty: RefTy) {
+        self.outlive_constraints.push((a_ty.read, b_ty.read));
+        self.outlive_constraints.push((a_ty.write, b_ty.write));
     }
 
     pub fn solve<'m>(&'m self) -> RegionSolution<'m> {
         RegionSolution::new(self)
-    }
-}
-
-pub fn for_each_region_variable<OP>(ty: &repr::Ty<RegionVariable>, op: &mut OP)
-    where OP: FnMut(RegionVariable)
-{
-    for arg in &ty.args {
-        for_each_region_variable_in_arg(arg, op);
-    }
-}
-
-fn for_each_region_variable_in_arg<OP>(arg: &repr::TyArg<RegionVariable>, op: &mut OP)
-    where OP: FnMut(RegionVariable)
-{
-    match *arg {
-        repr::TyArg::Ty(ref t) => for_each_region_variable(t, op),
-        repr::TyArg::Region(var) => op(var),
     }
 }
 
@@ -153,7 +131,7 @@ impl<'m> RegionSolution<'m> {
     }
 
     fn find(&mut self) {
-        for &(var, point) in &self.region_map.use_constraints {
+        for &(var, point) in &self.region_map.in_constraints {
             self.values[var.index].add_point(point);
             log!("user_constraints: var={:?} value={:?} point={:?}",
                  var,
@@ -199,34 +177,32 @@ impl<'m> RegionSolution<'m> {
         let mut errors = 0;
 
         for &(user_region, ref expected_region) in &self.region_map.region_eq_assertions {
-            for &region_var in &self.region_map.user_region_names[&user_region] {
-                let actual_region = self.region(region_var);
-                if actual_region != expected_region {
-                    println!("error: region `{:?}` came to `{:?}`, which was not expected",
-                             user_region,
-                             actual_region);
-                    println!("    expected `{:?}`", expected_region);
-                    errors += 1;
-                }
+            let region_var = self.region_map.user_region_names[&user_region];
+            let actual_region = self.region(region_var);
+            if actual_region != expected_region {
+                println!("error: region `{:?}` came to `{:?}`, which was not expected",
+                         user_region,
+                         actual_region);
+                println!("    expected `{:?}`", expected_region);
+                errors += 1;
             }
         }
 
         for &(user_region, point, expected) in &self.region_map.region_in_assertions {
-            for &region_var in &self.region_map.user_region_names[&user_region] {
-                let actual_region = self.region(region_var);
-                let contained = actual_region.contains(point);
-                if expected && !contained {
-                    println!("error: region `{:?}` did not contain `{:?}` as it should have",
-                             user_region, point);
-                    println!("    actual region `{:?}`", actual_region);
-                    errors += 1;
-                } else if !expected && contained {
-                    println!("error: region `{:?}` contained `{:?}`, which it should not have",
-                             user_region, point);
-                    println!("    actual region `{:?}`", actual_region);
-                } else {
-                    assert_eq!(expected, contained);
-                }
+            let region_var = self.region_map.user_region_names[&user_region];
+            let actual_region = self.region(region_var);
+            let contained = actual_region.contains(point);
+            if expected && !contained {
+                println!("error: region `{:?}` did not contain `{:?}` as it should have",
+                         user_region, point);
+                println!("    actual region `{:?}`", actual_region);
+                errors += 1;
+            } else if !expected && contained {
+                println!("error: region `{:?}` contained `{:?}`, which it should not have",
+                         user_region, point);
+                println!("    actual region `{:?}`", actual_region);
+            } else {
+                assert_eq!(expected, contained);
             }
         }
 
