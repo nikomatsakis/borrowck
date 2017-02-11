@@ -40,9 +40,10 @@ pub struct BasicBlockData {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
-    Borrow(Variable, RegionName, RegionName), // p = &<'X, 'Y>;
+    Borrow(Variable), // p = &<'X, 'Y>;
     Assign(Variable, Variable), // p = q;
     Use(Variable), // use(p);
+    Write(Variable), // write(p);
     Noop,
 }
 
@@ -51,32 +52,21 @@ pub struct Variable {
     name: InternedString
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct RegionName {
-    name: InternedString
-}
-
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion {
-    Eq(RegionName, Region),
     In(RegionName, Point),
     NotIn(RegionName, Point),
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Region {
-    pub parts: Vec<RegionPart>
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct RegionPart {
-    pub block: BasicBlock,
-    pub start: usize,
-    pub end: usize,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Point {
     pub block: BasicBlock,
     pub action: usize,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct RegionName {
+    pub variable: Variable,
+    pub point: Point,
+    pub index: usize,
 }

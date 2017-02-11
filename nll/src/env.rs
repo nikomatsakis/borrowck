@@ -59,6 +59,11 @@ impl<'func> Environment<'func> {
             self.dump_dominator_tree(tree, child, indent + 2)
         }
     }
+
+    pub fn end_point(&self, block: BasicBlockIndex) -> Point {
+        let actions = self.graph.block_data(block).actions.len();
+        Point { block: block, action: actions }
+    }
 }
 
 impl fmt::Debug for Point {

@@ -32,12 +32,14 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" "<" <r:RegionName> "," <w:RegionName> ">" ";" Comment? =>
-        Action::Borrow(a, r, w),
+    <a:Variable> "=" "&" ";" Comment? =>
+        Action::Borrow(a),
     <a:Variable> "=" <b:Variable> ";" Comment? =>
         Action::Assign(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? =>
         Action::Use(v),
+    "write" "(" <v:Variable> ")" ";" Comment? =>
+        Action::Write(v),
     ";" Comment? =>
         Action::Noop,
 };
@@ -47,29 +49,16 @@ Variable: Variable = {
 };
 
 Assertion: Assertion = {
-    "assert" <n:RegionName> "==" <r:Region> ";" => Assertion::Eq(n, r),
     "assert" <p:Point> "in" <n:RegionName> ";" => Assertion::In(n, p),
     "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
 };
 
+RegionName: RegionName = {
+    <v:Variable> "@" <p:Point> "." <a:Usize> => RegionName { variable: v, point: p, index: a },
+};
+
 Point: Point = {
     <b:BasicBlock> "/" <a:Usize> => Point { block: b, action: a }
-};
-
-Region: Region = {
-    "{" <p:Comma0<RegionPart>> "}" => Region {
-        parts: p
-    }
-};
-
-RegionPart: RegionPart = {
-    <b:BasicBlock> "/" "[" <start:Usize> ".." <end:Usize> "]" => {
-        RegionPart {
-            block: b,
-            start: start,
-            end: end,
-        }
-    }
 };
 
 Usize: usize = {
@@ -78,10 +67,6 @@ Usize: usize = {
 
 BasicBlock: BasicBlock = {
     Ident => BasicBlock(<>)
-};
-
-RegionName: RegionName = {
-    r"'[a-zA-Z_]\w*" => RegionName { name: intern::intern(<>) }
 };
 
 Ident: InternedString = {

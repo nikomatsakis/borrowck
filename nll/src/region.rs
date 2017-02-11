@@ -28,6 +28,10 @@ impl Region {
         l != self.points.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.points.is_empty()
+    }
+
     pub fn contains(&self, point: Point) -> bool {
         self.points.contains(&point)
     }

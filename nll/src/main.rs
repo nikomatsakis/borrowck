@@ -21,7 +21,6 @@ mod graph;
 mod region;
 mod regionck;
 mod region_map;
-mod type_map;
 use self::graph::FuncGraph;
 
 fn main() {

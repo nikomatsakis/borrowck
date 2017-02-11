@@ -7,107 +7,102 @@ use std::collections::HashMap;
 
 pub struct RegionMap {
     num_vars: usize,
-    in_constraints: Vec<(RegionVariable, Point)>,
-    flow_constraints: Vec<(RegionVariable, Point, Point)>,
-    outlive_constraints: Vec<(RegionVariable, RegionVariable)>,
-    user_region_names: HashMap<repr::RegionName, RegionVariable>,
-    region_eq_assertions: Vec<(repr::RegionName, Region)>,
-    region_in_assertions: Vec<(repr::RegionName, Point, bool)>,
+
+    // P \in R
+    in_constraints: Vec<RegionVariable>,
+
+    // Rq <= PQ(Rp)
+    //
+    // Effectively, if Rq non-empty, Rp += P + Rp
+    //
+    // Used for regions in invariant or contravariant positions.
+    //
+    // Note that P and Q are implied by the region variable names themselves.
+    neg_flow_constraints: Vec<(/*P*/ RegionVariable, /*Q*/ RegionVariable)>,
+
+    // Rq >= PQ(Rp)
+    //
+    // Have to compute PQ(Vp.read), which is "all points in Vp.read
+    // that are reachable from Q without exiting Vp.read".
+    //
+    // Used for regions in invariant or covariant positions.
+    pos_flow_constraints: Vec<(RegionVariable, RegionVariable)>,
+
+    // Rp <= Rq
+    //
+    // Used for subtype relations within one point.
+    subregion_constraints: Vec<(RegionVariable, RegionVariable)>,
+
+    // Check whether a given variable ultimately contains a given point
+    assertions: Vec<(RegionVariable, Point, bool)>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct RefTy {
-    pub read: RegionVariable,
-    pub write: RegionVariable,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct RegionVariable {
+    name: repr::Variable,
+    point: Point,
     index: usize,
 }
 
-pub struct UseConstraint {
-    var: RegionVariable,
-    contains: Point,
-}
-
-pub struct InAssertion {
-    var: RegionVariable,
-    contains: Point,
-}
-
-pub struct OutAssertion {
-    var: RegionVariable,
-    contains: Point,
-}
+const READ: usize = 0;
+const WRITE: usize = 1;
 
 impl RegionMap {
     pub fn new() -> Self {
         RegionMap {
             num_vars: 0,
             in_constraints: vec![],
-            flow_constraints: vec![],
-            outlive_constraints: vec![],
-            user_region_names: HashMap::new(),
-            region_eq_assertions: vec![],
-            region_in_assertions: vec![],
+            neg_flow_constraints: vec![],
+            pos_flow_constraints: vec![],
+            subregion_constraints: vec![],
+            assertions: vec![],
         }
     }
 
-    pub fn new_var(&mut self) -> RegionVariable {
-        self.num_vars += 1;
-        RegionVariable { index: self.num_vars - 1 }
+    pub fn read_var(&mut self, var: repr::Variable, point: Point) {
+        log!("read_var({:?}, {:?})", var, point);
+        let rv = RegionVariable { name: var, point: point, index: READ };
+        self.in_constraints.push(rv);
     }
 
-    pub fn fresh_ty(&mut self) -> RefTy {
-        let ty = RefTy {
-            read: self.new_var(),
-            write: self.new_var(),
-        };
-        self.outlive_constraints.push((ty.read, ty.write));
-        ty
+    pub fn write_var(&mut self, var: repr::Variable, point: Point) {
+        log!("write_var({:?}, {:?})", var, point);
+        let rv = RegionVariable { name: var, point: point, index: WRITE };
+        self.in_constraints.push(rv);
+        self.read_var(var, point); // `read >= write` always holds
     }
 
-    pub fn read_ref(&mut self, ty: RefTy, point: Point) {
-        self.in_constraints.push((ty.read, point));
+    pub fn neg_flow(&mut self, v: repr::Variable, p: Point, q: Point) {
+        log!("neg_flow({:?}, {:?}, {:?})", v, p, q);
+        let rp = RegionVariable { name: v, point: p, index: READ };
+        let rq = RegionVariable { name: v, point: q, index: READ };
+        self.neg_flow_constraints.push((rp, rq));
     }
 
-    pub fn write_ref(&mut self, ty: RefTy, point: Point) {
-        self.in_constraints.push((ty.write, point));
+    pub fn pos_flow(&mut self, v: repr::Variable, p: Point, q: Point) {
+        log!("pos_flow({:?}, {:?}, {:?})", v, p, q);
+        let rp = RegionVariable { name: v, point: p, index: READ };
+        let rq = RegionVariable { name: v, point: q, index: READ };
+        self.pos_flow_constraints.push((rp, rq));
     }
 
-    pub fn user_names(&mut self, read: repr::RegionName, write: repr::RegionName, ty: RefTy) {
-        self.user_region_names.insert(read, ty.read);
-        self.user_region_names.insert(write, ty.write);
-        log!("user_names: read {:?}={:?}", read, ty.read);
-        log!("user_names: write {:?}={:?}", write, ty.write);
-    }
-
-    pub fn assert_region_eq(&mut self, name: repr::RegionName, region: Region) {
-        self.region_eq_assertions.push((name, region));
+    pub fn subregion(&mut self, v: repr::Variable, w: repr::Variable, p: Point) {
+        log!("subregion({:?}, {:?}, {:?})", v, w, p);
+        for &index in &[READ, WRITE] {
+            let rv = RegionVariable { name: v, point: p, index: index };
+            let rw = RegionVariable { name: w, point: p, index: index };
+            self.subregion_constraints.push((rv, rw));
+        }
     }
 
     pub fn assert_region_contains(&mut self,
-                                  name: repr::RegionName,
+                                  region_name: repr::Variable,
+                                  region_point: Point,
+                                  region_index: usize,
                                   point: Point,
                                   expected: bool) {
-        self.region_in_assertions.push((name, point, expected));
-    }
-
-    pub fn flow(&mut self, ty: RefTy, a_point: Point, b_point: Point) {
-        self.flow_constraints.push((ty.read, a_point, b_point));
-    }
-
-    /// Create the constraints such that `sub_ty <: super_ty`. Here we
-    /// assume that both types are instantiations of a common 'erased
-    /// type skeleton', and hence that the regions we will encounter
-    /// as we iterate line up prefectly.
-    ///
-    /// We also assume all regions are contravariant for the time
-    /// being.
-    pub fn subtype(&mut self, a_ty: RefTy, b_ty: RefTy) {
-        self.outlive_constraints.push((a_ty.read, b_ty.read));
-        self.outlive_constraints.push((a_ty.write, b_ty.write));
+        let rv = RegionVariable { name: region_name, point: region_point, index: region_index };
+        self.assertions.push((rv, point, expected));
     }
 
     pub fn solve<'m>(&'m self) -> RegionSolution<'m> {
@@ -117,90 +112,73 @@ impl RegionMap {
 
 pub struct RegionSolution<'m> {
     region_map: &'m RegionMap,
-    values: Vec<Region>,
+    values: HashMap<RegionVariable, Region>,
 }
 
 impl<'m> RegionSolution<'m> {
     pub fn new(region_map: &'m RegionMap) -> Self {
         let mut solution = RegionSolution {
             region_map: region_map,
-            values: (0..region_map.num_vars).map(|_| Region::new()).collect(),
+            values: HashMap::new(),
         };
         solution.find();
         solution
     }
 
+    fn region_mut(&mut self, rv: RegionVariable) -> &mut Region {
+        self.values.entry(rv).or_insert_with(|| Region::new())
+    }
+
+    fn region(&self, rv: RegionVariable) -> Region {
+        self.values.get(&rv)
+                   .cloned()
+                   .unwrap_or(Region::new())
+    }
+
     fn find(&mut self) {
-        for &(var, point) in &self.region_map.in_constraints {
-            self.values[var.index].add_point(point);
-            log!("user_constraints: var={:?} value={:?} point={:?}",
-                 var,
-                 self.values[var.index],
-                 point);
+        for &var in &self.region_map.in_constraints {
+            self.region_mut(var).add_point(var.point);
         }
 
         let mut changed = true;
         while changed {
             changed = false;
 
-            // Data in region R flows from point A to point B (without changing
-            // name). Therefore, if it is used in B, A must in R.
-            for &(a, a_point, b_point) in &self.region_map.flow_constraints {
-                if self.values[a.index].contains(b_point) {
-                    changed |= self.values[a.index].add_point(a_point);
+            for &(p, q) in &self.region_map.neg_flow_constraints {
+                let r_q = self.region(q);
+                if r_q.is_empty() {
+                    continue;
                 }
+
+                changed |= self.region_mut(p).add_region(&r_q);
+                changed |= self.region_mut(p).add_point(p.point);
             }
 
-            // 'a: 'b -- add everything 'b into 'a
-            for &(a, b) in &self.region_map.outlive_constraints {
-                assert!(a != b);
+            assert!(self.region_map.pos_flow_constraints.is_empty());
 
-                log!("outlive_constraints: a={:?} a_value={:?}",
-                     a,
-                     self.values[a.index]);
-                log!("                       b={:?} b_value={:?}",
-                     b,
-                     self.values[b.index]);
-
-                // In any case, A must include all points in B.
-                let b_value = self.values[b.index].clone();
-                changed |= self.values[a.index].add_region(&b_value);
+            for &(p, q) in &self.region_map.subregion_constraints {
+                let p = self.region(p);
+                changed |= self.region_mut(q).add_region(&p);
             }
         }
-    }
-
-    pub fn region(&self, var: RegionVariable) -> &Region {
-        &self.values[var.index]
     }
 
     pub fn check(&self) -> usize {
         let mut errors = 0;
 
-        for &(user_region, ref expected_region) in &self.region_map.region_eq_assertions {
-            let region_var = self.region_map.user_region_names[&user_region];
-            let actual_region = self.region(region_var);
-            if actual_region != expected_region {
-                println!("error: region `{:?}` came to `{:?}`, which was not expected",
-                         user_region,
-                         actual_region);
-                println!("    expected `{:?}`", expected_region);
-                errors += 1;
-            }
-        }
-
-        for &(user_region, point, expected) in &self.region_map.region_in_assertions {
-            let region_var = self.region_map.user_region_names[&user_region];
-            let actual_region = self.region(region_var);
+        for &(rv, point, expected) in &self.region_map.assertions {
+            let actual_region = self.region(rv);
             let contained = actual_region.contains(point);
             if expected && !contained {
                 println!("error: region `{:?}` did not contain `{:?}` as it should have",
-                         user_region, point);
+                         rv, point);
                 println!("    actual region `{:?}`", actual_region);
                 errors += 1;
             } else if !expected && contained {
                 println!("error: region `{:?}` contained `{:?}`, which it should not have",
-                         user_region, point);
+                         rv, point);
                 println!("    actual region `{:?}`", actual_region);
+                errors += 1;
             } else {
                 assert_eq!(expected, contained);
             }
