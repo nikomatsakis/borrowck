@@ -1,0 +1,43 @@
+let p;
+
+block START {
+    p = &; // borrows foo
+    goto B;
+}
+
+block B {
+    goto C D EXIT;
+}
+
+// Here, we could mutate `foo`
+// and `bar` before `p = &`,
+// and we can mutate only `foo` afterwards.
+block C {
+    ;
+    p = &; // borrows bar
+    ;
+    goto D;
+}
+
+block D {
+    use(p);
+    goto E;
+}
+
+// Here, the resource bar would get
+// dropped. Therefore, we must ensure
+// that E/0 is part of `p@C/2.0`.
+block E {
+    ;
+    goto B;
+}
+
+block EXIT {
+}
+
+// cannot drop `bar` in block E:
+assert E/0 in p@C/2.0;
+
+// can mutate `foo` in block C:
+assert C/0 not in p@START/1.0;
+assert C/2 not in p@START/1.0;
