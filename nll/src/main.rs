@@ -1,5 +1,8 @@
 #![feature(field_init_shorthand)]
 
+#[macro_use]
+extern crate lazy_static;
+
 extern crate docopt;
 extern crate lalrpop_intern;
 extern crate graph_algorithms;

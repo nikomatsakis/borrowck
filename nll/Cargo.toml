@@ -9,3 +9,4 @@ lalrpop-intern = "0.12.4"
 nll-repr = { path = "../nll-repr" }
 rustc-serialize = "0.3"
 graph-algorithms = { path = "../graph-algorithms" }
+lazy_static = "0.2.2"
