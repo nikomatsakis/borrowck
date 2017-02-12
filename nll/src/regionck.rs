@@ -126,7 +126,7 @@ fn flow<I>(region_map: &mut RegionMap,
     where I: IntoIterator<Item = repr::Variable>
 {
     for var in decls {
-        region_map.neg_flow(var, p, q);
+        region_map.flow(var, p, q);
     }
 }
 

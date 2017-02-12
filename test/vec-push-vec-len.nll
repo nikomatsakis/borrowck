@@ -1,0 +1,24 @@
+let p;
+let q;
+
+block START {
+    p = &;    // let p = &mut vec;
+    q = &;    // let q = &vec;
+    use(q);   // let tmp = Vec::len(q);
+    write(p); // Vec::push(q);
+}
+
+// p does not require exclusive access during START/1 or START/2
+assert START/1 not in p@START/1.1;
+assert START/2 not in p@START/1.1;
+
+// p DOES require *shared* access at those times:
+assert START/1 in p@START/1.0;
+assert START/2 in p@START/1.0;
+
+// p DOES require exclusive access during START/3, but q is dead:
+assert START/3 in p@START/1.0;
+assert START/3 in p@START/1.1;
+
+// q is dead at START/3:
+assert START/3 not in q@START/2.0;

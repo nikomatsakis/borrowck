@@ -11,22 +11,9 @@ pub struct RegionMap {
     // P \in R
     in_constraints: Vec<RegionVariable>,
 
-    // Rq <= PQ(Rp)
-    //
-    // Effectively, if Rq non-empty, Rp += P + Rp
-    //
-    // Used for regions in invariant or contravariant positions.
-    //
-    // Note that P and Q are implied by the region variable names themselves.
-    neg_flow_constraints: Vec<(/*P*/ RegionVariable, /*Q*/ RegionVariable)>,
-
-    // Rq >= PQ(Rp)
-    //
-    // Have to compute PQ(Vp.read), which is "all points in Vp.read
-    // that are reachable from Q without exiting Vp.read".
-    //
-    // Used for regions in invariant or covariant positions.
-    pos_flow_constraints: Vec<(RegionVariable, RegionVariable)>,
+    // A neg flow constraint (v, P, Q) indicates that the variable `v`
+    // is live (not overwritten) as control flows from P to Q.
+    flow_constraints: Vec<(repr::Variable, Point, Point)>,
 
     // Rp <= Rq
     //
@@ -52,8 +39,7 @@ impl RegionMap {
         RegionMap {
             num_vars: 0,
             in_constraints: vec![],
-            neg_flow_constraints: vec![],
-            pos_flow_constraints: vec![],
+            flow_constraints: vec![],
             subregion_constraints: vec![],
             assertions: vec![],
         }
@@ -72,18 +58,9 @@ impl RegionMap {
         self.read_var(var, point); // `read >= write` always holds
     }
 
-    pub fn neg_flow(&mut self, v: repr::Variable, p: Point, q: Point) {
-        log!("neg_flow({:?}, {:?}, {:?})", v, p, q);
-        let rp = RegionVariable { name: v, point: p, index: READ };
-        let rq = RegionVariable { name: v, point: q, index: READ };
-        self.neg_flow_constraints.push((rp, rq));
-    }
-
-    pub fn pos_flow(&mut self, v: repr::Variable, p: Point, q: Point) {
-        log!("pos_flow({:?}, {:?}, {:?})", v, p, q);
-        let rp = RegionVariable { name: v, point: p, index: READ };
-        let rq = RegionVariable { name: v, point: q, index: READ };
-        self.pos_flow_constraints.push((rp, rq));
+    pub fn flow(&mut self, v: repr::Variable, p: Point, q: Point) {
+        log!("flow({:?}, {:?}, {:?})", v, p, q);
+        self.flow_constraints.push((v, p, q));
     }
 
     pub fn subregion(&mut self, v: repr::Variable, w: repr::Variable, p: Point) {
@@ -144,17 +121,32 @@ impl<'m> RegionSolution<'m> {
         while changed {
             changed = false;
 
-            for &(p, q) in &self.region_map.neg_flow_constraints {
-                let r_q = self.region(q);
-                if r_q.is_empty() {
-                    continue;
+            for &(v, p, q) in &self.region_map.flow_constraints {
+                // FIXME: we support only types with contravariant regions at the moment.
+
+                // If the READ region is live at Q, it must be live at
+                // P and include all points that Q can reach.
+                {
+                    let rv_p = RegionVariable { name: v, point: p, index: READ };
+                    let rv_q = RegionVariable { name: v, point: q, index: READ };
+                    let r_q = self.region(rv_q);
+                    if r_q.is_empty() {
+                        continue;
+                    }
+
+                    changed |= self.region_mut(rv_p).add_region(&r_q);
+                    changed |= self.region_mut(rv_p).add_point(p);
                 }
 
-                changed |= self.region_mut(p).add_region(&r_q);
-                changed |= self.region_mut(p).add_point(p.point);
+                // The WRITE region at P must include all points where
+                // Q is writable.
+                {
+                    let rv_p = RegionVariable { name: v, point: p, index: WRITE };
+                    let rv_q = RegionVariable { name: v, point: q, index: WRITE };
+                    let r_q = self.region(rv_q);
+                    changed |= self.region_mut(rv_p).add_region(&r_q);
+                }
             }
-
-            assert!(self.region_map.pos_flow_constraints.is_empty());
 
             for &(p, q) in &self.region_map.subregion_constraints {
                 let p = self.region(p);
