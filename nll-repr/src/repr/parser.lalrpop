@@ -49,6 +49,7 @@ Variable: Variable = {
 };
 
 Assertion: Assertion = {
+    "assert" <n:RegionName> "==" <r:Region> ";" => Assertion::Eq(n, r),
     "assert" <p:Point> "in" <n:RegionName> ";" => Assertion::In(n, p),
     "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
 };
@@ -59,6 +60,10 @@ RegionName: RegionName = {
 
 Point: Point = {
     <b:BasicBlock> "/" <a:Usize> => Point { block: b, action: a }
+};
+
+Region: Region = {
+    "{" <p:Comma<Point>> "}" => Region { points: p },
 };
 
 Usize: usize = {

@@ -22,6 +22,9 @@ pub struct RegionMap {
 
     // Check whether a given variable ultimately contains a given point
     assertions: Vec<(RegionVariable, Point, bool)>,
+
+    // Check whether a given variable ultimately had a particular value
+    eq_assertions: Vec<(RegionVariable, Region)>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -42,6 +45,7 @@ impl RegionMap {
             flow_constraints: vec![],
             subregion_constraints: vec![],
             assertions: vec![],
+            eq_assertions: vec![],
         }
     }
 
@@ -80,6 +84,15 @@ impl RegionMap {
                                   expected: bool) {
         let rv = RegionVariable { name: region_name, point: region_point, index: region_index };
         self.assertions.push((rv, point, expected));
+    }
+
+    pub fn assert_region_eq(&mut self,
+                            region_name: repr::Variable,
+                            region_point: Point,
+                            region_index: usize,
+                            region: Region) {
+        let rv = RegionVariable { name: region_name, point: region_point, index: region_index };
+        self.eq_assertions.push((rv, region));
     }
 
     pub fn solve<'m>(&'m self) -> RegionSolution<'m> {
@@ -157,6 +170,16 @@ impl<'m> RegionSolution<'m> {
 
     pub fn check(&self) -> usize {
         let mut errors = 0;
+
+        for &(rv, ref expected_region) in &self.region_map.eq_assertions {
+            let actual_region = self.region(rv);
+            if actual_region != *expected_region {
+                println!("error: region `{:?}` did not equal `{:?}` as it should have",
+                         rv, expected_region);
+                println!("    actual region `{:?}`", actual_region);
+                errors += 1;
+            }
+        }
 
         for &(rv, point, expected) in &self.region_map.assertions {
             let actual_region = self.region(rv);

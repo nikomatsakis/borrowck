@@ -54,6 +54,7 @@ pub struct Variable {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion {
+    Eq(RegionName, Region),
     In(RegionName, Point),
     NotIn(RegionName, Point),
 }
@@ -69,4 +70,9 @@ pub struct RegionName {
     pub variable: Variable,
     pub point: Point,
     pub index: usize,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct Region {
+    pub points: Vec<Point>,
 }

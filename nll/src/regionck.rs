@@ -3,6 +3,7 @@ use graph::BasicBlockIndex;
 use graph_algorithms::Graph;
 use nll_repr::repr;
 use std::error::Error;
+use region::Region;
 use region_map::RegionMap;
 
 pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
@@ -18,6 +19,12 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
 
     for assertion in env.graph.assertions() {
         match *assertion {
+            repr::Assertion::Eq(ref rv, ref r) => {
+                let rv_p = to_point(env, &rv.point);
+                let r_r = to_region(env, r);
+                region_map.assert_region_eq(rv.variable, rv_p, rv.index, r_r);
+            }
+
             repr::Assertion::In(ref r, ref p) => {
                 let r_p = to_point(env, &r.point);
                 let p = to_point(env, p);
@@ -133,4 +140,12 @@ fn flow<I>(region_map: &mut RegionMap,
 fn to_point(env: &Environment, point: &repr::Point) -> Point {
     let block = env.graph.block(point.block);
     Point { block: block, action: point.action }
+}
+
+fn to_region(env: &Environment, user_region: &repr::Region) -> Region {
+    let mut region = Region::new();
+    for p in &user_region.points {
+        region.add_point(to_point(env, p));
+    }
+    region
 }
