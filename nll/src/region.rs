@@ -35,6 +35,19 @@ impl Region {
     pub fn contains(&self, point: Point) -> bool {
         self.points.contains(&point)
     }
+
+    pub fn iter<'a>(&'a self) -> <&'a BTreeSet<Point> as IntoIterator>::IntoIter {
+        self.points.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Region {
+    type IntoIter = <&'a BTreeSet<Point> as IntoIterator>::IntoIter;
+    type Item = <&'a BTreeSet<Point> as IntoIterator>::Item;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.points.iter()
+    }
 }
 
 impl fmt::Debug for Region {

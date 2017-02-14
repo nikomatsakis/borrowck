@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use env::Point;
+use env::{Environment, Point};
 use nll_repr::repr;
 use region::Region;
 use std::collections::HashMap;
@@ -95,8 +95,8 @@ impl RegionMap {
         self.eq_assertions.push((rv, region));
     }
 
-    pub fn solve<'m>(&'m self) -> RegionSolution<'m> {
-        RegionSolution::new(self)
+    pub fn solve<'m>(&'m self, env: &Environment) -> RegionSolution<'m> {
+        RegionSolution::new(self, env)
     }
 }
 
@@ -106,12 +106,12 @@ pub struct RegionSolution<'m> {
 }
 
 impl<'m> RegionSolution<'m> {
-    pub fn new(region_map: &'m RegionMap) -> Self {
+    pub fn new(region_map: &'m RegionMap, env: &Environment) -> Self {
         let mut solution = RegionSolution {
             region_map: region_map,
             values: HashMap::new(),
         };
-        solution.find();
+        solution.find(env);
         solution
     }
 
@@ -125,7 +125,7 @@ impl<'m> RegionSolution<'m> {
                    .unwrap_or(Region::new())
     }
 
-    fn find(&mut self) {
+    fn find(&mut self, env: &Environment) {
         for &var in &self.region_map.in_constraints {
             self.region_mut(var).add_point(var.point);
         }
@@ -158,6 +158,16 @@ impl<'m> RegionSolution<'m> {
                     let rv_q = RegionVariable { name: v, point: q, index: WRITE };
                     let r_q = self.region(rv_q);
                     changed |= self.region_mut(rv_p).add_region(&r_q);
+                }
+
+                // XXX apply a covariant constraint
+                //
+                // Rq >= Transfer[P->Q](Rp)
+                {
+                    let rv_p = RegionVariable { name: v, point: p, index: READ };
+                    let r_p = env.transfer(p, q, &self.region(rv_p));
+                    let rv_q = RegionVariable { name: v, point: q, index: READ };
+                    changed |= self.region_mut(rv_q).add_region(&r_p);
                 }
             }
 

@@ -4,6 +4,8 @@ use graph_algorithms::dominators::{self, Dominators, DominatorTree};
 use graph_algorithms::iterate::reverse_post_order;
 use graph_algorithms::loop_tree::{self, LoopTree};
 use graph_algorithms::reachable::{self, Reachability};
+use region::Region;
+use std::collections::HashSet;
 use std::fmt;
 
 pub struct Environment<'func> {
@@ -60,9 +62,62 @@ impl<'func> Environment<'func> {
         }
     }
 
+    pub fn start_point(&self, block: BasicBlockIndex) -> Point {
+        Point { block: block, action: 0 }
+    }
+
     pub fn end_point(&self, block: BasicBlockIndex) -> Point {
         let actions = self.graph.block_data(block).actions.len();
         Point { block: block, action: actions }
+    }
+
+    pub fn successor_points(&self, p: Point) -> Vec<Point> {
+        let end_point = self.end_point(p.block);
+        if p != end_point {
+            vec![Point { block: p.block, action: p.action + 1 }]
+        } else {
+            self.graph.successors(p.block)
+                      .map(|b| self.start_point(b))
+                      .collect()
+        }
+    }
+
+    // Definition:
+    //
+    //     transfer[P->Q]( R )
+    //
+    // All points in R reachable from Q without leaving R.
+    pub fn transfer(&self, p: Point, q: Point, r_p: &Region) -> Region {
+        let mut r_q = Region::new();
+
+        // Not intended to be efficient.
+        let mut stack = vec![];
+        let mut visited = HashSet::new();
+        for &node in r_p {
+            stack.clear();
+            visited.clear();
+            stack.push(q);
+            while let Some(reachable) = stack.pop() {
+                if !r_p.contains(reachable) || !visited.insert(reachable) {
+                    continue;
+                }
+
+                if reachable == node {
+                    r_q.add_point(node);
+                    break;
+                }
+
+                stack.extend(self.successor_points(reachable));
+            }
+        }
+
+        log!("transfer[P->Q](Rp) = Rq");
+        log!("    P  = {:?}", p);
+        log!("    Q  = {:?}", q);
+        log!("    Rp = {:?}", r_p);
+        log!("    Rq = {:?}", r_q);
+
+        r_q
     }
 }
 

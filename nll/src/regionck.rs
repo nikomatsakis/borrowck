@@ -40,7 +40,7 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     }
 
     // Step 4. Find solutions.
-    let solution = region_map.solve();
+    let solution = region_map.solve(env);
 
     // Step 5. Check assertions.
     let errors = solution.check();
