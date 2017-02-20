@@ -1,6 +1,6 @@
 use super::tree::*;
 use super::super::Graph;
-use super::super::dominators::{Dominators, dominators};
+use super::super::dominators::Dominators;
 use super::super::node_vec::NodeVec;
 
 use std::collections::HashSet;

@@ -41,3 +41,10 @@ assert E/0 in p@C/2.0;
 // can mutate `foo` in block C:
 assert C/0 not in p@START/1.0;
 assert C/2 not in p@START/1.0;
+
+assert p not live at START;
+assert p live at B;
+assert p not live at C;
+assert p live at D;
+assert p live at E;
+assert p not live at EXIT;

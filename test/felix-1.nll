@@ -29,3 +29,7 @@ assert C/0 in p@START/1.0;
 assert C/0 in p@B/3.0;
 assert C/1 not in p@START/1.0;
 assert C/1 not in p@B/3.0;
+
+assert p not live at START;
+assert p live at B;
+assert p live at C;

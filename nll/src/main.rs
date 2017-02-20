@@ -1,5 +1,3 @@
-#![feature(field_init_shorthand)]
-
 #[macro_use]
 extern crate lazy_static;
 
@@ -20,6 +18,7 @@ use std::process;
 #[macro_use] mod log;
 mod env;
 use self::env::Environment;
+mod liveness;
 mod graph;
 mod region;
 mod regionck;

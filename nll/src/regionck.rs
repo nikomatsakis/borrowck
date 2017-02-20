@@ -1,4 +1,5 @@
 use env::{Environment, Point};
+use liveness::Liveness;
 use graph::BasicBlockIndex;
 use graph_algorithms::Graph;
 use nll_repr::repr;
@@ -7,6 +8,7 @@ use region::Region;
 use region_map::RegionMap;
 
 pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
+    let liveness = Liveness::new(env);
     let mut region_map = RegionMap::new();
 
     for &block in &env.reverse_post_order {
@@ -36,6 +38,16 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
                 let p = to_point(env, p);
                 region_map.assert_region_contains(r.variable, r_p, r.index, p, false);
             }
+
+            repr::Assertion::Live(v, b) => {
+                let block = env.graph.block(b);
+                region_map.assert_variable_live(v, block, true);
+            }
+
+            repr::Assertion::NotLive(v, b) => {
+                let block = env.graph.block(b);
+                region_map.assert_variable_live(v, block, false);
+            }
         }
     }
 
@@ -43,7 +55,7 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     let solution = region_map.solve(env);
 
     // Step 5. Check assertions.
-    let errors = solution.check();
+    let errors = solution.check(&liveness);
 
     if errors > 0 {
         try!(Err(format!("{} errors found", errors)));
@@ -73,6 +85,13 @@ fn walk_actions(env: &Environment,
             // a = b
             repr::Action::Assign(a, b) => {
                 no_flow = Some(a);
+                region_map.read_var(a, current_point);
+                region_map.read_var(b, current_point);
+                region_map.subregion(a, b, current_point);
+            }
+
+            // a <: b
+            repr::Action::Subtype(a, b) => {
                 region_map.read_var(a, current_point);
                 region_map.read_var(b, current_point);
                 region_map.subregion(a, b, current_point);

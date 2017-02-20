@@ -42,6 +42,7 @@ pub struct BasicBlockData {
 pub enum Action {
     Borrow(Variable), // p = &<'X, 'Y>;
     Assign(Variable, Variable), // p = q;
+    Subtype(Variable, Variable), // p <: q;
     Use(Variable), // use(p);
     Write(Variable), // write(p);
     Noop,
@@ -57,6 +58,8 @@ pub enum Assertion {
     Eq(RegionName, Region),
     In(RegionName, Point),
     NotIn(RegionName, Point),
+    Live(Variable, BasicBlock),
+    NotLive(Variable, BasicBlock),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

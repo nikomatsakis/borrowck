@@ -36,6 +36,8 @@ Action: Action = {
         Action::Borrow(a),
     <a:Variable> "=" <b:Variable> ";" Comment? =>
         Action::Assign(a, b),
+    <a:Variable> "<:" <b:Variable> ";" Comment? =>
+        Action::Subtype(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? =>
         Action::Use(v),
     "write" "(" <v:Variable> ")" ";" Comment? =>
@@ -52,6 +54,8 @@ Assertion: Assertion = {
     "assert" <n:RegionName> "==" <r:Region> ";" => Assertion::Eq(n, r),
     "assert" <p:Point> "in" <n:RegionName> ";" => Assertion::In(n, p),
     "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
+    "assert" <v:Variable> "live" "at" <b:BasicBlock> ";" => Assertion::Live(v, b),
+    "assert" <v:Variable> "not" "live" "at" <b:BasicBlock> ";" => Assertion::NotLive(v, b),
 };
 
 RegionName: RegionName = {

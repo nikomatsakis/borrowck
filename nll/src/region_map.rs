@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
 use env::{Environment, Point};
+use graph::BasicBlockIndex;
+use liveness::Liveness;
 use nll_repr::repr;
 use region::Region;
 use std::collections::HashMap;
@@ -25,6 +27,9 @@ pub struct RegionMap {
 
     // Check whether a given variable ultimately had a particular value
     eq_assertions: Vec<(RegionVariable, Region)>,
+
+    // Check whether a given variable is live on entry to a given block.
+    live_assertions: Vec<(repr::Variable, BasicBlockIndex, bool)>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -46,6 +51,7 @@ impl RegionMap {
             subregion_constraints: vec![],
             assertions: vec![],
             eq_assertions: vec![],
+            live_assertions: vec![],
         }
     }
 
@@ -93,6 +99,13 @@ impl RegionMap {
                             region: Region) {
         let rv = RegionVariable { name: region_name, point: region_point, index: region_index };
         self.eq_assertions.push((rv, region));
+    }
+
+    pub fn assert_variable_live(&mut self,
+                                var_name: repr::Variable,
+                                block: BasicBlockIndex,
+                                live: bool) {
+        self.live_assertions.push((var_name, block, live));
     }
 
     pub fn solve<'m>(&'m self, env: &Environment) -> RegionSolution<'m> {
@@ -178,7 +191,7 @@ impl<'m> RegionSolution<'m> {
         }
     }
 
-    pub fn check(&self) -> usize {
+    pub fn check(&self, liveness: &Liveness) -> usize {
         let mut errors = 0;
 
         for &(rv, ref expected_region) in &self.region_map.eq_assertions {
@@ -187,6 +200,19 @@ impl<'m> RegionSolution<'m> {
                 println!("error: region `{:?}` did not equal `{:?}` as it should have",
                          rv, expected_region);
                 println!("    actual region `{:?}`", actual_region);
+                errors += 1;
+            }
+        }
+
+        for &(v, block, expected_live) in &self.region_map.live_assertions {
+            let live_on_entry = liveness.live_on_entry(v, block);
+            if live_on_entry && !expected_live {
+                println!("error: variable `{:?}` is live on entry to `{:?}` but should not be",
+                         v, block);
+                errors += 1;
+            } else if !live_on_entry && expected_live {
+                println!("error: variable `{:?}` is not live on entry to `{:?}` but should be",
+                         v, block);
                 errors += 1;
             }
         }

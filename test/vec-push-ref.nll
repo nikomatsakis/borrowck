@@ -1,0 +1,31 @@
+let v;
+let p;
+
+block START {
+    v = &;    // let v: Vec<&i32> = vec![];
+    p = &;    // let p = &foo;
+    goto B C;
+}
+
+block B {
+    p <: v;   // v.push(p);
+    goto EXIT;
+}
+
+block C {
+    use(v); // key point: foo not borrowed here
+    goto EXIT;
+}
+
+block EXIT {
+}
+
+assert v not live at START;
+assert v live at B;
+assert v live at C;
+assert v not live at START;
+
+assert p not live at START;
+assert p live at B;
+assert p not live at C;
+assert p not live at EXIT;
