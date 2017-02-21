@@ -29,6 +29,20 @@ impl Liveness {
         self.liveness.bits(b).get(bit)
     }
 
+    /// Invokes callback once for each action with (A) the point of
+    /// the action; (B) the action itself and (C) the set of live
+    /// variables on entry to the action.
+    pub fn walk<CB>(&mut self,
+                    env: &Environment,
+                    mut callback: CB)
+        where CB: FnMut(Point, &repr::Action, BitSlice)
+    {
+        let mut bits = self.liveness.empty_buf();
+        for &block in &env.reverse_post_order {
+            self.simulate_block(env, &mut bits, block, &mut callback);
+        }
+    }
+
     fn compute(&mut self, env: &Environment) {
         let mut bits = self.liveness.empty_buf();
         let mut changed = true;

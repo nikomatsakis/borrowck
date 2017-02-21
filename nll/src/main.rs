@@ -18,6 +18,7 @@ use std::process;
 #[macro_use] mod log;
 mod env;
 use self::env::Environment;
+mod infer;
 mod liveness;
 mod graph;
 mod region;
