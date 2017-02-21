@@ -81,44 +81,6 @@ impl<'func> Environment<'func> {
                       .collect()
         }
     }
-
-    // Definition:
-    //
-    //     transfer[P->Q]( R )
-    //
-    // All points in R reachable from Q without leaving R.
-    pub fn transfer(&self, p: Point, q: Point, r_p: &Region) -> Region {
-        let mut r_q = Region::new();
-
-        // Not intended to be efficient.
-        let mut stack = vec![];
-        let mut visited = HashSet::new();
-        for &node in r_p {
-            stack.clear();
-            visited.clear();
-            stack.push(q);
-            while let Some(reachable) = stack.pop() {
-                if !r_p.contains(reachable) || !visited.insert(reachable) {
-                    continue;
-                }
-
-                if reachable == node {
-                    r_q.add_point(node);
-                    break;
-                }
-
-                stack.extend(self.successor_points(reachable));
-            }
-        }
-
-        log!("transfer[P->Q](Rp) = Rq");
-        log!("    P  = {:?}", p);
-        log!("    Q  = {:?}", q);
-        log!("    Rp = {:?}", r_p);
-        log!("    Rq = {:?}", r_q);
-
-        r_q
-    }
 }
 
 impl fmt::Debug for Point {

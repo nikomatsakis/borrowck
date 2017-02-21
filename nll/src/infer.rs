@@ -14,6 +14,7 @@ pub struct RegionVariable {
     index: usize
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Constraint {
     sub: RegionVariable,
     sup: RegionVariable,
@@ -35,38 +36,33 @@ impl InferenceContext {
     }
 
     pub fn add_live_point(&mut self, v: RegionVariable, point: Point) {
+        log!("add_live_point({:?}, {:?})", v, point);
         self.values[v.index].add_point(point);
     }
 
-    pub fn add_constraint(&mut self, sub: RegionVariable, sup: RegionVariable, point: Point) {
+    pub fn add_subregion(&mut self, sub: RegionVariable, sup: RegionVariable, point: Point) {
+        log!("add_subregion({:?}, {:?}, {:?})", sub, sup, point);
         self.constraints.push(Constraint { sub, sup, point });
     }
 
-    pub fn solve(&self, env: &Environment) -> Solution {
-        Solution::new(self, env)
-    }
-}
-
-pub struct Solution {
-    values: Vec<Region>,
-}
-
-impl Solution {
-    fn new(cx: &InferenceContext, env: &Environment) -> Self {
-        let mut this = Solution { values: cx.values.clone() };
-        this.iterate(cx, env);
-        this
+    pub fn region(&self, v: RegionVariable) -> &Region {
+        &self.values[v.index]
     }
 
-    fn iterate(&mut self, cx: &InferenceContext, env: &Environment) {
+    pub fn solve(&mut self, env: &Environment) {
         let mut changed = true;
         let mut dfs = Dfs::new(env);
         while changed {
             changed = false;
-            for constraint in &cx.constraints {
+            for constraint in &self.constraints {
                 let sub = &self.values[constraint.sub.index].clone();
                 let sup = &mut self.values[constraint.sup.index];
+                log!("constraint: {:?}", constraint);
+                log!("    sub (before): {:?}", sub);
+                log!("    sup (before): {:?}", sup);
                 changed |= dfs.copy(sub, sup, constraint.point);
+                log!("    sup (after) : {:?}", sup);
+                log!("    changed     : {:?}", changed);
             }
         }
     }
@@ -93,11 +89,15 @@ impl<'env> Dfs<'env> {
 
         self.stack.push(start_point);
         while let Some(p) = self.stack.pop() {
+            log!("        dfs: p={:?}", p);
+
             if !from_region.contains(p) {
+                log!("            not in from-region");
                 continue;
             }
 
             if !self.visited.insert(p) {
+                log!("            already visited");
                 continue;
             }
 

@@ -23,7 +23,6 @@ mod liveness;
 mod graph;
 mod region;
 mod regionck;
-mod region_map;
 use self::graph::FuncGraph;
 
 fn main() {

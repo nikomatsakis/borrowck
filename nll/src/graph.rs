@@ -76,7 +76,7 @@ impl FuncGraph {
         &self.func.data[&block]
     }
 
-    pub fn decls(&self) -> &[repr::Variable] {
+    pub fn decls(&self) -> &[repr::VariableDecl] {
         &self.func.decls
     }
 

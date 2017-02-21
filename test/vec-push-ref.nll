@@ -1,24 +1,32 @@
-let v;
-let p;
+let v: &'v;
+let p: &'p;
 
 block START {
-    v = &;    // let v: Vec<&i32> = vec![];
-    p = &;    // let p = &foo;
+    v = &'vec;    // let v: Vec<&i32> = vec![];
+    p = &'foo;    // let p = &foo;
     goto B C;
 }
 
 block B {
-    p <: v;   // v.push(p);
+    'v <= 'p; // v.push(p); implies p <: vec-elem implies 'v <= 'p
+    use(p); // part of v.push(p)
+    use(v); // also here
     goto EXIT;
 }
 
 block C {
-    use(v); // key point: foo not borrowed here
+    ; // key point: foo not borrowed here
+    use(v);
     goto EXIT;
 }
 
 block EXIT {
 }
+
+assert B/0 in 'foo;
+assert B/1 in 'foo;
+assert B/2 in 'foo;
+assert C/0 not in 'foo;
 
 assert v not live at START;
 assert v live at B;
@@ -29,3 +37,4 @@ assert p not live at START;
 assert p live at B;
 assert p not live at C;
 assert p not live at EXIT;
+

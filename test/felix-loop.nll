@@ -1,7 +1,7 @@
-let p;
+let p: &'p;
 
 block START {
-    p = &;
+    p = &'foo;
     use(p);
     goto A;
 }
@@ -13,7 +13,7 @@ block A {
 block B {
     use(p);
     ;
-    p = &;
+    p = &'bar;
     goto C;
 }
 
@@ -25,14 +25,14 @@ block C {
 block EXIT {
 }
 
-assert A/0 in p@START/1.0;
-assert A/0 in p@B/3.0;
-assert B/0 in p@START/1.0;
-assert B/0 in p@B/3.0;
-assert B/1 not in p@START/1.0;
-assert B/1 not in p@B/3.0;
-assert C/0 in p@START/1.0;
-assert C/0 in p@B/3.0;
-assert EXIT/0 not in p@START/1.0;
-assert EXIT/0 not in p@B/3.0;
+assert A/0 in 'foo;
+assert A/0 in 'bar;
+assert B/0 in 'foo;
+assert B/0 in 'bar;
+assert B/1 not in 'foo;
+assert B/1 not in 'bar;
+assert C/0 in 'foo;
+assert C/0 in 'bar;
+assert EXIT/0 not in 'foo;
+assert EXIT/0 not in 'bar;
 

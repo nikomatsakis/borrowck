@@ -6,17 +6,17 @@
 // }
 // *p // point D
 
-let p;
+let p: &'p;
 
 block START {
-    p = &;
+    p = &'foo;
     goto B C;
 }
 
 block B {
     use(p);
     ;
-    p = &;
+    p = &'bar;
     goto C;
 }
 
@@ -24,11 +24,11 @@ block C {
     use(p);
 }
 
-assert B/1 not in p@START/1.0;
-assert C/0 in p@START/1.0;
-assert C/0 in p@B/3.0;
-assert C/1 not in p@START/1.0;
-assert C/1 not in p@B/3.0;
+assert B/1 not in 'foo;
+assert C/0 in 'foo;
+assert C/0 in 'bar;
+assert C/1 not in 'foo;
+assert C/1 not in 'bar;
 
 assert p not live at START;
 assert p live at B;

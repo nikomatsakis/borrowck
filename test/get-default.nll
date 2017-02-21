@@ -1,17 +1,9 @@
-let m;
-let r;
-let return;
+let m: &'m;
+let r: &'r;
+let return: &'return;
 
 block START {
-    goto M_START;
-}
-
-block M_START {
-    goto START;
-}
-
-block START {
-    m = &; // (&map).get_mut();
+    m = &'map; // (&map).get_mut();
     r = m; // lifetime of return value linked to input
     goto SOME NONE;
 }
@@ -23,7 +15,7 @@ block SOME {
 
 block NONE {
     ; // map.insert(...);
-    m = &; // (&map).get_mut()
+    m = &'map2; // (&map).get_mut()
     r = m; // lifetime of return value linked to input
     return = r; // returned
     goto END;
@@ -39,11 +31,11 @@ block M_END {
 }
 
 // Scope of first borrow.
-assert r@START/1.0 == { END/0, M_END/0, SOME/0, SOME/1, START/1, START/2 };
+assert 'map == { END/0, M_END/0, SOME/0, SOME/1, START/1, START/2 };
 
 // Notably it does not include the NONE arm.
-assert NONE/0 not in r@START/1.0;
+assert NONE/0 not in 'map;
 
 // Scope of second borrow.
-assert r@NONE/2.0 == { END/0, M_END/0, NONE/2, NONE/3, NONE/4 };
+assert 'map2 == { END/0, M_END/0, NONE/2, NONE/3, NONE/4 };
 

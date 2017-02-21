@@ -15,7 +15,7 @@ impl Liveness {
     pub fn new(env: &Environment) -> Liveness {
         let var_bits: HashMap<_, _> = env.graph.decls()
                                                .iter()
-                                               .cloned()
+                                               .map(|d| d.var)
                                                .zip(0..)
                                                .collect();
         let liveness = BitSet::new(env.graph, var_bits.len());
@@ -32,15 +32,19 @@ impl Liveness {
     /// Invokes callback once for each action with (A) the point of
     /// the action; (B) the action itself and (C) the set of live
     /// variables on entry to the action.
-    pub fn walk<CB>(&mut self,
+    pub fn walk<CB>(&self,
                     env: &Environment,
                     mut callback: CB)
-        where CB: FnMut(Point, &repr::Action, BitSlice)
+        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
     {
         let mut bits = self.liveness.empty_buf();
         for &block in &env.reverse_post_order {
             self.simulate_block(env, &mut bits, block, &mut callback);
         }
+    }
+
+    pub fn bit(&self, v: repr::Variable) -> usize {
+        self.var_bits[&v]
     }
 
     fn compute(&mut self, env: &Environment) {
@@ -56,12 +60,12 @@ impl Liveness {
         }
     }
 
-    fn simulate_block<CB>(&mut self,
+    fn simulate_block<CB>(&self,
                           env: &Environment,
                           buf: &mut BitBuf,
                           block: BasicBlockIndex,
                           mut callback: CB)
-        where CB: FnMut(Point, &repr::Action, BitSlice)
+        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
     {
         buf.clear();
 
@@ -69,6 +73,9 @@ impl Liveness {
         for succ in env.graph.successors(block) {
             buf.set_from(self.liveness.bits(succ));
         }
+
+        // callback for the "goto" point
+        callback(env.end_point(block), None, buf.as_slice());
 
         // walk backwards through the actions
         for (index, action) in env.graph.block_data(block).actions.iter().enumerate().rev() {
@@ -85,7 +92,7 @@ impl Liveness {
             }
 
             let point = Point { block, action: index };
-            callback(point, action, buf.as_slice());
+            callback(point, Some(action), buf.as_slice());
         }
     }
 }
@@ -97,9 +104,10 @@ trait UseDefs {
 impl UseDefs for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
         match *self {
-            repr::Action::Borrow(v) => (vec!(v), vec!()),
-            repr::Action::Assign(l, r) => (vec!(l), vec![r]),
+            repr::Action::Borrow(v, _name) => (vec!(v), vec!()),
+            repr::Action::Assign(a, b) => (vec![a], vec![b]),
             repr::Action::Subtype(a, b) => (vec!(), vec![a, b]),
+            repr::Action::Subregion(_a, _b) => (vec!(), vec!()),
             repr::Action::Use(v) => (vec!(), vec!(v)),
             repr::Action::Write(v) => (vec!(), vec!(v)),
             repr::Action::Noop => (vec!(), vec!()),

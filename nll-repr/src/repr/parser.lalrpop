@@ -14,8 +14,8 @@ pub Func: Func = {
     }
 };
 
-VarDecl: Variable = {
-    Comment* "let" <n:Variable> ";" => n
+VarDecl: VariableDecl = {
+    Comment* "let" <n:Variable> ":" "&" <r:RegionName> ";" => VariableDecl { var: n, region: r }
 };
 
 BasicBlockData: BasicBlockData = {
@@ -32,12 +32,14 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" ";" Comment? =>
-        Action::Borrow(a),
+    <a:Variable> "=" "&" <r:RegionName> ";" Comment? =>
+        Action::Borrow(a, r),
     <a:Variable> "=" <b:Variable> ";" Comment? =>
         Action::Assign(a, b),
     <a:Variable> "<:" <b:Variable> ";" Comment? =>
         Action::Subtype(a, b),
+    <a:RegionName> "<=" <b:RegionName> ";" Comment? =>
+        Action::Subregion(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? =>
         Action::Use(v),
     "write" "(" <v:Variable> ")" ";" Comment? =>
@@ -59,7 +61,7 @@ Assertion: Assertion = {
 };
 
 RegionName: RegionName = {
-    <v:Variable> "@" <p:Point> "." <a:Usize> => RegionName { variable: v, point: p, index: a },
+    r"'[a-zA-Z_]\w*" => RegionName { name: intern::intern(<>) }
 };
 
 Point: Point = {
