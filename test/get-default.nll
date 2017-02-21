@@ -31,11 +31,11 @@ block M_END {
 }
 
 // Scope of first borrow.
-assert 'map == { END/0, M_END/0, SOME/0, SOME/1, START/1, START/2 };
+assert 'map == { END/0, M_END/0, SOME/0, SOME/1, START/0, START/1, START/2 };
 
 // Notably it does not include the NONE arm.
 assert NONE/0 not in 'map;
 
 // Scope of second borrow.
-assert 'map2 == { END/0, M_END/0, NONE/2, NONE/3, NONE/4 };
+assert 'map2 == { END/0, M_END/0, NONE/1, NONE/2, NONE/3, NONE/4 };
 

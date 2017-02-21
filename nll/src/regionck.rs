@@ -126,6 +126,7 @@ impl<'env> RegionCheck<'env> {
                 repr::Action::Borrow(var, region_name) => {
                     let var_region = self.var_map[&var];
                     let borrow_region = self.region_variable(region_name);
+                    self.infer.add_live_point(borrow_region, point);
                     self.infer.add_subregion(var_region, borrow_region, successor_point);
                 }
 
