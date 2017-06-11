@@ -4,8 +4,6 @@ use graph_algorithms::dominators::{self, Dominators, DominatorTree};
 use graph_algorithms::iterate::reverse_post_order;
 use graph_algorithms::loop_tree::{self, LoopTree};
 use graph_algorithms::reachable::{self, Reachability};
-use region::Region;
-use std::collections::HashSet;
 use std::fmt;
 
 pub struct Environment<'func> {

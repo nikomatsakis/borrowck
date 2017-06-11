@@ -5,7 +5,7 @@ authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 
 [dependencies]
 docopt = "0.6"
-lalrpop-intern = "0.12.4"
+lalrpop-intern = "0.13.0"
 nll-repr = { path = "../nll-repr" }
 rustc-serialize = "0.3"
 graph-algorithms = { path = "../graph-algorithms" }
