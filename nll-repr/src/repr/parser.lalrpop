@@ -5,13 +5,48 @@ use std::str::FromStr;
 grammar;
 
 pub Func: Func = {
-    <decls:VarDecl+> <blocks:BasicBlockData+> <asserts:(Comment* <Assertion>)*> => Func {
-        decls: decls,
-        data: blocks.into_iter()
-                    .map(|block| (block.name, block))
-                    .collect(),
-        assertions: asserts,
+    <structs:StructDecl*>
+        <decls:VarDecl*>
+        <blocks:BasicBlockData+>
+        <asserts:(Comment* <Assertion>)*> =>
+    {
+        Func {
+            structs: structs,
+            decls: decls,
+            data: blocks.into_iter()
+                        .map(|block| (block.name, block))
+                        .collect(),
+            assertions: asserts,
+        }
     }
+};
+
+StructDecl: StructDecl = {
+    Comment* "struct" <n:StructName> "<" <v:StructVariance> ">" ";" => {
+        StructDecl {
+            name: n,
+            region_variances: v.0,
+            type_variances: v.1,
+        }
+    }
+};
+
+StructVariance: (Vec<Variance>, Vec<Variance>) = {
+    Comma1<LifetimeVariance> => (<>, vec![]),
+    <Comma1<LifetimeVariance>> "," <Comma<Variance>> => (<>),
+    Comma<Variance> => (vec![], <>),
+};
+
+LifetimeVariance: Variance = {
+    "'+" => Variance::Co,
+    "'-" => Variance::Contra,
+    "'=" => Variance::In,
+};
+
+Variance: Variance = {
+    "+" => Variance::Co,
+    "-" => Variance::Contra,
+    "=" => Variance::In,
 };
 
 VarDecl: VariableDecl = {
@@ -70,6 +105,10 @@ Assertion: Assertion = {
 
 RegionName: RegionName = {
     r"'[a-zA-Z_]\w*" => RegionName { name: intern::intern(<>) }
+};
+
+StructName: StructName = {
+    r"'[a-zA-Z_]\w*" => StructName { name: intern::intern(<>) }
 };
 
 Point: Point = {

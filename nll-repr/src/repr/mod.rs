@@ -10,6 +10,7 @@ pub struct BasicBlock(pub InternedString);
 #[derive(Clone, Debug)]
 pub struct Func {
     pub decls: Vec<VariableDecl>,
+    pub structs: Vec<StructDecl>,
     pub data: BTreeMap<BasicBlock, BasicBlockData>,
     pub assertions: Vec<Assertion>
 }
@@ -29,6 +30,33 @@ impl Func {
         let col_num = s[..err_loc].lines().last().map(|s| s.len()).unwrap_or(0);
         Err(format!("parse error at {}:{} (offset {})", line_num, col_num + 1, err_loc))
     }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct StructDecl {
+    pub name: StructName,
+    pub region_variances: Vec<Variance>,
+    pub type_variances: Vec<Variance>,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Variance {
+    Co,
+    Contra,
+    In,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub struct StructName {
+    name: InternedString
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Ty {
+    Ref(RegionName, Box<Ty>),
+    RefMut(RegionName, Box<Ty>),
+    Unit,
+    Struct(StructName, Vec<RegionName>, Vec<Ty>),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
