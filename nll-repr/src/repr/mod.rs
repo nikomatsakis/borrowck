@@ -42,7 +42,6 @@ pub struct BasicBlockData {
 pub enum Action {
     Borrow(Variable, RegionName), // p = &'X
     Assign(Variable, Variable), // p = q;
-    Subtype(Variable, Variable), // p <: q;
     Subregion(RegionName, RegionName), // 'x <= 'y;
     Use(Variable), // use(p);
     Write(Variable), // write(p);

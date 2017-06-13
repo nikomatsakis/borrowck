@@ -106,7 +106,6 @@ impl UseDefs for repr::Action {
         match *self {
             repr::Action::Borrow(v, _name) => (vec!(v), vec!()),
             repr::Action::Assign(a, b) => (vec![a], vec![b]),
-            repr::Action::Subtype(a, b) => (vec!(), vec![a, b]),
             repr::Action::Subregion(_a, _b) => (vec!(), vec!()),
             repr::Action::Use(v) => (vec!(), vec!(v)),
             repr::Action::Write(v) => (vec!(), vec!(v)),

@@ -36,8 +36,6 @@ Action: Action = {
         Action::Borrow(a, r),
     <a:Variable> "=" <b:Variable> ";" Comment? =>
         Action::Assign(a, b),
-    <a:Variable> "<:" <b:Variable> ";" Comment? =>
-        Action::Subtype(a, b),
     <a:RegionName> "<=" <b:RegionName> ";" Comment? =>
         Action::Subregion(a, b),
     "use" "(" <v:Variable> ")" ";" Comment? =>

@@ -138,14 +138,6 @@ impl<'env> RegionCheck<'env> {
                     self.infer.add_subregion(a_region, b_region, successor_point);
                 }
 
-                // a <: b
-                repr::Action::Subtype(a, b) => {
-                    let a_region = self.var_map[&a];
-                    let b_region = self.var_map[&b];
-                    // contravariant regions, so a <: b implies b <= a
-                    self.infer.add_subregion(b_region, a_region, point);
-                }
-
                 // 'X <= 'Y
                 repr::Action::Subregion(a, b) => {
                     let a_v = self.region_variable(a);
