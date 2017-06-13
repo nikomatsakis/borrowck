@@ -139,10 +139,17 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // 'X: 'Y
-                repr::Action::Outlives(a, b) => {
-                    let a_v = self.region_variable(a);
-                    let b_v = self.region_variable(b);
-                    self.infer.add_outlives(a_v, b_v, point);
+                repr::Action::Constraint(ref c) => {
+                    match **c {
+                        repr::Constraint::Outlives(c) => {
+                            let sup_v = self.region_variable(c.sup);
+                            let sub_v = self.region_variable(c.sub);
+                            self.infer.add_outlives(sup_v, sub_v, point);
+                        }
+                        _ => {
+                            panic!("unimplemented rich constraint: {:?}", c);
+                        }
+                    }
                 }
 
                 // use(a); i.e., print(*a)

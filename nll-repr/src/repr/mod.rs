@@ -38,14 +38,29 @@ pub struct BasicBlockData {
     pub successors: Vec<BasicBlock>,
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
     Borrow(Variable, RegionName), // p = &'X
     Assign(Variable, Variable), // p = q;
-    Outlives(RegionName, RegionName), // 'x: 'y;
+    Constraint(Box<Constraint>), // C
     Use(Variable), // use(p);
     Write(Variable), // write(p);
     Noop,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Constraint {
+    ForAll(Vec<RegionName>, Box<Constraint>),
+    Exists(Vec<RegionName>, Box<Constraint>),
+    Implies(Vec<OutlivesConstraint>, Box<Constraint>),
+    All(Vec<Constraint>),
+    Outlives(OutlivesConstraint),
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub struct OutlivesConstraint {
+    pub sup: RegionName,
+    pub sub: RegionName,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]

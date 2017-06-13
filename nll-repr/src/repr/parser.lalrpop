@@ -32,18 +32,28 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" <r:RegionName> ";" Comment? =>
-        Action::Borrow(a, r),
-    <a:Variable> "=" <b:Variable> ";" Comment? =>
-        Action::Assign(a, b),
-    <a:RegionName> ":" <b:RegionName> ";" Comment? =>
-        Action::Outlives(a, b),
-    "use" "(" <v:Variable> ")" ";" Comment? =>
-        Action::Use(v),
-    "write" "(" <v:Variable> ")" ";" Comment? =>
-        Action::Write(v),
-    ";" Comment? =>
-        Action::Noop,
+    <a:Variable> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
+    <a:Variable> "=" <b:Variable> ";" Comment? => Action::Assign(a, b),
+    <c:Constraint> ";" Comment? => Action::Constraint(c),
+    "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
+    "write" "(" <v:Variable> ")" ";" Comment? => Action::Write(v),
+    ";" Comment? => Action::Noop,
+};
+
+Constraint: Box<Constraint> = {
+    Constraint1 => Box::new(<>),
+};
+
+Constraint1: Constraint = {
+    "forall" "<" <v:Comma<RegionName>> ">" <c:Constraint> => Constraint::ForAll(v, c),
+    "exists" "<" <v:Comma<RegionName>> ">" <c:Constraint> => Constraint::Exists(v, c),
+    "if" "(" <v:Comma<OutlivesConstraint>> ")" <c:Constraint> => Constraint::Implies(v, c),
+    "{" <c:Comma<Constraint1>> "}" => Constraint::All(c),
+    OutlivesConstraint => Constraint::Outlives(<>),
+};
+
+OutlivesConstraint: OutlivesConstraint = {
+    <sup:RegionName> ":" <sub:RegionName> => OutlivesConstraint { sup, sub },
 };
 
 Variable: Variable = {
