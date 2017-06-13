@@ -127,22 +127,22 @@ impl<'env> RegionCheck<'env> {
                     let var_region = self.var_map[&var];
                     let borrow_region = self.region_variable(region_name);
                     self.infer.add_live_point(borrow_region, point);
-                    self.infer.add_subregion(var_region, borrow_region, successor_point);
+                    self.infer.add_outlives(borrow_region, var_region, successor_point);
                 }
 
                 // a = b
                 repr::Action::Assign(a, b) => {
                     let a_region = self.var_map[&a];
                     let b_region = self.var_map[&b];
-                    // contravariant regions, so typeof(b) <: typeof(a) implies a <= b
-                    self.infer.add_subregion(a_region, b_region, successor_point);
+                    // contravariant regions, so typeof(b) <: typeof(a) implies b: a
+                    self.infer.add_outlives(b_region, a_region, successor_point);
                 }
 
                 // 'X: 'Y
                 repr::Action::Outlives(a, b) => {
                     let a_v = self.region_variable(a);
                     let b_v = self.region_variable(b);
-                    self.infer.add_subregion(b_v, a_v, point);
+                    self.infer.add_outlives(a_v, b_v, point);
                 }
 
                 // use(a); i.e., print(*a)

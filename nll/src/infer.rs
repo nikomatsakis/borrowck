@@ -40,9 +40,9 @@ impl InferenceContext {
         self.values[v.index].add_point(point);
     }
 
-    pub fn add_subregion(&mut self, sub: RegionVariable, sup: RegionVariable, point: Point) {
-        log!("add_subregion({:?}, {:?}, {:?})", sub, sup, point);
-        self.constraints.push(Constraint { sub, sup, point });
+    pub fn add_outlives(&mut self, sup: RegionVariable, sub: RegionVariable, point: Point) {
+        log!("add_outlives({:?}: {:?} @ {:?})", sup, sub, point);
+        self.constraints.push(Constraint { sup, sub, point });
     }
 
     pub fn region(&self, v: RegionVariable) -> &Region {
