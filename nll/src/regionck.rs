@@ -138,11 +138,11 @@ impl<'env> RegionCheck<'env> {
                     self.infer.add_subregion(a_region, b_region, successor_point);
                 }
 
-                // 'X <= 'Y
-                repr::Action::Subregion(a, b) => {
+                // 'X: 'Y
+                repr::Action::Outlives(a, b) => {
                     let a_v = self.region_variable(a);
                     let b_v = self.region_variable(b);
-                    self.infer.add_subregion(a_v, b_v, point);
+                    self.infer.add_subregion(b_v, a_v, point);
                 }
 
                 // use(a); i.e., print(*a)

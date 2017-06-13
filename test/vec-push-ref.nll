@@ -8,7 +8,7 @@ block START {
 }
 
 block B {
-    'v <= 'p; // v.push(p); implies p <: vec-elem implies 'v <= 'p
+    'p: 'v; // v.push(p); implies p <: vec-elem implies 'p: 'v
     use(p); // part of v.push(p)
     use(v); // also here
     goto EXIT;
