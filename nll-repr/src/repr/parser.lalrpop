@@ -22,35 +22,37 @@ pub Func: Func = {
 };
 
 StructDecl: StructDecl = {
-    Comment* "struct" <n:StructName> "<" <v:StructVariance> ">" ";" => {
+    Comment* "struct" <n:StructName> "<" <p:Comma<StructParameter>> ">" ";" => {
         StructDecl {
             name: n,
-            region_variances: v.0,
-            type_variances: v.1,
+            parameters: p,
         }
     }
 };
 
-StructVariance: (Vec<Variance>, Vec<Variance>) = {
-    Comma1<LifetimeVariance> => (<>, vec![]),
-    <Comma1<LifetimeVariance>> "," <Comma<Variance>> => (<>),
-    Comma<Variance> => (vec![], <>),
-};
-
-LifetimeVariance: Variance = {
-    "'+" => Variance::Co,
-    "'-" => Variance::Contra,
-    "'=" => Variance::In,
-};
-
-Variance: Variance = {
-    "+" => Variance::Co,
-    "-" => Variance::Contra,
-    "=" => Variance::In,
+StructParameter: StructParameter = {
+    "'+" => StructParameter { kind: Kind::Region, variance: Variance::Co },
+    "'-" => StructParameter { kind: Kind::Region, variance: Variance::Contra },
+    "'=" => StructParameter { kind: Kind::Region, variance: Variance::In },
+    "+" => StructParameter { kind: Kind::Type, variance: Variance::Co },
+    "-" => StructParameter { kind: Kind::Type, variance: Variance::Contra },
+    "=" => StructParameter { kind: Kind::Type, variance: Variance::In },
 };
 
 VarDecl: VariableDecl = {
     Comment* "let" <n:Variable> ":" "&" <r:RegionName> ";" => VariableDecl { var: n, region: r }
+};
+
+Ty: Box<Ty> = {
+    "&" <RegionName> "mut" <Ty> => Box::new(Ty::RefMut(<>)),
+    "&" <RegionName> <Ty> => Box::new(Ty::Ref(<>)),
+    "(" ")" => Box::new(Ty::Unit),
+    <StructName> "<" <Comma<TyParameter>> ">" => Box::new(Ty::Struct(<>)),
+};
+
+TyParameter: TyParameter = {
+    RegionName => TyParameter::Region(<>),
+    Ty => TyParameter::Ty(<>),
 };
 
 BasicBlockData: BasicBlockData = {

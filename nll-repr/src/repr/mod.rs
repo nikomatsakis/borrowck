@@ -35,8 +35,19 @@ impl Func {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct StructDecl {
     pub name: StructName,
-    pub region_variances: Vec<Variance>,
-    pub type_variances: Vec<Variance>,
+    pub parameters: Vec<StructParameter>,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub struct StructParameter {
+    pub kind: Kind,
+    pub variance: Variance,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Kind {
+    Region,
+    Type,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -56,7 +67,13 @@ pub enum Ty {
     Ref(RegionName, Box<Ty>),
     RefMut(RegionName, Box<Ty>),
     Unit,
-    Struct(StructName, Vec<RegionName>, Vec<Ty>),
+    Struct(StructName, Vec<TyParameter>),
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum TyParameter {
+    Region(RegionName),
+    Ty(Box<Ty>),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
