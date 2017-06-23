@@ -24,7 +24,9 @@ block EXIT {
 }
 
 assert B/0 in 'foo;
+assert B/0 in 'v;
 assert C/0 not in 'foo;
+assert C/0 in 'v;
 
 assert v not live at START;
 assert v live at B;
