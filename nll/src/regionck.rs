@@ -118,7 +118,6 @@ impl<'env> RegionCheck<'env> {
                     let path_ty = self.env.path_ty(path);
                     let borrow_region = self.region_variable(region_name);
                     self.infer.add_live_point(borrow_region, point);
-                    self.add_live_point(&path_ty, point);
                     match *path_ty {
                         repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
                             let var_region = self.region_variable(rn);
@@ -173,13 +172,6 @@ impl<'env> RegionCheck<'env> {
         let r = *self.region_map.entry(n).or_insert_with(|| infer.add_var());
         log!("{:?} => {:?}", n, r);
         r
-    }
-
-    fn add_live_point(&mut self, ty: &repr::Ty, point: Point) {
-        for region_name in ty.walk_regions() {
-            let rv = self.region_variable(region_name);
-            self.infer.add_live_point(rv, point);
-        }
     }
 
     fn to_point(&self, point: &repr::Point) -> Point {

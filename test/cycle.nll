@@ -32,6 +32,6 @@ assert END/0 not in 'pr;
 assert END/0 not in 'pr1;
 
 assert 'foo == {START/1, START/2, START/3, START/4, START/5, START/6};
-assert 'pr == {START/2, START/3, START/4, START/5, START/6};
-assert 'pr1 == {START/2, START/3, START/4, START/5, START/6};
+assert 'pr == {START/3, START/4, START/5, START/6};
+assert 'pr1 == {START/3, START/4, START/5, START/6};
 assert 'borrow == {START/2, START/3, START/4, START/5, START/6};
