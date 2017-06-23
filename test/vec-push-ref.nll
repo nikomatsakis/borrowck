@@ -4,13 +4,13 @@ let v: Vec<&'v ()>;
 let p: &'p ();
 
 block START {
-    v.0 = &'vec;    // let v: Vec<&i32> = vec![];
+    v = use();    // let v: Vec<&i32> = vec![];
     p = &'foo;    // let p = &foo;
     goto B C;
 }
 
 block B {
-    v.0 = p;
+    v:0 = p;
     goto EXIT;
 }
 

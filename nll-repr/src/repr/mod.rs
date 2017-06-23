@@ -129,6 +129,7 @@ pub struct BasicBlockData {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
+    Init(Box<Path>, Vec<Box<Path>>), // p = use(...)
     Borrow(Box<Path>, RegionName), // p = &'X
     Assign(Box<Path>, Box<Path>), // p = q;
     Constraint(Box<Constraint>), // C
@@ -148,6 +149,24 @@ impl Path {
         match *self {
             Path::Base(v) => v,
             Path::Extension(ref e, _) => e.base(),
+        }
+    }
+
+    /// When you have `p = ...`, which variable is reassigned?
+    /// If this is `p = x`, then `x` is. Otherwise, nothing.
+    pub fn write_def(&self) -> Option<Variable> {
+        match *self {
+            Path::Base(v) => Some(v),
+            Path::Extension(..) => None,
+        }
+    }
+
+    /// When you have `p = ...`, which variable is read?
+    /// If this is `p = x.0`, then `x` is. Otherwise, nothing.
+    pub fn write_use(&self) -> Option<Variable> {
+        match *self {
+            Path::Base(..) => None,
+            Path::Extension(..) => Some(self.base()),
         }
     }
 }

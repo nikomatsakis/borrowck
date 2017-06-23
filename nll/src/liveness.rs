@@ -4,6 +4,7 @@ use graph_algorithms::Graph;
 use graph_algorithms::bit_set::{BitBuf, BitSet, BitSlice};
 use nll_repr::repr;
 use std::collections::HashMap;
+use std::iter::once;
 
 /// Compute the set of live variables at each point.
 pub struct Liveness {
@@ -105,11 +106,13 @@ impl UseDefs for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
         match *self {
             repr::Action::Borrow(ref v, _name) => (vec![v.base()], vec![]),
+            repr::Action::Init(ref a, ref params) => {
+                (a.write_def().into_iter().collect(),
+                 params.iter().map(|p| p.base()).chain(a.write_use()).collect())
+            }
             repr::Action::Assign(ref a, ref b) => {
-                match **a {
-                    repr::Path::Base(v) => (vec![v], vec![b.base()]),
-                    repr::Path::Extension(..) => (vec![], vec![a.base(), b.base()]),
-                }
+                (a.write_def().into_iter().collect(),
+                 once(b.base()).chain(a.write_use()).collect())
             }
             repr::Action::Constraint(ref _c) => (vec!(), vec!()),
             repr::Action::Use(ref v) => (vec!(), vec!(v.base())),

@@ -72,6 +72,7 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
+    <a:Path> "=" "use" "(" <p:Comma0<Path>> ")" ";" Comment? => Action::Init(a, p),
     <a:Path> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
     <a:Path> "=" <b:Path> ";" Comment? => Action::Assign(a, b),
     <c:Constraint> ";" Comment? => Action::Constraint(c),
@@ -82,7 +83,7 @@ Action: Action = {
 
 Path: Box<Path> = {
     Variable => Box::new(Path::Base(<>)),
-    <Path> "." <Usize> => Box::new(Path::Extension(<>)),
+    <Path> ":" <Usize> => Box::new(Path::Extension(<>)),
 };
 
 Constraint: Box<Constraint> = {

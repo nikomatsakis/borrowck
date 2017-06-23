@@ -154,6 +154,14 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
+                // a = use(...)
+                repr::Action::Init(_, ref params) => {
+                    // XXX some assertion for `a`?
+                    for p in params {
+                        assert!(live_vars.contains(&p.base()));
+                    }
+                }
+
                 // a = b
                 repr::Action::Assign(ref a, ref b) => {
                     let a_ty = self.path_ty(a);
