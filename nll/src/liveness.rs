@@ -143,6 +143,10 @@ impl UseDefs for repr::Action {
             repr::Action::Constraint(ref _c) => (vec!(), vec!()),
             repr::Action::Use(ref v) => (vec!(), vec!(v.base())),
             repr::Action::Write(ref v) => (vec!(), vec!(v.base())),
+
+            // for *now*, drop counts as a use
+            repr::Action::Drop(ref v) => (vec!(), vec!(v.base())),
+
             repr::Action::Noop => (vec!(), vec!()),
         }
     }

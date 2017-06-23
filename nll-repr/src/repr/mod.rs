@@ -135,6 +135,7 @@ pub enum Action {
     Constraint(Box<Constraint>), // C
     Use(Box<Path>), // use(p);
     Write(Box<Path>), // write(p);
+    Drop(Box<Path>), // drop(p);
     Noop,
 }
 
