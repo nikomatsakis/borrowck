@@ -117,7 +117,6 @@ impl<'env> RegionCheck<'env> {
                 repr::Action::Borrow(ref path, region_name) => {
                     let path_ty = self.env.path_ty(path);
                     let borrow_region = self.region_variable(region_name);
-                    self.infer.add_live_point(borrow_region, point);
                     match *path_ty {
                         repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
                             let var_region = self.region_variable(rn);
