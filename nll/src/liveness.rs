@@ -8,26 +8,52 @@ use std::iter::once;
 
 /// Compute the set of live variables at each point.
 pub struct Liveness {
-    var_bits: HashMap<repr::Variable, usize>,
+    var_regions: HashMap<repr::Variable, Vec<repr::RegionName>>,
+    var_bits: HashMap<repr::RegionName, usize>,
     liveness: BitSet<FuncGraph>,
 }
 
 impl Liveness {
     pub fn new(env: &Environment) -> Liveness {
-        let var_bits: HashMap<_, _> = env.graph.decls()
-                                               .iter()
-                                               .map(|d| d.var)
-                                               .zip(0..)
-                                               .collect();
+        let var_regions: HashMap<_, Vec<_>> =
+            env.graph.decls()
+                     .iter()
+                     .map(|d| (
+                         d.var,
+                         d.ty.walk(repr::Variance::Co)
+                             .map(|(_variance, region_name)| region_name)
+                             .collect()
+                     ))
+                     .collect();
+        let mut region_names: Vec<_> = var_regions.iter()
+                                                  .flat_map(|(_, ref names)| names.iter())
+                                                  .cloned()
+                                                  .collect();
+        region_names.sort();
+        region_names.dedup();
+        let var_bits: HashMap<_, _> = region_names.iter()
+                                                  .cloned()
+                                                  .zip(0..)
+                                                  .collect();
         let liveness = BitSet::new(env.graph, var_bits.len());
-        let mut this = Liveness { var_bits, liveness };
+        let mut this = Liveness { var_regions, var_bits, liveness };
         this.compute(env);
         this
     }
 
-    pub fn live_on_entry(&self, v: repr::Variable, b: BasicBlockIndex) -> bool {
-        let bit = self.var_bits[&v];
-        self.liveness.bits(b).get(bit)
+    pub fn var_live_on_entry(&self, var_name: repr::Variable, b: BasicBlockIndex) -> bool {
+        self.var_regions[&var_name]
+            .iter()
+            .map(|rn| self.var_bits[rn])
+            .all(|bit| self.liveness.bits(b).get(bit))
+    }
+
+    pub fn live_regions<'a>(&'a self, live_bits: BitSlice<'a>)
+                            -> impl Iterator<Item = repr::RegionName> + 'a {
+        self.var_bits
+            .iter()
+            .filter(move |&(_, &bit)| live_bits.get(bit))
+            .map(move |(&region_name, _)| region_name)
     }
 
     /// Invokes callback once for each action with (A) the point of
@@ -42,10 +68,6 @@ impl Liveness {
         for &block in &env.reverse_post_order {
             self.simulate_block(env, &mut bits, block, &mut callback);
         }
-    }
-
-    pub fn bit(&self, v: repr::Variable) -> usize {
-        self.var_bits[&v]
     }
 
     fn compute(&mut self, env: &Environment) {
@@ -84,12 +106,16 @@ impl Liveness {
 
             // anything we write to is no longer live
             for v in def_var {
-                buf.kill(self.var_bits[&v]);
+                for rn in &self.var_regions[&v] {
+                    buf.kill(self.var_bits[&rn]);
+                }
             }
 
             // anything we read from, we make live
             for v in use_var {
-                buf.set(self.var_bits[&v]);
+                for rn in &self.var_regions[&v] {
+                    buf.set(self.var_bits[&rn]);
+                }
             }
 
             let point = Point { block, action: index };

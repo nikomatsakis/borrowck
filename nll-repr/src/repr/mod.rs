@@ -212,7 +212,7 @@ pub struct Point {
     pub action: usize,
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct RegionName {
     name: InternedString
 }

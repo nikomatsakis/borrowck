@@ -86,7 +86,7 @@ impl<'env> RegionCheck<'env> {
 
                 repr::Assertion::Live(var, block_name) => {
                     let block = self.env.graph.block(block_name);
-                    if !liveness.live_on_entry(var, block) {
+                    if !liveness.var_live_on_entry(var, block) {
                         errors += 1;
                         println!("error: variable `{:?}` not live on entry to `{:?}`",
                                  var, block_name);
@@ -95,7 +95,7 @@ impl<'env> RegionCheck<'env> {
 
                 repr::Assertion::NotLive(var, block_name) => {
                     let block = self.env.graph.block(block_name);
-                    if liveness.live_on_entry(var, block) {
+                    if liveness.var_live_on_entry(var, block) {
                         errors += 1;
                         println!("error: variable `{:?}` live on entry to `{:?}`",
                                  var, block_name);
@@ -115,15 +115,9 @@ impl<'env> RegionCheck<'env> {
         liveness.walk(self.env, |point, action, live_on_entry| {
             // To start, find every variable `x` that is live. All regions
             // in the type of `x` must include `point`.
-            let mut live_vars = vec![]; // we keep list of live vars for use as sanity check
-            for decl in self.env.graph.decls() {
-                let bit = liveness.bit(decl.var);
-
-                if live_on_entry.get(bit) {
-                    let var_decl = self.var_map[&decl.var];
-                    self.add_live_point(&var_decl.ty, point);
-                    live_vars.push(decl.var);
-                }
+            for region_name in liveness.live_regions(live_on_entry) {
+                let rv = self.region_variable(region_name);
+                self.infer.add_live_point(rv, point);
             }
 
             let action = if let Some(action) = action {
@@ -154,14 +148,6 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
-                // a = use(...)
-                repr::Action::Init(_, ref params) => {
-                    // XXX some assertion for `a`?
-                    for p in params {
-                        assert!(live_vars.contains(&p.base()));
-                    }
-                }
-
                 // a = b
                 repr::Action::Assign(ref a, ref b) => {
                     let a_ty = self.path_ty(a);
@@ -185,14 +171,10 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
-                // use(a); i.e., print(*a)
-                repr::Action::Use(ref p) => {
-                    assert!(live_vars.contains(&p.base()));
-                }
-
-                // write(a); i.e., *a += 1
-                repr::Action::Write(ref p) => {
-                    assert!(live_vars.contains(&p.base()));
+                repr::Action::Init(..) | // a = use(...)
+                repr::Action::Use(..) | // use(a)
+                repr::Action::Write(..) => { // write(a), e.g. *a += 1
+                    // the basic liveness rules suffice here
                 }
 
                 repr::Action::Noop => {
