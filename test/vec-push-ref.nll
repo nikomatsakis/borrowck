@@ -1,16 +1,16 @@
-let v: &'v ();
+struct Vec<+>;
+
+let v: Vec<&'v ()>;
 let p: &'p ();
 
 block START {
-    v = &'vec;    // let v: Vec<&i32> = vec![];
+    v.0 = &'vec;    // let v: Vec<&i32> = vec![];
     p = &'foo;    // let p = &foo;
     goto B C;
 }
 
 block B {
-    'p: 'v; // v.push(p); implies p <: vec-elem implies 'p: 'v
-    use(p); // part of v.push(p)
-    use(v); // also here
+    v.0 = p;
     goto EXIT;
 }
 
@@ -24,8 +24,6 @@ block EXIT {
 }
 
 assert B/0 in 'foo;
-assert B/1 in 'foo;
-assert B/2 in 'foo;
 assert C/0 not in 'foo;
 
 assert v not live at START;

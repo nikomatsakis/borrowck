@@ -104,11 +104,16 @@ trait UseDefs {
 impl UseDefs for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
         match *self {
-            repr::Action::Borrow(v, _name) => (vec!(v), vec!()),
-            repr::Action::Assign(a, b) => (vec![a], vec![b]),
+            repr::Action::Borrow(ref v, _name) => (vec![v.base()], vec![]),
+            repr::Action::Assign(ref a, ref b) => {
+                match **a {
+                    repr::Path::Base(v) => (vec![v], vec![b.base()]),
+                    repr::Path::Extension(..) => (vec![], vec![a.base(), b.base()]),
+                }
+            }
             repr::Action::Constraint(ref _c) => (vec!(), vec!()),
-            repr::Action::Use(v) => (vec!(), vec!(v)),
-            repr::Action::Write(v) => (vec!(), vec!(v)),
+            repr::Action::Use(ref v) => (vec!(), vec!(v.base())),
+            repr::Action::Write(ref v) => (vec!(), vec!(v.base())),
             repr::Action::Noop => (vec!(), vec!()),
         }
     }

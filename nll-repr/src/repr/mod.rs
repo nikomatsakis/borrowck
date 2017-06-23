@@ -129,12 +129,27 @@ pub struct BasicBlockData {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
-    Borrow(Variable, RegionName), // p = &'X
-    Assign(Variable, Variable), // p = q;
+    Borrow(Box<Path>, RegionName), // p = &'X
+    Assign(Box<Path>, Box<Path>), // p = q;
     Constraint(Box<Constraint>), // C
-    Use(Variable), // use(p);
-    Write(Variable), // write(p);
+    Use(Box<Path>), // use(p);
+    Write(Box<Path>), // write(p);
     Noop,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Path { // P =
+    Base(Variable), // v
+    Extension(Box<Path>, usize), // P.n
+}
+
+impl Path {
+    pub fn base(&self) -> Variable {
+        match *self {
+            Path::Base(v) => v,
+            Path::Extension(ref e, _) => e.base(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

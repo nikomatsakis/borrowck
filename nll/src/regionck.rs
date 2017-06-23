@@ -138,12 +138,12 @@ impl<'env> RegionCheck<'env> {
             match *action {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
-                repr::Action::Borrow(var, region_name) => {
-                    let var_decl = self.var_map[&var];
+                repr::Action::Borrow(ref path, region_name) => {
+                    let path_ty = self.path_ty(path);
                     let borrow_region = self.region_variable(region_name);
                     self.infer.add_live_point(borrow_region, point);
-                    self.add_live_point(&var_decl.ty, point);
-                    match *var_decl.ty {
+                    self.add_live_point(&path_ty, point);
+                    match *path_ty {
                         repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
                             let var_region = self.region_variable(rn);
                             self.infer.add_outlives(borrow_region, var_region, successor_point);
@@ -155,12 +155,12 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // a = b
-                repr::Action::Assign(a, b) => {
-                    let a_decl = self.var_map[&a];
-                    let b_decl = self.var_map[&b];
+                repr::Action::Assign(ref a, ref b) => {
+                    let a_ty = self.path_ty(a);
+                    let b_ty = self.path_ty(b);
 
                     // `b` must be a subtype of `a` to be assignable:
-                    self.relate_tys(successor_point, repr::Variance::Co, &b_decl.ty, &a_decl.ty);
+                    self.relate_tys(successor_point, repr::Variance::Co, &b_ty, &a_ty);
                 }
 
                 // 'X: 'Y
@@ -178,13 +178,13 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // use(a); i.e., print(*a)
-                repr::Action::Use(var) => {
-                    assert!(live_vars.contains(&var));
+                repr::Action::Use(ref p) => {
+                    assert!(live_vars.contains(&p.base()));
                 }
 
                 // write(a); i.e., *a += 1
-                repr::Action::Write(var) => {
-                    assert!(live_vars.contains(&var));
+                repr::Action::Write(ref p) => {
+                    assert!(live_vars.contains(&p.base()));
                 }
 
                 repr::Action::Noop => {
@@ -292,6 +292,37 @@ impl<'env> RegionCheck<'env> {
             (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
                 self.relate_regions(successor_point, variance, r_a, r_b),
             _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
+        }
+    }
+
+    fn path_ty(&self, path: &repr::Path) -> &'env repr::Ty {
+        match *path {
+            repr::Path::Base(v) => &self.var_map[&v].ty,
+            repr::Path::Extension(ref base, index) => {
+                let ty = self.path_ty(base);
+                match *ty {
+                    repr::Ty::Ref(_, ref t) | repr::Ty::RefMut(_, ref t) => {
+                        if index == 0 { t } else { panic!("cannot index & with {}", index) }
+                    }
+
+                    repr::Ty::Unit => {
+                        panic!("cannot index `()` type")
+                    }
+
+                    repr::Ty::Struct(n, ref parameters) => {
+                        if index < parameters.len() {
+                            match parameters[index] {
+                                repr::TyParameter::Ty(ref t) => t,
+                                repr::TyParameter::Region(_) => {
+                                    panic!("indexing `{:?}` with {} yields a region", n, index)
+                                }
+                            }
+                        } else {
+                            panic!("cannot index `{:?}` with {}", n, index)
+                        }
+                    }
+                }
+            }
         }
     }
 }

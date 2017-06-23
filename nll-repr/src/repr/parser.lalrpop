@@ -72,12 +72,17 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Variable> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
-    <a:Variable> "=" <b:Variable> ";" Comment? => Action::Assign(a, b),
+    <a:Path> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
+    <a:Path> "=" <b:Path> ";" Comment? => Action::Assign(a, b),
     <c:Constraint> ";" Comment? => Action::Constraint(c),
-    "use" "(" <v:Variable> ")" ";" Comment? => Action::Use(v),
-    "write" "(" <v:Variable> ")" ";" Comment? => Action::Write(v),
+    "use" "(" <v:Path> ")" ";" Comment? => Action::Use(v),
+    "write" "(" <v:Path> ")" ";" Comment? => Action::Write(v),
     ";" Comment? => Action::Noop,
+};
+
+Path: Box<Path> = {
+    Variable => Box::new(Path::Base(<>)),
+    <Path> "." <Usize> => Box::new(Path::Extension(<>)),
 };
 
 Constraint: Box<Constraint> = {
@@ -113,7 +118,7 @@ RegionName: RegionName = {
 };
 
 StructName: StructName = {
-    r"'[a-zA-Z_]\w*" => StructName { name: intern::intern(<>) }
+    r"[a-zA-Z_]\w*" => StructName { name: intern::intern(<>) }
 };
 
 Point: Point = {
