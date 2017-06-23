@@ -40,7 +40,10 @@ StructParameter: StructParameter = {
 };
 
 VarDecl: VariableDecl = {
-    Comment* "let" <n:Variable> ":" "&" <r:RegionName> ";" => VariableDecl { var: n, region: r }
+    Comment* "let" <n:Variable> ":" <t:Ty> ";" => VariableDecl {
+        var: n,
+        ty: t,
+    }
 };
 
 Ty: Box<Ty> = {

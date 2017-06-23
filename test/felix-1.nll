@@ -6,7 +6,7 @@
 // }
 // *p // point D
 
-let p: &'p;
+let p: &'p ();
 
 block START {
     p = &'foo;

@@ -1,5 +1,5 @@
-let v: &'v;
-let p: &'p;
+let v: &'v ();
+let p: &'p ();
 
 block START {
     v = &'vec;    // let v: Vec<&i32> = vec![];

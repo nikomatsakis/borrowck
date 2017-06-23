@@ -83,6 +83,10 @@ impl FuncGraph {
     pub fn assertions(&self) -> &[repr::Assertion] {
         &self.func.assertions
     }
+
+    pub fn struct_decls(&self) -> &[repr::StructDecl] {
+        &self.func.structs
+    }
 }
 
 impl ga::Graph for FuncGraph {

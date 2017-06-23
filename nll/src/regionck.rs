@@ -1,16 +1,31 @@
 use env::{Environment, Point};
 use liveness::Liveness;
 use infer::{InferenceContext, RegionVariable};
-use nll_repr::repr;
+use nll_repr::repr::{self, Variance};
 use std::collections::HashMap;
 use std::error::Error;
 use region::Region;
 
 pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
+    let var_map =
+        env.graph
+           .decls()
+           .iter()
+           .map(|vd| (vd.var, vd))
+           .collect();
+
+    let struct_map =
+        env.graph
+           .struct_decls()
+           .iter()
+           .map(|sd| (sd.name, sd))
+           .collect();
+
     let ck = &mut RegionCheck {
         env,
         infer: InferenceContext::new(),
-        var_map: HashMap::new(),
+        var_map: var_map,
+        struct_map: struct_map,
         region_map: HashMap::new()
     };
     ck.check()
@@ -19,13 +34,13 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
 struct RegionCheck<'env> {
     env: &'env Environment<'env>,
     infer: InferenceContext,
-    var_map: HashMap<repr::Variable, RegionVariable>,
+    var_map: HashMap<repr::Variable, &'env repr::VariableDecl>,
+    struct_map: HashMap<repr::StructName, &'env repr::StructDecl>,
     region_map: HashMap<repr::RegionName, RegionVariable>,
 }
 
 impl<'env> RegionCheck<'env> {
     fn check(&mut self) -> Result<(), Box<Error>> {
-        self.populate_var_map();
         let liveness = &Liveness::new(self.env);
         self.populate_inference(liveness);
         self.check_assertions(liveness)
@@ -105,8 +120,8 @@ impl<'env> RegionCheck<'env> {
                 let bit = liveness.bit(decl.var);
 
                 if live_on_entry.get(bit) {
-                    let region = self.var_map[&decl.var];
-                    self.infer.add_live_point(region, point);
+                    let var_decl = self.var_map[&decl.var];
+                    self.add_live_point(&var_decl.ty, point);
                     live_vars.push(decl.var);
                 }
             }
@@ -124,18 +139,28 @@ impl<'env> RegionCheck<'env> {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
                 repr::Action::Borrow(var, region_name) => {
-                    let var_region = self.var_map[&var];
+                    let var_decl = self.var_map[&var];
                     let borrow_region = self.region_variable(region_name);
                     self.infer.add_live_point(borrow_region, point);
-                    self.infer.add_outlives(borrow_region, var_region, successor_point);
+                    self.add_live_point(&var_decl.ty, point);
+                    match *var_decl.ty {
+                        repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
+                            let var_region = self.region_variable(rn);
+                            self.infer.add_outlives(borrow_region, var_region, successor_point);
+                        }
+                        _ => {
+                            panic!("result must be `&T` or `&mut T` type")
+                        }
+                    }
                 }
 
                 // a = b
                 repr::Action::Assign(a, b) => {
-                    let a_region = self.var_map[&a];
-                    let b_region = self.var_map[&b];
-                    // contravariant regions, so typeof(b) <: typeof(a) implies b: a
-                    self.infer.add_outlives(b_region, a_region, successor_point);
+                    let a_decl = self.var_map[&a];
+                    let b_decl = self.var_map[&b];
+
+                    // `b` must be a subtype of `a` to be assignable:
+                    self.relate_tys(successor_point, repr::Variance::Co, &b_decl.ty, &a_decl.ty);
                 }
 
                 // 'X: 'Y
@@ -172,18 +197,15 @@ impl<'env> RegionCheck<'env> {
 
     fn region_variable(&mut self, n: repr::RegionName) -> RegionVariable {
         let infer = &mut self.infer;
-        *self.region_map.entry(n).or_insert_with(|| {
-            let v = infer.add_var();
-            log!("{:?} => {:?}", n, v);
-            v
-        })
+        let r = *self.region_map.entry(n).or_insert_with(|| infer.add_var());
+        log!("{:?} => {:?}", n, r);
+        r
     }
 
-    fn populate_var_map(&mut self) {
-        let decls = self.env.graph.decls();
-        for decl in decls {
-            let region = self.region_variable(decl.region);
-            self.var_map.insert(decl.var, region);
+    fn add_live_point(&mut self, ty: &repr::Ty, point: Point) {
+        for (_v, rn) in ty.walk(repr::Variance::Co) {
+            let rv = self.region_variable(rn);
+            self.infer.add_live_point(rv, point);
         }
     }
 
@@ -198,5 +220,78 @@ impl<'env> RegionCheck<'env> {
             region.add_point(self.to_point(p));
         }
         region
+    }
+
+    fn relate_tys(&mut self,
+                  successor_point: Point,
+                  variance: repr::Variance,
+                  a: &repr::Ty,
+                  b: &repr::Ty) {
+        log!("relate_tys({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
+        match (a, b) {
+            (&repr::Ty::Ref(r_a, ref t_a), &repr::Ty::Ref(r_b, ref t_b)) => {
+                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
+                self.relate_tys(successor_point, variance, t_a, t_b);
+            }
+            (&repr::Ty::RefMut(r_a, ref t_a), &repr::Ty::RefMut(r_b, ref t_b)) => {
+                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
+                self.relate_tys(successor_point, variance.xform(repr::Variance::In), t_a, t_b);
+            }
+            (&repr::Ty::Unit, &repr::Ty::Unit) => {
+            }
+            (&repr::Ty::Struct(s_a, ref ps_a), &repr::Ty::Struct(s_b, ref ps_b)) => {
+                if s_a != s_b {
+                    panic!("cannot compare `{:?}` and `{:?}`", s_a, s_b);
+                }
+                let s_decl = self.struct_map[&s_a];
+                if ps_a.len() != s_decl.parameters.len() {
+                    panic!("wrong number of parameters for `{:?}`", a);
+                }
+                if ps_b.len() != s_decl.parameters.len() {
+                    panic!("wrong number of parameters for `{:?}`", b);
+                }
+                for (sp, (p_a, p_b)) in s_decl.parameters.iter().zip(ps_a.iter().zip(ps_b)) {
+                    let v = variance.xform(sp.variance);
+                    self.relate_parameters(successor_point, v, p_a, p_b);
+                }
+            }
+            _ => panic!("cannot relate types `{:?}` and `{:?}`", a, b)
+        }
+    }
+
+    fn relate_regions(&mut self,
+                      successor_point: Point,
+                      variance: repr::Variance,
+                      a: repr::RegionName,
+                      b: repr::RegionName) {
+        log!("relate_regions({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
+        let r_a = self.region_map[&a];
+        let r_b = self.region_map[&b];
+        match variance {
+            Variance::Co =>
+                // "a Co b" == "a <= b"
+                self.infer.add_outlives(r_b, r_a, successor_point),
+            Variance::Contra =>
+                // "a Contra b" == "a >= b"
+                self.infer.add_outlives(r_a, r_b, successor_point),
+            Variance::In => {
+                self.infer.add_outlives(r_a, r_b, successor_point);
+                self.infer.add_outlives(r_b, r_a, successor_point);
+            }
+        }
+    }
+
+    fn relate_parameters(&mut self,
+                         successor_point: Point,
+                         variance: repr::Variance,
+                         a: &repr::TyParameter,
+                         b: &repr::TyParameter) {
+        match (a, b) {
+            (&repr::TyParameter::Ty(ref t_a), &repr::TyParameter::Ty(ref t_b)) =>
+                self.relate_tys(successor_point, variance, t_a, t_b),
+            (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
+                self.relate_regions(successor_point, variance, r_a, r_b),
+            _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
+        }
     }
 }

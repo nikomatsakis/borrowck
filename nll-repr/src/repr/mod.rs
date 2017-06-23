@@ -1,6 +1,7 @@
 use intern::InternedString;
 use lalrpop_util::ParseError;
 use std::collections::BTreeMap;
+use std::iter;
 
 mod parser;
 
@@ -57,6 +58,24 @@ pub enum Variance {
     In,
 }
 
+impl Variance {
+    pub fn invert(self) -> Variance {
+        match self {
+            Variance::Co => Variance::Contra,
+            Variance::Contra => Variance::Co,
+            Variance::In => Variance::In,
+        }
+    }
+
+    pub fn xform(self, v: Variance) -> Variance {
+        match self {
+            Variance::Co => v,
+            Variance::Contra => v.invert(),
+            Variance::In => Variance::In,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct StructName {
     name: InternedString
@@ -68,6 +87,31 @@ pub enum Ty {
     RefMut(RegionName, Box<Ty>),
     Unit,
     Struct(StructName, Vec<TyParameter>),
+}
+
+impl Ty {
+    pub fn walk<'a>(&'a self, v: Variance) -> Box<Iterator<Item = (Variance, RegionName)> + 'a> {
+        match *self {
+            Ty::Ref(rn, ref t) => Box::new(
+                iter::once((v, rn))
+                    .chain(t.walk(v))
+            ),
+            Ty::RefMut(rn, ref t) => Box::new(
+                iter::once((v, rn))
+                    .chain(t.walk(v.xform(Variance::In)))
+            ),
+            Ty::Unit => Box::new(
+                iter::empty()
+            ),
+            Ty::Struct(_, ref params) => Box::new(
+                params.iter()
+                      .flat_map(move |p| match *p {
+                          TyParameter::Region(rn) => Box::new(iter::once((v, rn))),
+                          TyParameter::Ty(ref t) => t.walk(v),
+                      })
+            ),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -113,10 +157,10 @@ pub struct Variable {
     name: InternedString,
 }
 
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct VariableDecl {
     pub var: Variable,
-    pub region: RegionName,
+    pub ty: Box<Ty>,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

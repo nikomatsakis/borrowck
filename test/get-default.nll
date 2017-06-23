@@ -1,6 +1,6 @@
-let m: &'m;
-let r: &'r;
-let return: &'return;
+let m: &'m ();
+let r: &'r ();
+let return: &'return ();  
 
 block START {
     m = &'map; // (&map).get_mut();
