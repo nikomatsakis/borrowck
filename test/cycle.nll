@@ -1,0 +1,37 @@
+// Test that we can construct a cycle, if `Foo` is may-dangle.
+
+// struct Foo<'a> {
+//    c: Cell<Option<&'a Foo<'a>>>
+// }
+struct Foo<may_dangle '+>;
+
+let foo: Foo<'foo>;
+let p: &'pr Foo<'pr1>;
+
+block START {
+    foo = use();  // foo = Foo { c: Cell::new(None) };
+    'foo: 'pr1;   // part of borrow below:
+    p = &'borrow; // p = &foo;
+    'pr: 'foo;
+    'pr1: 'foo;   // foo.c.set(Some(p));
+    use(p);
+    use(foo);
+    goto END;
+}
+
+block END {
+    drop(foo);
+}
+
+// In particular, at the time when drop `foo`,
+// it is NOT considered borrowed:
+assert END/0 not in 'borrow;
+
+assert END/0 not in 'foo;
+assert END/0 not in 'pr;
+assert END/0 not in 'pr1;
+
+assert 'foo == {START/1, START/2, START/3, START/4, START/5, START/6};
+assert 'pr == {START/2, START/3, START/4, START/5, START/6};
+assert 'pr1 == {START/2, START/3, START/4, START/5, START/6};
+assert 'borrow == {START/2, START/3, START/4, START/5, START/6};
