@@ -7,25 +7,9 @@ use std::error::Error;
 use region::Region;
 
 pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
-    let var_map =
-        env.graph
-           .decls()
-           .iter()
-           .map(|vd| (vd.var, vd))
-           .collect();
-
-    let struct_map =
-        env.graph
-           .struct_decls()
-           .iter()
-           .map(|sd| (sd.name, sd))
-           .collect();
-
     let ck = &mut RegionCheck {
         env,
         infer: InferenceContext::new(),
-        var_map: var_map,
-        struct_map: struct_map,
         region_map: HashMap::new()
     };
     ck.check()
@@ -34,8 +18,6 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
 struct RegionCheck<'env> {
     env: &'env Environment<'env>,
     infer: InferenceContext,
-    var_map: HashMap<repr::Variable, &'env repr::VariableDecl>,
-    struct_map: HashMap<repr::StructName, &'env repr::StructDecl>,
     region_map: HashMap<repr::RegionName, RegionVariable>,
 }
 
@@ -133,7 +115,7 @@ impl<'env> RegionCheck<'env> {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
                 repr::Action::Borrow(ref path, region_name) => {
-                    let path_ty = self.path_ty(path);
+                    let path_ty = self.env.path_ty(path);
                     let borrow_region = self.region_variable(region_name);
                     self.infer.add_live_point(borrow_region, point);
                     self.add_live_point(&path_ty, point);
@@ -150,8 +132,8 @@ impl<'env> RegionCheck<'env> {
 
                 // a = b
                 repr::Action::Assign(ref a, ref b) => {
-                    let a_ty = self.path_ty(a);
-                    let b_ty = self.path_ty(b);
+                    let a_ty = self.env.path_ty(a);
+                    let b_ty = self.env.path_ty(b);
 
                     // `b` must be a subtype of `a` to be assignable:
                     self.relate_tys(successor_point, repr::Variance::Co, &b_ty, &a_ty);
@@ -194,8 +176,8 @@ impl<'env> RegionCheck<'env> {
     }
 
     fn add_live_point(&mut self, ty: &repr::Ty, point: Point) {
-        for (_v, rn) in ty.walk(repr::Variance::Co) {
-            let rv = self.region_variable(rn);
+        for region_name in ty.walk_regions() {
+            let rv = self.region_variable(region_name);
             self.infer.add_live_point(rv, point);
         }
     }
@@ -234,7 +216,7 @@ impl<'env> RegionCheck<'env> {
                 if s_a != s_b {
                     panic!("cannot compare `{:?}` and `{:?}`", s_a, s_b);
                 }
-                let s_decl = self.struct_map[&s_a];
+                let s_decl = self.env.struct_map[&s_a];
                 if ps_a.len() != s_decl.parameters.len() {
                     panic!("wrong number of parameters for `{:?}`", a);
                 }
@@ -283,37 +265,6 @@ impl<'env> RegionCheck<'env> {
             (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
                 self.relate_regions(successor_point, variance, r_a, r_b),
             _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
-        }
-    }
-
-    fn path_ty(&self, path: &repr::Path) -> &'env repr::Ty {
-        match *path {
-            repr::Path::Base(v) => &self.var_map[&v].ty,
-            repr::Path::Extension(ref base, index) => {
-                let ty = self.path_ty(base);
-                match *ty {
-                    repr::Ty::Ref(_, ref t) | repr::Ty::RefMut(_, ref t) => {
-                        if index == 0 { t } else { panic!("cannot index & with {}", index) }
-                    }
-
-                    repr::Ty::Unit => {
-                        panic!("cannot index `()` type")
-                    }
-
-                    repr::Ty::Struct(n, ref parameters) => {
-                        if index < parameters.len() {
-                            match parameters[index] {
-                                repr::TyParameter::Ty(ref t) => t,
-                                repr::TyParameter::Region(_) => {
-                                    panic!("indexing `{:?}` with {} yields a region", n, index)
-                                }
-                            }
-                        } else {
-                            panic!("cannot index `{:?}` with {}", n, index)
-                        }
-                    }
-                }
-            }
         }
     }
 }

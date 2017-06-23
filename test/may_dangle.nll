@@ -1,0 +1,22 @@
+// Declared as may-dangle because dtor of `Vec` just drops
+// values of that type.
+struct Vec<may_dangle +>;
+
+// Not declared as may-dangle: perhaps `Use` would have drop
+// implemented, for example.
+struct Use<'+>;
+
+let v: Vec<&'v ()>;
+let u: Use<'u>;
+
+block START {
+    v = use();    // 0: let v: Vec<&i32> = vec![];
+    u = use();    // 1:
+    use(v);       // 2: last use of `v` here
+    use(u);
+    drop(v);      // this doesn't count as use of `'v` because of `may_dangle`
+    drop(u);      // this DOES count as a use of `'u` though
+}
+
+assert 'u == { START/2, START/3, START/4, START/5 };
+assert 'v == { START/1, START/2 };

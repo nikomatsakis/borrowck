@@ -43,6 +43,7 @@ pub struct StructDecl {
 pub struct StructParameter {
     pub kind: Kind,
     pub variance: Variance,
+    pub may_dangle: bool,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -90,15 +91,13 @@ pub enum Ty {
 }
 
 impl Ty {
-    pub fn walk<'a>(&'a self, v: Variance) -> Box<Iterator<Item = (Variance, RegionName)> + 'a> {
+    pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = RegionName> + 'a> {
         match *self {
             Ty::Ref(rn, ref t) => Box::new(
-                iter::once((v, rn))
-                    .chain(t.walk(v))
+                iter::once(rn).chain(t.walk_regions())
             ),
             Ty::RefMut(rn, ref t) => Box::new(
-                iter::once((v, rn))
-                    .chain(t.walk(v.xform(Variance::In)))
+                iter::once(rn).chain(t.walk_regions())
             ),
             Ty::Unit => Box::new(
                 iter::empty()
@@ -106,8 +105,8 @@ impl Ty {
             Ty::Struct(_, ref params) => Box::new(
                 params.iter()
                       .flat_map(move |p| match *p {
-                          TyParameter::Region(rn) => Box::new(iter::once((v, rn))),
-                          TyParameter::Ty(ref t) => t.walk(v),
+                          TyParameter::Region(rn) => Box::new(iter::once(rn)),
+                          TyParameter::Ty(ref t) => t.walk_regions(),
                       })
             ),
         }

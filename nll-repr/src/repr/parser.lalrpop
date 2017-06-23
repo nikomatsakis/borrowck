@@ -31,13 +31,22 @@ StructDecl: StructDecl = {
 };
 
 StructParameter: StructParameter = {
-    "'+" => StructParameter { kind: Kind::Region, variance: Variance::Co },
-    "'-" => StructParameter { kind: Kind::Region, variance: Variance::Contra },
-    "'=" => StructParameter { kind: Kind::Region, variance: Variance::In },
-    "+" => StructParameter { kind: Kind::Type, variance: Variance::Co },
-    "-" => StructParameter { kind: Kind::Type, variance: Variance::Contra },
-    "=" => StructParameter { kind: Kind::Type, variance: Variance::In },
+    <md:"may_dangle"?> <kv:KindVariance> => StructParameter {
+        kind: kv.0,
+        variance: kv.1,
+        may_dangle: md.is_some(),
+    }
 };
+
+KindVariance: (Kind, Variance) = {
+    "'+" => (Kind::Region, Variance::Co),
+    "'-" => (Kind::Region, Variance::Contra),
+    "'=" => (Kind::Region, Variance::In),
+    "+" => (Kind::Type, Variance::Co),
+    "-" => (Kind::Type, Variance::Contra),
+    "=" => (Kind::Type, Variance::In),
+};
+
 
 VarDecl: VariableDecl = {
     Comment* "let" <n:Variable> ":" <t:Ty> ";" => VariableDecl {
