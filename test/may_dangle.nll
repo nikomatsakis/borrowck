@@ -8,6 +8,7 @@ struct Use<'+>;
 
 let v: Vec<&'v ()>;
 let u: Use<'u>;
+let uv: Use<Vec<&'uv ()>>;
 
 block START {
     v = use();    // 0: let v: Vec<&i32> = vec![];
@@ -16,7 +17,17 @@ block START {
     use(u);
     drop(v);      // this doesn't count as use of `'v` because of `may_dangle`
     drop(u);      // this DOES count as a use of `'u` though
+    goto UV;
+}
+
+// Key point here: although the vec is may dangle, it is embedded in
+// something that is not.
+block UV {
+    uv = use();
+    use(uv);
+    drop(uv);
 }
 
 assert 'u == { START/2, START/3, START/4, START/5 };
 assert 'v == { START/1, START/2 };
+assert 'uv == { UV/1, UV/2 };
