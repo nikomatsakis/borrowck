@@ -16,17 +16,20 @@ block B {
 
 block C {
     ; // key point: foo not borrowed here
-    use(v);
     goto EXIT;
 }
 
 block EXIT {
+    use(v);
 }
 
 assert B/0 in 'foo;
 assert B/0 in 'v;
 assert C/0 not in 'foo;
 assert C/0 in 'v;
+assert EXIT/0 in 'foo;
+assert EXIT/0 in 'v;
+assert EXIT/0 in 'p;
 
 assert v not live at START;
 assert v live at B;
