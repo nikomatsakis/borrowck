@@ -119,7 +119,7 @@ impl<'env> RegionCheck<'env> {
                     let borrow_region = self.region_variable(region_name);
                     match *path_ty {
                         repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
-                            let var_region = self.region_variable(rn);
+                            let var_region = self.region_variable(rn.assert_free());
                             self.infer.add_outlives(borrow_region, var_region, successor_point);
                         }
                         _ => {
@@ -178,7 +178,7 @@ impl<'env> RegionCheck<'env> {
         Point { block: block, action: point.action }
     }
 
-    fn to_region(&self, user_region: &repr::Region) -> Region {
+    fn to_region(&self, user_region: &repr::RegionLiteral) -> Region {
         let mut region = Region::new();
         for p in &user_region.points {
             region.add_point(self.to_point(p));
@@ -194,11 +194,17 @@ impl<'env> RegionCheck<'env> {
         log!("relate_tys({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
         match (a, b) {
             (&repr::Ty::Ref(r_a, ref t_a), &repr::Ty::Ref(r_b, ref t_b)) => {
-                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
+                self.relate_regions(successor_point,
+                                    variance.invert(),
+                                    r_a.assert_free(),
+                                    r_b.assert_free());
                 self.relate_tys(successor_point, variance, t_a, t_b);
             }
             (&repr::Ty::RefMut(r_a, ref t_a), &repr::Ty::RefMut(r_b, ref t_b)) => {
-                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
+                self.relate_regions(successor_point,
+                                    variance.invert(),
+                                    r_a.assert_free(),
+                                    r_b.assert_free());
                 self.relate_tys(successor_point, variance.xform(repr::Variance::In), t_a, t_b);
             }
             (&repr::Ty::Unit, &repr::Ty::Unit) => {
@@ -254,7 +260,7 @@ impl<'env> RegionCheck<'env> {
             (&repr::TyParameter::Ty(ref t_a), &repr::TyParameter::Ty(ref t_b)) =>
                 self.relate_tys(successor_point, variance, t_a, t_b),
             (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
-                self.relate_regions(successor_point, variance, r_a, r_b),
+                self.relate_regions(successor_point, variance, r_a.assert_free(), r_b.assert_free()),
             _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
         }
     }

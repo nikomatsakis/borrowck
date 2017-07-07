@@ -1,4 +1,6 @@
-struct Vec<+>;
+struct Vec<+> {
+  dummy: 0
+}
 
 let v: Vec<&'v ()>;
 let p: &'p ();
@@ -10,7 +12,7 @@ block START {
 }
 
 block B {
-    v:0 = p; // emulates `vec.push(p)`
+    v.dummy = p; // emulates `vec.push(p)`
     goto EXIT;
 }
 

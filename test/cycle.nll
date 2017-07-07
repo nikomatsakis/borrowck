@@ -1,9 +1,8 @@
 // Test that we can construct a cycle, if `Foo` is may-dangle.
 
-// struct Foo<'a> {
-//    c: Cell<Option<&'a Foo<'a>>>
-// }
-struct Foo<may_dangle '+>;
+struct Foo<may_dangle '=> {
+  c: Cell<Option<&'0 Foo<'0>>>
+}
 
 let foo: Foo<'foo>;
 let p: &'pr Foo<'pr1>;

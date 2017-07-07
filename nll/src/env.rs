@@ -88,18 +88,22 @@ impl<'func> Environment<'func> {
         }
     }
 
-    pub fn var_ty(&self, v: repr::Variable) -> &'func repr::Ty {
-        &self.var_map[&v].ty
+    pub fn var_ty(&self, v: repr::Variable) -> Box<repr::Ty> {
+        self.var_map[&v].ty.clone()
     }
 
-    pub fn path_ty(&self, path: &repr::Path) -> &'func repr::Ty {
+    pub fn path_ty(&self, path: &repr::Path) -> Box<repr::Ty> {
         match *path {
             repr::Path::Base(v) => self.var_ty(v),
-            repr::Path::Extension(ref base, index) => {
+            repr::Path::Extension(ref base, field_name) => {
                 let ty = self.path_ty(base);
                 match *ty {
                     repr::Ty::Ref(_, ref t) | repr::Ty::RefMut(_, ref t) => {
-                        if index == 0 { t } else { panic!("cannot index & with {}", index) }
+                        if field_name == repr::FieldName::star() {
+                            t.clone()
+                        } else {
+                            panic!("cannot index & with field `{:?}`, use `star`", field_name)
+                        }
                     }
 
                     repr::Ty::Unit => {
@@ -107,16 +111,20 @@ impl<'func> Environment<'func> {
                     }
 
                     repr::Ty::Struct(n, ref parameters) => {
-                        if index < parameters.len() {
-                            match parameters[index] {
-                                repr::TyParameter::Ty(ref t) => t,
-                                repr::TyParameter::Region(_) => {
-                                    panic!("indexing `{:?}` with {} yields a region", n, index)
-                                }
-                            }
-                        } else {
-                            panic!("cannot index `{:?}` with {}", n, index)
-                        }
+                        let struct_decl = self.struct_map[&n];
+                        let field_decl = struct_decl.fields
+                                                    .iter()
+                                                    .find(|fd| fd.name == field_name)
+                                                    .unwrap_or_else(|| {
+                                                        panic!("no field named `{:?}` in `{:?}`",
+                                                               field_name, n)
+                                                    });
+                        let field_ty = &field_decl.ty;
+                        Box::new(field_ty.subst(parameters))
+                    }
+
+                    repr::Ty::Bound(_) => {
+                        panic!("path_ty: unexpected bound type in {:?}", path)
                     }
                 }
             }

@@ -20,7 +20,7 @@ impl Liveness {
                      .iter()
                      .map(|d| (
                          d.var,
-                         d.ty.walk_regions().collect()
+                         d.ty.walk_regions().map(|r| r.assert_free()).collect()
                      ))
                      .collect();
         let mut region_names: Vec<_> = var_regions.iter()
@@ -112,13 +112,13 @@ impl Liveness {
             // any variables we read from, we make live
             for v in use_var {
                 let var_ty = env.var_ty(v);
-                self.use_ty(buf, var_ty);
+                self.use_ty(buf, &var_ty);
             }
 
             // drop is special
             if let repr::Action::Drop(ref path) = *action {
                 let path_ty = env.path_ty(path);
-                self.drop_ty(buf, env, path_ty);
+                self.drop_ty(buf, env, &path_ty);
             }
 
             let point = Point { block, action: index };
@@ -127,7 +127,7 @@ impl Liveness {
     }
 
     fn use_ty(&self, buf: &mut BitBuf, ty: &repr::Ty) {
-        for region_name in ty.walk_regions() {
+        for region_name in ty.walk_regions().map(|r| r.assert_free()) {
             self.use_region(buf, region_name);
         }
     }
@@ -147,9 +147,9 @@ impl Liveness {
                 assert_eq!(struct_decl.parameters.len(), params.len());
                 for (param_decl, param) in struct_decl.parameters.iter().zip(params.iter()) {
                     match *param {
-                        repr::TyParameter::Region(region_name) => {
+                        repr::TyParameter::Region(region) => {
                             if !param_decl.may_dangle {
-                                self.use_region(buf, region_name);
+                                self.use_region(buf, region.assert_free());
                             }
                         }
 
@@ -162,6 +162,10 @@ impl Liveness {
                         }
                     }
                 }
+            }
+
+            repr::Ty::Bound(_) => {
+                panic!("drop_ty: unexpected bound type {:?}", ty)
             }
         }
     }

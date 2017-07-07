@@ -22,12 +22,19 @@ pub Func: Func = {
 };
 
 StructDecl: StructDecl = {
-    Comment* "struct" <n:StructName> "<" <p:Comma<StructParameter>> ">" ";" => {
+    Comment* "struct" <n:StructName> "<" <p:Comma<StructParameter>> ">" "{"
+        <f:Comma0<FieldDecl>>
+    "}" => {
         StructDecl {
             name: n,
             parameters: p,
+            fields: f,
         }
     }
+};
+
+FieldDecl: FieldDecl = {
+    <name:FieldName> ":" <ty:Ty> => FieldDecl { <> },
 };
 
 StructParameter: StructParameter = {
@@ -56,14 +63,20 @@ VarDecl: VariableDecl = {
 };
 
 Ty: Box<Ty> = {
-    "&" <RegionName> "mut" <Ty> => Box::new(Ty::RefMut(<>)),
-    "&" <RegionName> <Ty> => Box::new(Ty::Ref(<>)),
+    "&" <Region> "mut" <Ty> => Box::new(Ty::RefMut(<>)),
+    "&" <Region> <Ty> => Box::new(Ty::Ref(<>)),
     "(" ")" => Box::new(Ty::Unit),
     <StructName> "<" <Comma<TyParameter>> ">" => Box::new(Ty::Struct(<>)),
+    Usize => Box::new(Ty::Bound(<>)),
+};
+
+Region: Region = {
+    RegionName => Region::Free(<>),
+    r"'[0-9]+" => Region::Bound(usize::from_str(&<>[1..]).unwrap()),
 };
 
 TyParameter: TyParameter = {
-    RegionName => TyParameter::Region(<>),
+    Region => TyParameter::Region(<>),
     Ty => TyParameter::Ty(<>),
 };
 
@@ -93,7 +106,7 @@ Action: Action = {
 
 Path: Box<Path> = {
     Variable => Box::new(Path::Base(<>)),
-    <Path> ":" <Usize> => Box::new(Path::Extension(<>)),
+    <Path> "." <FieldName> => Box::new(Path::Extension(<>)),
 };
 
 Constraint: Box<Constraint> = {
@@ -117,7 +130,7 @@ Variable: Variable = {
 };
 
 Assertion: Assertion = {
-    "assert" <n:RegionName> "==" <r:Region> ";" => Assertion::Eq(n, r),
+    "assert" <n:RegionName> "==" <r:RegionLiteral> ";" => Assertion::Eq(n, r),
     "assert" <p:Point> "in" <n:RegionName> ";" => Assertion::In(n, p),
     "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
     "assert" <v:Variable> "live" "at" <b:BasicBlock> ";" => Assertion::Live(v, b),
@@ -132,12 +145,16 @@ StructName: StructName = {
     r"[a-zA-Z_]\w*" => StructName { name: intern::intern(<>) }
 };
 
+FieldName: FieldName = {
+    r"[a-zA-Z_]\w*" => FieldName { name: intern::intern(<>) }
+};
+
 Point: Point = {
     <b:BasicBlock> "/" <a:Usize> => Point { block: b, action: a }
 };
 
-Region: Region = {
-    "{" <p:Comma<Point>> "}" => Region { points: p },
+RegionLiteral: RegionLiteral = {
+    "{" <p:Comma<Point>> "}" => RegionLiteral { points: p },
 };
 
 Usize: usize = {

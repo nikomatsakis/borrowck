@@ -1,10 +1,14 @@
 // Declared as may-dangle because dtor of `Vec` just drops
 // values of that type.
-struct Vec<may_dangle +>;
+struct Vec<may_dangle +> {
+  dummy: 0
+}
 
 // Not declared as may-dangle: perhaps `Use` would have drop
 // implemented, for example.
-struct Use<'+>;
+struct Use<'+> {
+  dummy: 0
+}
 
 let v: Vec<&'v ()>;
 let u: Use<'u>;
