@@ -22,7 +22,7 @@ pub Func: Func = {
 };
 
 StructDecl: StructDecl = {
-    Comment* "struct" <n:StructName> "<" <p:Comma<StructParameter>> ">" "{"
+    Comment* "struct" <n:StructName> <p:Angle<StructParameter>> "{"
         <f:Comma0<FieldDecl>>
     "}" => {
         StructDecl {
@@ -63,10 +63,9 @@ VarDecl: VariableDecl = {
 };
 
 Ty: Box<Ty> = {
-    "&" <Region> "mut" <Ty> => Box::new(Ty::RefMut(<>)),
-    "&" <Region> <Ty> => Box::new(Ty::Ref(<>)),
+    "&" <Region> <BorrowKind> <Ty> => Box::new(Ty::Ref(<>)),
     "(" ")" => Box::new(Ty::Unit),
-    <StructName> "<" <Comma<TyParameter>> ">" => Box::new(Ty::Struct(<>)),
+    <StructName> <Angle<TyParameter>> => Box::new(Ty::Struct(<>)),
     Usize => Box::new(Ty::Bound(<>)),
 };
 
@@ -95,13 +94,18 @@ BasicBlockData: BasicBlockData = {
 
 Action: Action = {
     <a:Path> "=" "use" "(" <p:Comma0<Path>> ")" ";" Comment? => Action::Init(a, p),
-    <a:Path> "=" "&" <r:RegionName> ";" Comment? => Action::Borrow(a, r),
+    <Path> "=" "&" <RegionName> <BorrowKind> <Path> ";" Comment? => Action::Borrow(<>),
     <a:Path> "=" <b:Path> ";" Comment? => Action::Assign(a, b),
     <c:Constraint> ";" Comment? => Action::Constraint(c),
     "use" "(" <v:Path> ")" ";" Comment? => Action::Use(v),
     "write" "(" <v:Path> ")" ";" Comment? => Action::Write(v),
     "drop" "(" <v:Path> ")" ";" Comment? => Action::Drop(v),
     ";" Comment? => Action::Noop,
+};
+
+BorrowKind: BorrowKind = {
+    "mut" => BorrowKind::Mut,
+    () => BorrowKind::Shared,
 };
 
 Path: Box<Path> = {
@@ -188,4 +192,9 @@ Comma1<T>: Vec<T> = {
 
 Comment: () = {
     r"//.*" => ()
+};
+
+Angle<T>: Vec<T> = {
+    () => vec![],
+    "<" <Comma0<T>> ">",
 };

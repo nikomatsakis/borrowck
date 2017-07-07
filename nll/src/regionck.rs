@@ -114,18 +114,13 @@ impl<'env> RegionCheck<'env> {
             match *action {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
-                repr::Action::Borrow(ref path, region_name) => {
-                    let path_ty = self.env.path_ty(path);
-                    let borrow_region = self.region_variable(region_name);
-                    match *path_ty {
-                        repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
-                            let var_region = self.region_variable(rn.assert_free());
-                            self.infer.add_outlives(borrow_region, var_region, successor_point);
-                        }
-                        _ => {
-                            panic!("result must be `&T` or `&mut T` type")
-                        }
-                    }
+                repr::Action::Borrow(ref dest_path, region_name, borrow_kind, ref source_path) => {
+                    let dest_ty = self.env.path_ty(dest_path);
+                    let source_ty = self.env.path_ty(source_path);
+                    let ref_ty = Box::new(repr::Ty::Ref(repr::Region::Free(region_name),
+                                                        borrow_kind,
+                                                        source_ty));
+                    self.relate_tys(successor_point, repr::Variance::Contra, &dest_ty, &ref_ty);
                 }
 
                 // a = b
@@ -193,19 +188,14 @@ impl<'env> RegionCheck<'env> {
                   b: &repr::Ty) {
         log!("relate_tys({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
         match (a, b) {
-            (&repr::Ty::Ref(r_a, ref t_a), &repr::Ty::Ref(r_b, ref t_b)) => {
+            (&repr::Ty::Ref(r_a, bk_a, ref t_a), &repr::Ty::Ref(r_b, bk_b, ref t_b)) => {
+                assert_eq!(bk_a, bk_b, "cannot relate {:?} and {:?}", a, b);
                 self.relate_regions(successor_point,
                                     variance.invert(),
                                     r_a.assert_free(),
                                     r_b.assert_free());
-                self.relate_tys(successor_point, variance, t_a, t_b);
-            }
-            (&repr::Ty::RefMut(r_a, ref t_a), &repr::Ty::RefMut(r_b, ref t_b)) => {
-                self.relate_regions(successor_point,
-                                    variance.invert(),
-                                    r_a.assert_free(),
-                                    r_b.assert_free());
-                self.relate_tys(successor_point, variance.xform(repr::Variance::In), t_a, t_b);
+                let referent_variance = variance.xform(bk_a.variance());
+                self.relate_tys(successor_point, referent_variance, t_a, t_b);
             }
             (&repr::Ty::Unit, &repr::Ty::Unit) => {
             }
@@ -235,8 +225,8 @@ impl<'env> RegionCheck<'env> {
                       a: repr::RegionName,
                       b: repr::RegionName) {
         log!("relate_regions({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
-        let r_a = self.region_map[&a];
-        let r_b = self.region_map[&b];
+        let r_a = self.region_variable(a);
+        let r_b = self.region_variable(b);
         match variance {
             Variance::Co =>
                 // "a Co b" == "a <= b"

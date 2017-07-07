@@ -89,7 +89,10 @@ impl<'func> Environment<'func> {
     }
 
     pub fn var_ty(&self, v: repr::Variable) -> Box<repr::Ty> {
-        self.var_map[&v].ty.clone()
+        match self.var_map.get(&v) {
+            Some(decl) => decl.ty.clone(),
+            None => panic!("no variable named {:?}", v)
+        }
     }
 
     pub fn path_ty(&self, path: &repr::Path) -> Box<repr::Ty> {
@@ -98,7 +101,7 @@ impl<'func> Environment<'func> {
             repr::Path::Extension(ref base, field_name) => {
                 let ty = self.path_ty(base);
                 match *ty {
-                    repr::Ty::Ref(_, ref t) | repr::Ty::RefMut(_, ref t) => {
+                    repr::Ty::Ref(_, _kind, ref t) => {
                         if field_name == repr::FieldName::star() {
                             t.clone()
                         } else {

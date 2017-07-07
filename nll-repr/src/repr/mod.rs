@@ -91,8 +91,7 @@ pub struct StructName {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Ty {
-    Ref(Region, Box<Ty>),
-    RefMut(Region, Box<Ty>),
+    Ref(Region, BorrowKind, Box<Ty>),
     Unit,
     Struct(StructName, Vec<TyParameter>),
     Bound(usize),
@@ -110,8 +109,7 @@ impl Ty {
                     }
                 }
             }
-            Ty::Ref(rn, ref t) => Ty::Ref(rn.subst(params), Box::new(t.subst(params))),
-            Ty::RefMut(rn, ref t) => Ty::RefMut(rn.subst(params), Box::new(t.subst(params))),
+            Ty::Ref(rn, kind, ref t) => Ty::Ref(rn.subst(params), kind, Box::new(t.subst(params))),
             Ty::Unit => Ty::Unit,
             Ty::Struct(s, ref params) => Ty::Struct(
                 s,
@@ -122,10 +120,7 @@ impl Ty {
 
     pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = Region> + 'a> {
         match *self {
-            Ty::Ref(rn, ref t) => Box::new(
-                iter::once(rn).chain(t.walk_regions())
-            ),
-            Ty::RefMut(rn, ref t) => Box::new(
+            Ty::Ref(rn, _kind, ref t) => Box::new(
                 iter::once(rn).chain(t.walk_regions())
             ),
             Ty::Unit => Box::new(
@@ -197,10 +192,25 @@ pub struct BasicBlockData {
     pub successors: Vec<BasicBlock>,
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum BorrowKind {
+    Mut,
+    Shared,
+}
+
+impl BorrowKind {
+    pub fn variance(self) -> Variance {
+        match self {
+            BorrowKind::Mut => Variance::In,
+            BorrowKind::Shared => Variance::Co,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Action {
     Init(Box<Path>, Vec<Box<Path>>), // p = use(...)
-    Borrow(Box<Path>, RegionName), // p = &'X
+    Borrow(Box<Path>, RegionName, BorrowKind, Box<Path>), // p = &'X q
     Assign(Box<Path>, Box<Path>), // p = q;
     Constraint(Box<Constraint>), // C
     Use(Box<Path>), // use(p);

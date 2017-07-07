@@ -138,7 +138,7 @@ impl Liveness {
 
     fn drop_ty(&self, buf: &mut BitBuf, env: &Environment, ty: &repr::Ty) {
         match *ty {
-            repr::Ty::Ref(..) | repr::Ty::RefMut(..) | repr::Ty::Unit => {
+            repr::Ty::Ref(..) | repr::Ty::Unit => {
                 // Dropping a reference (or `()`) does not require it to be live; it's a no-op.
             }
 
@@ -178,7 +178,7 @@ trait UseDefs {
 impl UseDefs for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
         match *self {
-            repr::Action::Borrow(ref v, _name) => (vec![v.base()], vec![]),
+            repr::Action::Borrow(ref p, _name, _, ref q) => (vec![p.base()], vec![q.base()]),
             repr::Action::Init(ref a, ref params) => {
                 (a.write_def().into_iter().collect(),
                  params.iter().map(|p| p.base()).chain(a.write_use()).collect())

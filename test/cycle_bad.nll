@@ -10,8 +10,7 @@ let p: &'pr Foo<'pr1>;
 
 block START {
     foo = use();  // foo = Foo { c: Cell::new(None) };
-    'foo: 'pr1;   // part of borrow below:
-    p = &'borrow; // p = &foo;
+    p = &'borrow foo; // p = &foo;
     'pr: 'foo;
     'pr1: 'foo;   // foo.c.set(Some(p));
     use(p);

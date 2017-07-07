@@ -1,7 +1,8 @@
+let foo: ();
 let p: &'p ();
 
 block START {
-    p = &'foo;
+    p = &'foo foo;
     use(p);
     goto B;
 }

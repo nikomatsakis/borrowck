@@ -1,7 +1,9 @@
+let foo: ();
+let bar: ();
 let p: &'p ();
 
 block START {
-    p = &'foo; // borrows foo
+    p = &'foo foo; // borrows foo
     goto B;
 }
 
@@ -14,7 +16,7 @@ block B {
 // and we can mutate only `foo` afterwards.
 block C {
     ;
-    p = &'bar; // borrows bar
+    p = &'bar bar; // borrows bar
     ;
     goto D;
 }
