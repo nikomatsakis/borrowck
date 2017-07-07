@@ -37,6 +37,13 @@ impl Func {
 pub struct StructDecl {
     pub name: StructName,
     pub parameters: Vec<StructParameter>,
+    pub fields: Vec<FieldDecl>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct FieldDecl {
+    pub name: FieldName,
+    pub ty: Box<Ty>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -84,14 +91,30 @@ pub struct StructName {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Ty {
-    Ref(RegionName, Box<Ty>),
-    RefMut(RegionName, Box<Ty>),
+    Ref(Region, Box<Ty>),
+    RefMut(Region, Box<Ty>),
     Unit,
     Struct(StructName, Vec<TyParameter>),
+    Bound(usize),
 }
 
 impl Ty {
-    pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = RegionName> + 'a> {
+    pub fn subst(&self, params: &[TyParameter]) -> Region {
+        match self {
+            Ty::Bound(b) => {
+                let index = params.len() - 1 - b;
+                match params[index] {
+                    TyParameter::Ty(ref t) => t.clone(),
+                    TyParameter::Region(r) => {
+                        panic!("subst: encountered region {:?} at index {} not type", r, index)
+                    }
+                }
+            }
+            _ => self.clone(),
+        }
+    }
+
+    pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = Region> + 'a> {
         match *self {
             Ty::Ref(rn, ref t) => Box::new(
                 iter::once(rn).chain(t.walk_regions())
@@ -113,9 +136,39 @@ impl Ty {
     }
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Region {
+    Free(RegionName),
+    Bound(usize),
+}
+
+impl Region {
+    pub fn subst(self, params: &[TyParameter]) -> Region {
+        match self {
+            Region::Free(..) => self,
+            Region::Bound(b) => {
+                let index = params.len() - 1 - b;
+                match params[index] {
+                    TyParameter::Region(r) => r,
+                    TyParameter::Ty(ref t) => {
+                        panic!("subst: encountered type {:?} at index {} not region", t, index)
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn assert_free(self) -> RegionName {
+        match self {
+            Region::Free(n) => n,
+            Region::Bound(b) => panic!("assert_free: encountered bound region with depth {}", b),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum TyParameter {
-    Region(RegionName),
+    Region(Region),
     Ty(Box<Ty>),
 }
 
@@ -199,7 +252,7 @@ pub struct VariableDecl {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion {
-    Eq(RegionName, Region),
+    Eq(RegionName, RegionLiteral),
     In(RegionName, Point),
     NotIn(RegionName, Point),
     Live(Variable, BasicBlock),
@@ -217,7 +270,12 @@ pub struct RegionName {
     name: InternedString
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct FieldName {
+    name: InternedString
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Region {
+pub struct RegionLiteral {
     pub points: Vec<Point>,
 }
