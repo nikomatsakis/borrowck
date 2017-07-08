@@ -40,13 +40,13 @@ impl<'env> RegionCheck<'env> {
         self.check_assertions(liveness)
     }
 
-    fn check_assertions(&mut self, liveness: &Liveness) -> Result<(), Box<Error>> {
+    fn check_assertions(&self, liveness: &Liveness) -> Result<(), Box<Error>> {
         let mut errors = 0;
 
         for assertion in self.env.graph.assertions() {
             match *assertion {
                 repr::Assertion::Eq(region_name, ref region_literal) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let region_value = self.to_region(region_literal);
                     if *self.infer.region(region_var) != region_value {
                         errors += 1;
@@ -57,7 +57,7 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 repr::Assertion::In(region_name, ref point) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
                     if !self.infer.region(region_var).contains(point) {
                         errors += 1;
@@ -68,7 +68,7 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 repr::Assertion::NotIn(region_name, ref point) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
                     if self.infer.region(region_var).contains(point) {
                         errors += 1;
