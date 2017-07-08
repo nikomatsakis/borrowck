@@ -125,10 +125,13 @@ impl<'env> RegionCheck<'env> {
             // Next, walk the actions and establish any additional constraints
             // that may arise from subtyping.
             let successor_point = Point { block: point.block, action: point.action + 1 };
-            match *action {
+            match action.kind {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
-                repr::Action::Borrow(ref dest_path, region_name, borrow_kind, ref source_path) => {
+                repr::ActionKind::Borrow(ref dest_path,
+                                         region_name,
+                                         borrow_kind,
+                                         ref source_path) => {
                     let dest_ty = self.env.path_ty(dest_path);
                     let source_ty = self.env.path_ty(source_path);
                     let ref_ty = Box::new(repr::Ty::Ref(repr::Region::Free(region_name),
@@ -138,7 +141,7 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // a = b
-                repr::Action::Assign(ref a, ref b) => {
+                repr::ActionKind::Assign(ref a, ref b) => {
                     let a_ty = self.env.path_ty(a);
                     let b_ty = self.env.path_ty(b);
 
@@ -147,7 +150,7 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // 'X: 'Y
-                repr::Action::Constraint(ref c) => {
+                repr::ActionKind::Constraint(ref c) => {
                     match **c {
                         repr::Constraint::Outlives(c) => {
                             let sup_v = self.region_variable(c.sup);
@@ -160,11 +163,11 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
-                repr::Action::Init(..) |
-                repr::Action::Use(..) |
-                repr::Action::Drop(..) |
-                repr::Action::StorageDead(..) |
-                repr::Action::Noop => {
+                repr::ActionKind::Init(..) |
+                repr::ActionKind::Use(..) |
+                repr::ActionKind::Drop(..) |
+                repr::ActionKind::StorageDead(..) |
+                repr::ActionKind::Noop => {
                     // no add'l constriants needed here; basic liveness
                     // suffices.
                 }

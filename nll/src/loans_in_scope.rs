@@ -34,8 +34,8 @@ impl<'rck> LoansInScope<'rck> {
                             .actions
                             .iter()
                             .enumerate()
-                            .flat_map(move |(index, action)| match *action {
-                                repr::Action::Borrow(_, region, kind, ref path) => {
+                            .flat_map(move |(index, action)| match action.kind {
+                                repr::ActionKind::Borrow(_, region, kind, ref path) => {
                                     let point = Point { block, action: index };
                                     Some(Loan { point, region, kind, path })
                                 }
@@ -213,15 +213,15 @@ pub trait Overwrites {
 
 impl Overwrites for repr::Action {
     fn overwrites(&self) -> Option<&repr::Path> {
-        match *self {
-            repr::Action::Borrow(ref p, _name, _, _) => Some(p),
-            repr::Action::Init(ref a, _) => Some(a),
-            repr::Action::Assign(ref a, _) => Some(a),
-            repr::Action::Constraint(ref _c) => None,
-            repr::Action::Use(_) => None,
-            repr::Action::Drop(_) => None,
-            repr::Action::Noop => None,
-            repr::Action::StorageDead(_) => None,
+        match self.kind {
+            repr::ActionKind::Borrow(ref p, _name, _, _) => Some(p),
+            repr::ActionKind::Init(ref a, _) => Some(a),
+            repr::ActionKind::Assign(ref a, _) => Some(a),
+            repr::ActionKind::Constraint(ref _c) => None,
+            repr::ActionKind::Use(_) => None,
+            repr::ActionKind::Drop(_) => None,
+            repr::ActionKind::Noop => None,
+            repr::ActionKind::StorageDead(_) => None,
         }
     }
 }

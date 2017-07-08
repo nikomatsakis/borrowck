@@ -116,7 +116,7 @@ impl Liveness {
             }
 
             // drop is special
-            if let repr::Action::Drop(ref path) = *action {
+            if let repr::ActionKind::Drop(ref path) = action.kind {
                 let path_ty = env.path_ty(path);
                 self.drop_ty(buf, env, &path_ty);
             }
@@ -181,26 +181,26 @@ pub trait DefUse {
 
 impl DefUse for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
-        match *self {
-            repr::Action::Borrow(ref p, _name, _, ref q) => (vec![p.base()], vec![q.base()]),
-            repr::Action::Init(ref a, ref params) => {
+        match self.kind {
+            repr::ActionKind::Borrow(ref p, _name, _, ref q) => (vec![p.base()], vec![q.base()]),
+            repr::ActionKind::Init(ref a, ref params) => {
                 (a.write_def().into_iter().collect(),
                  params.iter().map(|p| p.base()).chain(a.write_use()).collect())
             }
-            repr::Action::Assign(ref a, ref b) => {
+            repr::ActionKind::Assign(ref a, ref b) => {
                 (a.write_def().into_iter().collect(),
                  once(b.base()).chain(a.write_use()).collect())
             }
-            repr::Action::Constraint(ref _c) => (vec![], vec![]),
-            repr::Action::Use(ref v) => (vec![], vec![v.base()]),
+            repr::ActionKind::Constraint(ref _c) => (vec![], vec![]),
+            repr::ActionKind::Use(ref v) => (vec![], vec![v.base()]),
 
             // drop is special; it is not considered a "full use" of
             // the variable that is being dropped
-            repr::Action::Drop(..) => (vec![], vec![]),
+            repr::ActionKind::Drop(..) => (vec![], vec![]),
 
-            repr::Action::Noop => (vec![], vec![]),
+            repr::ActionKind::Noop => (vec![], vec![]),
 
-            repr::Action::StorageDead(_) => (vec![], vec![]),
+            repr::ActionKind::StorageDead(_) => (vec![], vec![]),
         }
     }
 }

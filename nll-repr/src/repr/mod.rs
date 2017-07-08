@@ -208,7 +208,12 @@ impl BorrowKind {
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Action {
+pub struct Action {
+    pub kind: ActionKind,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum ActionKind {
     Init(Box<Path>, Vec<Box<Path>>), // p = use(...)
     Borrow(Box<Path>, RegionName, BorrowKind, Box<Path>), // p = &'X q
     Assign(Box<Path>, Box<Path>), // p = q;

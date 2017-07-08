@@ -82,7 +82,8 @@ TyParameter: TyParameter = {
 BasicBlockData: BasicBlockData = {
     Comment* "block" <name:BasicBlock> "{"
         <actions:Action*>
-        <gotos:("goto" <BasicBlock*> ";")?>
+        Comment*
+        <gotos:("goto" <BasicBlock*> ";" Comment*)?>
     "}" => {
         BasicBlockData {
             name: name,
@@ -93,14 +94,18 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    <a:Path> "=" "use" "(" <p:Comma0<Path>> ")" ";" Comment? => Action::Init(a, p),
-    <Path> "=" "&" <RegionName> <BorrowKind> <Path> ";" Comment? => Action::Borrow(<>),
-    <a:Path> "=" <b:Path> ";" Comment? => Action::Assign(a, b),
-    <c:Constraint> ";" Comment? => Action::Constraint(c),
-    "use" "(" <v:Path> ")" ";" Comment? => Action::Use(v),
-    "drop" "(" <v:Path> ")" ";" Comment? => Action::Drop(v),
-    "StorageDead" "(" <v:Variable> ")" ";" Comment? => Action::StorageDead(v),
-    ";" Comment? => Action::Noop,
+    Comment* <kind:ActionKind> => Action { <> },
+};
+
+ActionKind: ActionKind = {
+    <a:Path> "=" "use" "(" <p:Comma0<Path>> ")" ";" => ActionKind::Init(a, p),
+    <Path> "=" "&" <RegionName> <BorrowKind> <Path> ";" => ActionKind::Borrow(<>),
+    <a:Path> "=" <b:Path> ";" => ActionKind::Assign(a, b),
+    <c:Constraint> ";" => ActionKind::Constraint(c),
+    "use" "(" <v:Path> ")" ";" => ActionKind::Use(v),
+    "drop" "(" <v:Path> ")" ";" => ActionKind::Drop(v),
+    "StorageDead" "(" <v:Variable> ")" ";" => ActionKind::StorageDead(v),
+    ";" => ActionKind::Noop,
 };
 
 BorrowKind: BorrowKind = {
