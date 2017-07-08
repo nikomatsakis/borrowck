@@ -3,11 +3,12 @@ use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::Graph;
 use graph_algorithms::bit_set::{BitBuf, BitSet, BitSlice};
 use nll_repr::repr;
+use region::Region;
 use regionck::RegionCheck;
 use std::collections::HashMap;
 
 pub struct LoansInScope<'rck> {
-    regionck: &'rck RegionCheck<'rck>,
+    env: &'rck Environment<'rck>,
     loans: Vec<Loan<'rck>>,
     loans_in_scope_after_block: BitSet<FuncGraph>,
     loans_by_point: HashMap<Point, usize>,
@@ -17,7 +18,7 @@ pub struct Loan<'rck> {
     point: Point,
     path: &'rck repr::Path,
     kind: repr::BorrowKind,
-    region: repr::RegionName,
+    region: &'rck Region,
 }
 
 impl<'rck> LoansInScope<'rck> {
@@ -37,6 +38,7 @@ impl<'rck> LoansInScope<'rck> {
                             .flat_map(move |(index, action)| match action.kind {
                                 repr::ActionKind::Borrow(_, region, kind, ref path) => {
                                     let point = Point { block, action: index };
+                                    let region = regionck.region(region);
                                     Some(Loan { point, region, kind, path })
                                 }
 
@@ -59,25 +61,20 @@ impl<'rck> LoansInScope<'rck> {
         let loans_in_scope_after_block = BitSet::new(env.graph, loans.len());
 
         // iterate until fixed point
-        let mut this = LoansInScope { regionck, loans, loans_by_point, loans_in_scope_after_block };
+        let mut this = LoansInScope { env, loans, loans_by_point, loans_in_scope_after_block };
         this.compute();
 
         this
     }
 
-    pub fn env(&self) -> &'rck Environment<'rck> {
-        self.regionck.env()
-    }
-
     /// Invokes `callback` with the loans in scope at each point.
-    pub fn walk<CB>(&self, mut callback: CB)
+    pub fn walk<CB>(&self, env: &Environment<'rck>, mut callback: CB)
         where CB: FnMut(Point, Option<&repr::Action>, &[&Loan])
     {
-        let env = self.env();
         let mut loans = Vec::with_capacity(self.loans.len());
         let mut bits = self.loans_in_scope_after_block.empty_buf();
         for &block in &env.reverse_post_order {
-            self.simulate_block(env, &mut bits, block, |point, action, bits| {
+            self.simulate_block(&mut bits, block, |point, action, bits| {
                 // Convert from the bitset into a vector of references to loans.
                 loans.clear();
                 loans.extend(
@@ -100,14 +97,13 @@ impl<'rck> LoansInScope<'rck> {
     /// Iterates until a fixed point, computing the loans in scope
     /// after each block terminates.
     fn compute(&mut self) {
-        let env = self.env();
         let mut bits = self.loans_in_scope_after_block.empty_buf();
         let mut changed = true;
         while changed {
             changed = false;
 
-            for &block in &env.reverse_post_order {
-                self.simulate_block(env, &mut bits, block, |_p, _a, _s| ());
+            for &block in &self.env.reverse_post_order {
+                self.simulate_block(&mut bits, block, |_p, _a, _s| ());
                 changed |= self.loans_in_scope_after_block
                                .insert_bits_from_slice(block, bits.as_slice());
             }
@@ -115,7 +111,6 @@ impl<'rck> LoansInScope<'rck> {
     }
 
     fn simulate_block<CB>(&self,
-                          env: &Environment,
                           buf: &mut BitBuf,
                           block: BasicBlockIndex,
                           mut callback: CB)
@@ -124,12 +119,12 @@ impl<'rck> LoansInScope<'rck> {
         buf.clear();
 
         // everything live at end of a pred  is live at the exit of the block
-        for succ in env.graph.successors(block) {
+        for succ in self.env.graph.successors(block) {
             buf.set_from(self.loans_in_scope_after_block.bits(succ));
         }
 
         // walk through the actions on by one
-        for (index, action) in env.graph.block_data(block).actions.iter().enumerate() {
+        for (index, action) in self.env.graph.block_data(block).actions.iter().enumerate() {
             let point = Point { block, action: index };
 
             // kill any loans where `point` is not in their region
@@ -155,7 +150,7 @@ impl<'rck> LoansInScope<'rck> {
         }
 
         // final callback for the terminator
-        let point = env.end_point(block);
+        let point = self.env.end_point(block);
         for loan_index in self.loans_not_in_scope_at(point) {
             buf.kill(loan_index);
         }
@@ -168,8 +163,7 @@ impl<'rck> LoansInScope<'rck> {
         self.loans.iter()
                   .enumerate()
                   .filter_map(move |(loan_index, loan)| {
-                      let region = self.regionck.region(loan.region);
-                      if !region.contains(point) {
+                      if !loan.region.contains(point) {
                           Some(loan_index)
                       } else {
                           None
