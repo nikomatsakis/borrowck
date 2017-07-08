@@ -20,7 +20,6 @@ impl DefUse for repr::Action {
             repr::Action::Assign(ref a, _) => Some(a),
             repr::Action::Constraint(ref _c) => None,
             repr::Action::Use(_) => None,
-            repr::Action::Write(_) => None, // ???
             repr::Action::Drop(_) => None,
             repr::Action::Noop => None,
         }
@@ -39,7 +38,6 @@ impl DefUse for repr::Action {
             }
             repr::Action::Constraint(ref _c) => (vec!(), vec!()),
             repr::Action::Use(ref v) => (vec!(), vec!(v.base())),
-            repr::Action::Write(ref v) => (vec!(), vec!(v.base())),
 
             // drop is special
             repr::Action::Drop(..) => (vec!(), vec!()),

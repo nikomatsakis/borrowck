@@ -98,7 +98,6 @@ Action: Action = {
     <a:Path> "=" <b:Path> ";" Comment? => Action::Assign(a, b),
     <c:Constraint> ";" Comment? => Action::Constraint(c),
     "use" "(" <v:Path> ")" ";" Comment? => Action::Use(v),
-    "write" "(" <v:Path> ")" ";" Comment? => Action::Write(v),
     "drop" "(" <v:Path> ")" ";" Comment? => Action::Drop(v),
     ";" Comment? => Action::Noop,
 };

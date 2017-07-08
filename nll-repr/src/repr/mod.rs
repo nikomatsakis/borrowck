@@ -214,7 +214,6 @@ pub enum Action {
     Assign(Box<Path>, Box<Path>), // p = q;
     Constraint(Box<Constraint>), // C
     Use(Box<Path>), // use(p);
-    Write(Box<Path>), // write(p);
     Drop(Box<Path>), // drop(p);
     Noop,
 }

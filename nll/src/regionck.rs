@@ -160,8 +160,7 @@ impl<'env> RegionCheck<'env> {
 
                 repr::Action::Init(..) | // a = use(...)
                 repr::Action::Use(..) | // use(a)
-                repr::Action::Drop(..) | // drop(a)
-                repr::Action::Write(..) => { // write(a), e.g. *a += 1
+                repr::Action::Drop(..) => { // drop(a)
                     // the basic liveness rules suffice here
                 }
 
