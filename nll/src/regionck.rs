@@ -1,3 +1,4 @@
+use borrowck;
 use env::{Environment, Point};
 use loans_in_scope::LoansInScope;
 use liveness::Liveness;
@@ -39,7 +40,9 @@ impl<'env> RegionCheck<'env> {
         let liveness = &Liveness::new(self.env);
         self.populate_inference(liveness);
         let loans_in_scope = &LoansInScope::new(self);
-        self.check_assertions(liveness)
+        borrowck::borrow_check(self.env, loans_in_scope)?;
+        self.check_assertions(liveness)?;
+        Ok(())
     }
 
     fn check_assertions(&self, liveness: &Liveness) -> Result<(), Box<Error>> {

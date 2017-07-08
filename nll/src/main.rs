@@ -18,6 +18,7 @@ use std::io::Read;
 use std::process;
 
 #[macro_use] mod log;
+mod borrowck;
 mod env;
 use self::env::Environment;
 mod infer;

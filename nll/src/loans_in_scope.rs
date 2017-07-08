@@ -7,22 +7,22 @@ use region::Region;
 use regionck::RegionCheck;
 use std::collections::HashMap;
 
-pub struct LoansInScope<'rck> {
-    env: &'rck Environment<'rck>,
-    loans: Vec<Loan<'rck>>,
+pub struct LoansInScope<'cx> {
+    env: &'cx Environment<'cx>,
+    loans: Vec<Loan<'cx>>,
     loans_in_scope_after_block: BitSet<FuncGraph>,
     loans_by_point: HashMap<Point, usize>,
 }
 
-pub struct Loan<'rck> {
-    point: Point,
-    path: &'rck repr::Path,
-    kind: repr::BorrowKind,
-    region: &'rck Region,
+pub struct Loan<'cx> {
+    pub point: Point,
+    pub path: &'cx repr::Path,
+    pub kind: repr::BorrowKind,
+    pub region: &'cx Region,
 }
 
-impl<'rck> LoansInScope<'rck> {
-    pub fn new(regionck: &'rck RegionCheck<'rck>) -> Self {
+impl<'cx> LoansInScope<'cx> {
+    pub fn new(regionck: &'cx RegionCheck<'cx>) -> Self {
         let env = regionck.env();
 
         // Collect the full set of loans; these are just the set of
@@ -68,7 +68,7 @@ impl<'rck> LoansInScope<'rck> {
     }
 
     /// Invokes `callback` with the loans in scope at each point.
-    pub fn walk<CB>(&self, env: &Environment<'rck>, mut callback: CB)
+    pub fn walk<CB>(&self, env: &Environment<'cx>, mut callback: CB)
         where CB: FnMut(Point, Option<&repr::Action>, &[&Loan])
     {
         let mut loans = Vec::with_capacity(self.loans.len());
@@ -180,23 +180,12 @@ impl<'rck> LoansInScope<'rck> {
         self.loans.iter()
                   .enumerate()
                   .filter_map(move |(index, loan)| {
-                      if self.path_prefixes(loan.path).iter().any(|&p| p == path) {
+                      if loan.path.prefixes().iter().any(|&p| p == path) {
                           Some(index)
                       } else {
                           None
                       }
                   })
-    }
-
-    fn path_prefixes<'a>(&self, mut path: &'a repr::Path) -> Vec<&'a repr::Path> {
-        let mut result = vec![];
-        loop {
-            result.push(path);
-            match *path {
-                repr::Path::Base(_) => return result,
-                repr::Path::Extension(ref base, _) => path = base,
-            }
-        }
     }
 }
 

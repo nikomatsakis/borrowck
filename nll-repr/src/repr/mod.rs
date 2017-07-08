@@ -226,7 +226,10 @@ pub enum ActionKind {
     /// scope. This is not counted as a use nor a drop; it basically
     /// just pops the stack space. It *is*, however, important to the
     /// borrow checker.
-    StorageDead(Variable),
+    ///
+    /// The path is always a variable, but it's convenient to have it
+    /// be a path.
+    StorageDead(Box<Path>),
     Noop,
 }
 
@@ -241,6 +244,19 @@ impl Path {
         match *self {
             Path::Base(v) => v,
             Path::Extension(ref e, _) => e.base(),
+        }
+    }
+
+    /// If the path is `a.b.c`, returns `a.b.c`, `a.b`, and `a`.
+    pub fn prefixes(&self) -> Vec<&Path> {
+        let mut this = self;
+        let mut result = vec![];
+        loop {
+            result.push(this);
+            match *this {
+                Path::Base(_) => return result,
+                Path::Extension(ref base, _) => this = base,
+            }
         }
     }
 
