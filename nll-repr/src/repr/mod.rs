@@ -210,6 +210,7 @@ impl BorrowKind {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Action {
     pub kind: ActionKind,
+    pub has_error: bool,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

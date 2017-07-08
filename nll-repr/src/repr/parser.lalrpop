@@ -94,7 +94,10 @@ BasicBlockData: BasicBlockData = {
 };
 
 Action: Action = {
-    Comment* <kind:ActionKind> => Action { <> },
+    Comment* <kind:ActionKind> <e:ErrorComment?> => Action {
+        kind,
+        has_error: e.is_some(),
+    },
 };
 
 ActionKind: ActionKind = {
@@ -196,7 +199,12 @@ Comma1<T>: Vec<T> = {
 };
 
 Comment: () = {
-    r"//.*" => ()
+    r"//" => (),
+    r"//[^!].*" => (),
+};
+
+ErrorComment: () = {
+    r"//!.*" => ()
 };
 
 Angle<T>: Vec<T> = {
