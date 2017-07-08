@@ -99,37 +99,41 @@ impl<'func> Environment<'func> {
         match *path {
             repr::Path::Base(v) => self.var_ty(v),
             repr::Path::Extension(ref base, field_name) => {
-                let ty = self.path_ty(base);
-                match *ty {
-                    repr::Ty::Ref(_, _kind, ref t) => {
-                        if field_name == repr::FieldName::star() {
-                            t.clone()
-                        } else {
-                            panic!("cannot index & with field `{:?}`, use `star`", field_name)
-                        }
-                    }
+                let base_ty = self.path_ty(base);
+                self.field_ty(&base_ty, field_name)
+            }
+        }
+    }
 
-                    repr::Ty::Unit => {
-                        panic!("cannot index `()` type")
-                    }
-
-                    repr::Ty::Struct(n, ref parameters) => {
-                        let struct_decl = self.struct_map[&n];
-                        let field_decl = struct_decl.fields
-                                                    .iter()
-                                                    .find(|fd| fd.name == field_name)
-                                                    .unwrap_or_else(|| {
-                                                        panic!("no field named `{:?}` in `{:?}`",
-                                                               field_name, n)
-                                                    });
-                        let field_ty = &field_decl.ty;
-                        Box::new(field_ty.subst(parameters))
-                    }
-
-                    repr::Ty::Bound(_) => {
-                        panic!("path_ty: unexpected bound type in {:?}", path)
-                    }
+    pub fn field_ty(&self, base_ty: &repr::Ty, field_name: repr::FieldName) -> Box<repr::Ty> {
+        match *base_ty {
+            repr::Ty::Ref(_, _kind, ref t) => {
+                if field_name == repr::FieldName::star() {
+                    t.clone()
+                } else {
+                    panic!("cannot index & with field `{:?}`, use `star`", field_name)
                 }
+            }
+
+            repr::Ty::Unit => {
+                panic!("cannot index `()` type")
+            }
+
+            repr::Ty::Struct(n, ref parameters) => {
+                let struct_decl = self.struct_map[&n];
+                let field_decl = struct_decl.fields
+                                            .iter()
+                                            .find(|fd| fd.name == field_name)
+                                            .unwrap_or_else(|| {
+                                                panic!("no field named `{:?}` in `{:?}`",
+                                                       field_name, n)
+                                            });
+                let field_ty = &field_decl.ty;
+                Box::new(field_ty.subst(parameters))
+            }
+
+            repr::Ty::Bound(_) => {
+                panic!("field_ty: unexpected bound type")
             }
         }
     }

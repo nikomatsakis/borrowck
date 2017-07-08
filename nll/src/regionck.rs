@@ -1,7 +1,7 @@
 use env::{Environment, Point};
 use liveness::Liveness;
 use infer::{InferenceContext, RegionVariable};
-use nll_repr::repr::{self, Variance};
+use nll_repr::repr::{self, RegionName, Variance};
 use std::collections::HashMap;
 use std::error::Error;
 use region::Region;
@@ -15,13 +15,25 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     ck.check()
 }
 
-struct RegionCheck<'env> {
+pub struct RegionCheck<'env> {
     env: &'env Environment<'env>,
     infer: InferenceContext,
     region_map: HashMap<repr::RegionName, RegionVariable>,
 }
 
 impl<'env> RegionCheck<'env> {
+    pub fn env(&self) -> &'env Environment<'env> {
+        self.env
+    }
+
+    pub fn region(&self, name: RegionName) -> &Region {
+        let var = match self.region_map.get(&name) {
+            Some(&var) => var,
+            None => panic!("no region variable ever created with name `{:?}`", name),
+        };
+        self.infer.region(var)
+    }
+
     fn check(&mut self) -> Result<(), Box<Error>> {
         let liveness = &Liveness::new(self.env);
         self.populate_inference(liveness);

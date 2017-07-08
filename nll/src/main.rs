@@ -18,9 +18,11 @@ use std::io::Read;
 use std::process;
 
 #[macro_use] mod log;
+mod def_use;
 mod env;
 use self::env::Environment;
 mod infer;
+mod loans_in_scope;
 mod liveness;
 mod graph;
 mod region;
