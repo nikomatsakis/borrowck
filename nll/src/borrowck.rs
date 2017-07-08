@@ -7,7 +7,7 @@ use std::fmt;
 pub fn borrow_check(env: &Environment,
                     loans_in_scope: &LoansInScope)
                     -> Result<(), Box<Error>> {
-    let mut result = Ok(());
+    let mut result: Result<(), Box<Error>> = Ok(());
     loans_in_scope.walk(env, |point, opt_action, loans| {
         let borrowck = BorrowCheck { point, loans };
         if let Some(action) = opt_action {
@@ -15,6 +15,8 @@ pub fn borrow_check(env: &Environment,
                 if !action.should_have_error {
                     result = Err(e);
                 }
+            } else if action.should_have_error {
+                result = Err(Box::new(BorrowError::no_error(point)));
             }
         }
     });
@@ -94,6 +96,12 @@ pub struct BorrowError {
 }
 
 impl BorrowError {
+    fn no_error(point: Point) -> Self {
+        BorrowError {
+            description: format!("point {:?} had no error, but should have", point)
+        }
+    }
+
     fn for_move(point: Point, path: &repr::Path, loan_path: &repr::Path) -> Self {
         BorrowError {
             description: format!("point {:?} cannot move {:?} because {:?} is borrowed",
@@ -108,7 +116,6 @@ impl Error for BorrowError {
     fn description(&self) -> &str {
         &self.description
     }
-
 
     fn cause(&self) -> Option<&Error> {
         None
