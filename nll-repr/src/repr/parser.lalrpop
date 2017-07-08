@@ -96,7 +96,7 @@ BasicBlockData: BasicBlockData = {
 Action: Action = {
     Comment* <kind:ActionKind> <e:ErrorComment?> => Action {
         kind,
-        has_error: e.is_some(),
+        should_have_error: e.is_some(),
     },
 };
 

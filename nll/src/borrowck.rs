@@ -12,7 +12,9 @@ pub fn borrow_check(env: &Environment,
         let borrowck = BorrowCheck { point, loans };
         if let Some(action) = opt_action {
             if let Err(e) = borrowck.check_action(action) {
-                result = Err(e);
+                if !action.should_have_error {
+                    result = Err(e);
+                }
             }
         }
     });
