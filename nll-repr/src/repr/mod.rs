@@ -226,10 +226,7 @@ pub enum ActionKind {
     /// scope. This is not counted as a use nor a drop; it basically
     /// just pops the stack space. It *is*, however, important to the
     /// borrow checker.
-    ///
-    /// The path is always a variable, but it's convenient to have it
-    /// be a path.
-    StorageDead(Box<Path>),
+    StorageDead(Variable),
     Noop,
 }
 

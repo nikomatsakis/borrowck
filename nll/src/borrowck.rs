@@ -9,7 +9,7 @@ pub fn borrow_check(env: &Environment,
                     -> Result<(), Box<Error>> {
     let mut result: Result<(), Box<Error>> = Ok(());
     loans_in_scope.walk(env, |point, opt_action, loans| {
-        let borrowck = BorrowCheck { point, loans };
+        let borrowck = BorrowCheck { env, point, loans };
         if let Some(action) = opt_action {
             if let Err(e) = borrowck.check_action(action) {
                 if !action.should_have_error {
@@ -25,6 +25,7 @@ pub fn borrow_check(env: &Environment,
 }
 
 struct BorrowCheck<'cx> {
+    env: &'cx Environment<'cx>,
     point: Point,
     loans: &'cx [&'cx Loan<'cx>],
 }
@@ -55,8 +56,11 @@ impl<'cx> BorrowCheck<'cx> {
             repr::ActionKind::Use(ref p) => {
                 self.check_read(p)?;
             }
-            repr::ActionKind::Drop(ref p) | repr::ActionKind::StorageDead(ref p) => {
+            repr::ActionKind::Drop(ref p) => {
                 self.check_move(p)?;
+            }
+            repr::ActionKind::StorageDead(p) => {
+                self.check_storage_dead(p)?;
             }
             repr::ActionKind::Noop => {
             }
@@ -88,6 +92,47 @@ impl<'cx> BorrowCheck<'cx> {
         }
         Ok(())
     }
+
+    fn check_storage_dead(&self, var: repr::Variable) -> Result<(), Box<Error>> {
+        for loan in self.loans {
+            if let Some(loan_var) = self.invalidated_by_dead_storage(&loan.path) {
+                if var == loan_var {
+                    return Err(Box::new(BorrowError::for_storage_dead(self.point, var, &loan.path)));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// If `path` is borrowed, returns a vector of paths which -- if
+    /// moved or if the storage went away -- would invalidate this
+    /// reference.
+    fn invalidated_by_dead_storage(&self, mut path: &repr::Path) -> Option<repr::Variable> {
+        loop {
+            match *path {
+                repr::Path::Base(v) => return Some(v),
+                repr::Path::Extension(ref base_path, field_name) => {
+                    match *self.env.path_ty(base_path) {
+                        // If you borrow `*r`, you can drop the
+                        // reference `r` without invalidating that
+                        // memory.
+                        repr::Ty::Ref(_, _, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            return None;
+                        }
+
+                        repr::Ty::Unit | repr::Ty::Struct(..) => {
+                            path = base_path;
+                        }
+
+                        repr::Ty::Bound(..) => {
+                            panic!("unexpected bound type")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -107,6 +152,15 @@ impl BorrowError {
             description: format!("point {:?} cannot move {:?} because {:?} is borrowed",
                                  point,
                                  path,
+                                 loan_path)
+        }
+    }
+
+    fn for_storage_dead(point: Point, var: repr::Variable, loan_path: &repr::Path) -> Self {
+        BorrowError {
+            description: format!("point {:?} cannot kill storage for {:?} because {:?} is borrowed",
+                                 point,
+                                 var,
                                  loan_path)
         }
     }

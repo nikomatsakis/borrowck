@@ -107,7 +107,7 @@ ActionKind: ActionKind = {
     <c:Constraint> ";" => ActionKind::Constraint(c),
     "use" "(" <v:Path> ")" ";" => ActionKind::Use(v),
     "drop" "(" <v:Path> ")" ";" => ActionKind::Drop(v),
-    "StorageDead" "(" <v:Variable> ")" ";" => ActionKind::StorageDead(Box::new(Path::Base(v))),
+    "StorageDead" "(" <v:Variable> ")" ";" => ActionKind::StorageDead(v),
     ";" => ActionKind::Noop,
 };
 
