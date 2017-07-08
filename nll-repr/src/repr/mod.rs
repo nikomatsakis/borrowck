@@ -215,6 +215,12 @@ pub enum Action {
     Constraint(Box<Constraint>), // C
     Use(Box<Path>), // use(p);
     Drop(Box<Path>), // drop(p);
+
+    /// `StorageDead(v)` indicates that the variable is now out of
+    /// scope. This is not counted as a use nor a drop; it basically
+    /// just pops the stack space. It *is*, however, important to the
+    /// borrow checker.
+    StorageDead(Variable),
     Noop,
 }
 

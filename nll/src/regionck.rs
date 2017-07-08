@@ -1,4 +1,5 @@
 use env::{Environment, Point};
+use loans_in_scope::LoansInScope;
 use liveness::Liveness;
 use infer::{InferenceContext, RegionVariable};
 use nll_repr::repr::{self, RegionName, Variance};
@@ -37,6 +38,7 @@ impl<'env> RegionCheck<'env> {
     fn check(&mut self) -> Result<(), Box<Error>> {
         let liveness = &Liveness::new(self.env);
         self.populate_inference(liveness);
+        let loans_in_scope = &LoansInScope::new(self);
         self.check_assertions(liveness)
     }
 
@@ -158,13 +160,13 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
-                repr::Action::Init(..) | // a = use(...)
-                repr::Action::Use(..) | // use(a)
-                repr::Action::Drop(..) => { // drop(a)
-                    // the basic liveness rules suffice here
-                }
-
+                repr::Action::Init(..) |
+                repr::Action::Use(..) |
+                repr::Action::Drop(..) |
+                repr::Action::StorageDead(..) |
                 repr::Action::Noop => {
+                    // no add'l constriants needed here; basic liveness
+                    // suffices.
                 }
             }
         });

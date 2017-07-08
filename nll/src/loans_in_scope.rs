@@ -1,4 +1,3 @@
-use def_use::DefUse;
 use env::{Environment, Point};
 use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::Graph;
@@ -149,7 +148,7 @@ impl<'rck> LoansInScope<'rck> {
             // figure out which path is overwritten by this action;
             // this may cancel out some loans
             if let Some(overwritten_path) = action.overwrites() {
-                for loan_index in self.loans_killed_by_write_to(overwritten_path) {
+                for loan_index in self.loans_killed_by_write_to(&overwritten_path) {
                     buf.kill(loan_index);
                 }
             }
@@ -207,3 +206,22 @@ impl<'rck> LoansInScope<'rck> {
     }
 }
 
+pub trait Overwrites {
+    /// Returns path that this action overwrites, if any.
+    fn overwrites(&self) -> Option<&repr::Path>;
+}
+
+impl Overwrites for repr::Action {
+    fn overwrites(&self) -> Option<&repr::Path> {
+        match *self {
+            repr::Action::Borrow(ref p, _name, _, _) => Some(p),
+            repr::Action::Init(ref a, _) => Some(a),
+            repr::Action::Assign(ref a, _) => Some(a),
+            repr::Action::Constraint(ref _c) => None,
+            repr::Action::Use(_) => None,
+            repr::Action::Drop(_) => None,
+            repr::Action::Noop => None,
+            repr::Action::StorageDead(_) => None,
+        }
+    }
+}
