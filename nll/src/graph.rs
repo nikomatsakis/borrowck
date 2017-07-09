@@ -19,36 +19,28 @@ pub struct FuncGraph {
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct BasicBlockIndex {
-    index: usize
+    index: usize,
 }
 
 impl FuncGraph {
     pub fn new(func: repr::Func) -> Self {
-        let blocks: Vec<_> =
-            func.data.keys().cloned().collect();
-        let block_indices: BTreeMap<_, _> =
-            func.data.keys()
-                     .cloned()
-                     .enumerate()
-                     .map(|(index, block)| (block, BasicBlockIndex {
-                         index: index
-                     }))
-                     .collect();
-        let mut predecessors: Vec<_> =
-            (0..blocks.len()).map(|_| Vec::new())
-                             .collect();
-        let mut successors: Vec<_> =
-            (0..blocks.len()).map(|_| Vec::new())
-                             .collect();
+        let blocks: Vec<_> = func.data.keys().cloned().collect();
+        let block_indices: BTreeMap<_, _> = func.data
+            .keys()
+            .cloned()
+            .enumerate()
+            .map(|(index, block)| (block, BasicBlockIndex { index: index }))
+            .collect();
+        let mut predecessors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
+        let mut successors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
 
         for (block, &index) in &block_indices {
             let data = &func.data[block];
             for successor in &data.successors {
-                let successor_index = block_indices.get(successor)
-                                                   .cloned()
-                                                   .unwrap_or_else(|| {
-                                                       panic!("no index for {:?}", successor)
-                                                   });
+                let successor_index = block_indices
+                    .get(successor)
+                    .cloned()
+                    .unwrap_or_else(|| panic!("no index for {:?}", successor));
                 successors[index.index].push(successor_index);
                 predecessors[successor_index.index].push(index);
             }
@@ -100,13 +92,17 @@ impl ga::Graph for FuncGraph {
         self.start_block
     }
 
-    fn predecessors<'graph>(&'graph self, node: BasicBlockIndex)
-                            -> <Self as ga::GraphPredecessors<'graph>>::Iter {
+    fn predecessors<'graph>(
+        &'graph self,
+        node: BasicBlockIndex,
+    ) -> <Self as ga::GraphPredecessors<'graph>>::Iter {
         self.predecessors[node.index].iter().cloned()
     }
 
-    fn successors<'graph>(&'graph self, node: BasicBlockIndex)
-                          -> <Self as ga::GraphSuccessors<'graph>>::Iter {
+    fn successors<'graph>(
+        &'graph self,
+        node: BasicBlockIndex,
+    ) -> <Self as ga::GraphSuccessors<'graph>>::Iter {
         self.successors[node.index].iter().cloned()
     }
 }
@@ -121,14 +117,11 @@ impl<'graph> ga::GraphSuccessors<'graph> for FuncGraph {
     type Iter = iter::Cloned<slice::Iter<'graph, BasicBlockIndex>>;
 }
 
-impl ga::NodeIndex for BasicBlockIndex {
-}
+impl ga::NodeIndex for BasicBlockIndex {}
 
 impl From<usize> for BasicBlockIndex {
     fn from(v: usize) -> BasicBlockIndex {
-        BasicBlockIndex {
-            index: v
-        }
+        BasicBlockIndex { index: v }
     }
 }
 
@@ -142,8 +135,9 @@ thread_local! {
     static NAMES: RefCell<Vec<repr::BasicBlock>> = RefCell::new(vec![])
 }
 
-pub fn with_graph<OP, R>(g: &FuncGraph, op: OP)  -> R
-    where OP: FnOnce() -> R
+pub fn with_graph<OP, R>(g: &FuncGraph, op: OP) -> R
+where
+    OP: FnOnce() -> R,
 {
     NAMES.with(|names| {
         let old_names = mem::replace(&mut *names.borrow_mut(), g.blocks.clone());
@@ -165,6 +159,3 @@ impl fmt::Debug for BasicBlockIndex {
         })
     }
 }
-
-
-

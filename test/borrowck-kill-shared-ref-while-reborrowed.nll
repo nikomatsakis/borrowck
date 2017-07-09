@@ -1,0 +1,32 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let q;
+// {
+//   let p = &foo;
+//   q = &*p;
+// }
+// print(q);
+// ```
+//
+// Should be OK, since `*p` exists independently of `p`.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+let q: &'q Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 foo;
+    q = &'b2 p.star;
+    StorageDead(p);
+    use(q);
+    StorageDead(q);
+    StorageDead(foo);
+}
+

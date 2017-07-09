@@ -1,0 +1,20 @@
+// Corresponds to:
+//
+// ```
+// let p;
+// {
+//   let foo = ();
+//   p = &foo;
+// }
+// print(p);
+// ```
+
+let foo: ();
+let p: &'p ();
+
+block START {
+    foo = use();
+    p = &'foo foo;
+    StorageDead(foo); //! ERROR: `foo` is borrowed here
+    use(p);    
+}

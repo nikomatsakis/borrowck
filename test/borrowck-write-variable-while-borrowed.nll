@@ -1,0 +1,27 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p = &foo;
+// foo = use();
+// use(p);
+// ```
+//
+// Should be error, since borrow by `p` is still in force.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 foo;
+    foo = use(); //! ERROR
+    use(p);
+    StorageDead(p);
+    StorageDead(foo);
+}
+

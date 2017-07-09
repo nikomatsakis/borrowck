@@ -1,17 +1,15 @@
 // Test that we can construct a cycle, if `Foo` is may-dangle.
 
-// struct Foo<'a> {
-//    c: Cell<Option<&'a Foo<'a>>>
-// }
-struct Foo<may_dangle '+>;
+struct Foo<may_dangle '=> {
+  c: Cell<Option<&'0 Foo<'0>>>
+}
 
 let foo: Foo<'foo>;
 let p: &'pr Foo<'pr1>;
 
 block START {
-    foo = use();  // foo = Foo { c: Cell::new(None) };
-    'foo: 'pr1;   // part of borrow below:
-    p = &'borrow; // p = &foo;
+    foo = use();      // foo = Foo { c: Cell::new(None) };
+    p = &'borrow foo; // p = &foo;
     'pr: 'foo;
     'pr1: 'foo;   // foo.c.set(Some(p));
     use(p);
@@ -31,7 +29,7 @@ assert END/0 not in 'foo;
 assert END/0 not in 'pr;
 assert END/0 not in 'pr1;
 
-assert 'foo == {START/1, START/2, START/3, START/4, START/5, START/6};
-assert 'pr == {START/3, START/4, START/5, START/6};
-assert 'pr1 == {START/3, START/4, START/5, START/6};
-assert 'borrow == {START/3, START/4, START/5, START/6};
+assert 'foo == {START/1, START/2, START/3, START/4, START/5};
+assert 'pr == {START/2, START/3, START/4, START/5};
+assert 'pr1 == {START/2, START/3, START/4, START/5};
+assert 'borrow == {START/2, START/3, START/4, START/5};

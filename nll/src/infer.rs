@@ -11,7 +11,7 @@ pub struct InferenceContext {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct RegionVariable {
-    index: usize
+    index: usize,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -76,12 +76,14 @@ struct Dfs<'env> {
 
 impl<'env> Dfs<'env> {
     fn new(env: &'env Environment<'env>) -> Self {
-        Dfs { stack: vec![], visited: HashSet::new(), env }
+        Dfs {
+            stack: vec![],
+            visited: HashSet::new(),
+            env,
+        }
     }
 
-    fn copy(&mut self, from_region: &Region, to_region: &mut Region, start_point: Point)
-            -> bool
-    {
+    fn copy(&mut self, from_region: &Region, to_region: &mut Region, start_point: Point) -> bool {
         let mut changed = false;
 
         self.stack.clear();

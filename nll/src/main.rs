@@ -17,10 +17,13 @@ use std::fs::File;
 use std::io::Read;
 use std::process;
 
-#[macro_use] mod log;
+#[macro_use]
+mod log;
+mod borrowck;
 mod env;
 use self::env::Environment;
 mod infer;
+mod loans_in_scope;
 mod liveness;
 mod graph;
 mod region;
@@ -28,8 +31,7 @@ mod regionck;
 use self::graph::FuncGraph;
 
 fn main() {
-    let args: Args =
-        Docopt::new(USAGE)
+    let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.argv(args()).decode())
         .unwrap_or_else(|e| e.exit());
 

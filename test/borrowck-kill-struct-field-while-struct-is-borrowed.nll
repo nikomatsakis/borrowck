@@ -1,0 +1,23 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p = &foo;
+// mem::drop(foo.dummy);
+// ```
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+
+block START {
+    foo = use();
+    p = &'foo foo;
+    drop(foo.field); //! ERROR `foo` is borrowed
+    use(p);
+    StorageDead(foo);
+}
+

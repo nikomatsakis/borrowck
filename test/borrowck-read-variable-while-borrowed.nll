@@ -1,0 +1,27 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p = &mut foo;
+// use(foo);
+// use(p);
+// ```
+//
+// Should be error, since `p` is still in active use.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p mut Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 mut foo;
+    use(foo); //! ERROR
+    use(p);
+    StorageDead(p);
+    StorageDead(foo);
+}
+

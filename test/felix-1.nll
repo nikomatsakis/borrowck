@@ -6,17 +6,21 @@
 // }
 // *p // point D
 
-let p: &'p ();
+struct Foo { }
+
+let foo: Foo;
+let bar: Foo;
+let p: &'p Foo;
 
 block START {
-    p = &'foo;
+    p = &'foo foo;
     goto B C;
 }
 
 block B {
     use(p);
     ;
-    p = &'bar;
+    p = &'bar bar;
     goto C;
 }
 

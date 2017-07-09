@@ -1,18 +1,16 @@
 // Test that we cannot construct a cycle, if `Foo` is not may-dangle.
 
-// struct Foo<'a> {
-//    c: Cell<Option<&'a Foo<'a>>>
-// }
-// impl Drop for Foo<'a> { }
-struct Foo<'+>; // no may_dangle
+// NB: no may_dangle attribute
+struct Foo< '= > {
+  c: Cell<Option<&'a Foo<'a>>>
+}
 
 let foo: Foo<'foo>;
 let p: &'pr Foo<'pr1>;
 
 block START {
     foo = use();  // foo = Foo { c: Cell::new(None) };
-    'foo: 'pr1;   // part of borrow below:
-    p = &'borrow; // p = &foo;
+    p = &'borrow foo; // p = &foo;
     'pr: 'foo;
     'pr1: 'foo;   // foo.c.set(Some(p));
     use(p);

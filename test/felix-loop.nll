@@ -1,7 +1,9 @@
+let foo: ();
+let bar: ();
 let p: &'p ();
 
 block START {
-    p = &'foo;
+    p = &'foo foo;
     use(p);
     goto A;
 }
@@ -13,7 +15,7 @@ block A {
 block B {
     use(p);
     ;
-    p = &'bar;
+    p = &'bar bar;
     goto C;
 }
 

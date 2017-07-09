@@ -1,16 +1,19 @@
-struct Vec<+>;
+struct Vec<+> {
+  dummy: 0
+}
 
+let foo: ();
 let v: Vec<&'v ()>;
 let p: &'p ();
 
 block START {
-    v = use();    // let v: Vec<&i32> = vec![];
-    p = &'foo;    // let p = &foo;
+    v = use();      // let v: Vec<&i32> = vec![];
+    p = &'foo foo;  // let p = &foo;
     goto B C;
 }
 
 block B {
-    v:0 = p; // emulates `vec.push(p)`
+    v.dummy = p; // emulates `vec.push(p)`
     goto EXIT;
 }
 

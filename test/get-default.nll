@@ -1,9 +1,17 @@
-let m: &'m ();
-let r: &'r ();
-let return: &'return ();  
+struct Map { }
+
+let map: Map;
+let m: &'m mut Map;
+
+// this model is a bit inaccurate; we are
+// returning the whole map instead of just the
+// key, because I am too lazy, but this should
+// be ok
+let r: &'r mut Map;
+let return: &'return mut Map;
 
 block START {
-    m = &'map; // (&map).get_mut();
+    m = &'map mut map; // (&map).get_mut();
     r = m; // lifetime of return value linked to input
     goto SOME NONE;
 }
@@ -15,7 +23,7 @@ block SOME {
 
 block NONE {
     ; // map.insert(...);
-    m = &'map2; // (&map).get_mut()
+    m = &'map2 mut map; // (&map).get_mut()
     r = m; // lifetime of return value linked to input
     return = r; // returned
     goto END;

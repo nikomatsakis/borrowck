@@ -1,4 +1,4 @@
-use intern::InternedString;
+use intern::{self, InternedString};
 use lalrpop_util::ParseError;
 use std::collections::BTreeMap;
 use std::iter;
@@ -37,6 +37,13 @@ impl Func {
 pub struct StructDecl {
     pub name: StructName,
     pub parameters: Vec<StructParameter>,
+    pub fields: Vec<FieldDecl>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct FieldDecl {
+    pub name: FieldName,
+    pub ty: Box<Ty>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -84,19 +91,36 @@ pub struct StructName {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Ty {
-    Ref(RegionName, Box<Ty>),
-    RefMut(RegionName, Box<Ty>),
+    Ref(Region, BorrowKind, Box<Ty>),
     Unit,
     Struct(StructName, Vec<TyParameter>),
+    Bound(usize),
 }
 
 impl Ty {
-    pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = RegionName> + 'a> {
+    pub fn subst(&self, params: &[TyParameter]) -> Ty {
         match *self {
-            Ty::Ref(rn, ref t) => Box::new(
-                iter::once(rn).chain(t.walk_regions())
+            Ty::Bound(b) => {
+                let index = params.len() - 1 - b;
+                match params[index] {
+                    TyParameter::Ty(ref t) => (**t).clone(),
+                    TyParameter::Region(r) => {
+                        panic!("subst: encountered region {:?} at index {} not type", r, index)
+                    }
+                }
+            }
+            Ty::Ref(rn, kind, ref t) => Ty::Ref(rn.subst(params), kind, Box::new(t.subst(params))),
+            Ty::Unit => Ty::Unit,
+            Ty::Struct(s, ref unsubst_params) => Ty::Struct(
+                s,
+                unsubst_params.iter().map(|p| p.subst(params)).collect()
             ),
-            Ty::RefMut(rn, ref t) => Box::new(
+        }
+    }
+
+    pub fn walk_regions<'a>(&'a self) -> Box<Iterator<Item = Region> + 'a> {
+        match *self {
+            Ty::Ref(rn, _kind, ref t) => Box::new(
                 iter::once(rn).chain(t.walk_regions())
             ),
             Ty::Unit => Box::new(
@@ -109,14 +133,56 @@ impl Ty {
                           TyParameter::Ty(ref t) => t.walk_regions(),
                       })
             ),
+            Ty::Bound(_) => {
+                panic!("encountered bound type when walking regions")
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum Region {
+    Free(RegionName),
+    Bound(usize),
+}
+
+impl Region {
+    pub fn subst(self, params: &[TyParameter]) -> Region {
+        match self {
+            Region::Free(..) => self,
+            Region::Bound(b) => {
+                let index = params.len() - 1 - b;
+                match params[index] {
+                    TyParameter::Region(r) => r,
+                    TyParameter::Ty(ref t) => {
+                        panic!("subst: encountered type {:?} at index {} not region", t, index)
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn assert_free(self) -> RegionName {
+        match self {
+            Region::Free(n) => n,
+            Region::Bound(b) => panic!("assert_free: encountered bound region with depth {}", b),
         }
     }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum TyParameter {
-    Region(RegionName),
+    Region(Region),
     Ty(Box<Ty>),
+}
+
+impl TyParameter {
+    pub fn subst(&self, params: &[TyParameter]) -> TyParameter {
+        match *self {
+            TyParameter::Region(r) => TyParameter::Region(r.subst(params)),
+            TyParameter::Ty(ref t) => TyParameter::Ty(Box::new(t.subst(params))),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -126,22 +192,48 @@ pub struct BasicBlockData {
     pub successors: Vec<BasicBlock>,
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
+pub enum BorrowKind {
+    Mut,
+    Shared,
+}
+
+impl BorrowKind {
+    pub fn variance(self) -> Variance {
+        match self {
+            BorrowKind::Mut => Variance::In,
+            BorrowKind::Shared => Variance::Co,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum Action {
+pub struct Action {
+    pub kind: ActionKind,
+    pub should_have_error: bool,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum ActionKind {
     Init(Box<Path>, Vec<Box<Path>>), // p = use(...)
-    Borrow(Box<Path>, RegionName), // p = &'X
+    Borrow(Box<Path>, RegionName, BorrowKind, Box<Path>), // p = &'X q
     Assign(Box<Path>, Box<Path>), // p = q;
     Constraint(Box<Constraint>), // C
     Use(Box<Path>), // use(p);
-    Write(Box<Path>), // write(p);
     Drop(Box<Path>), // drop(p);
+
+    /// `StorageDead(v)` indicates that the variable is now out of
+    /// scope. This is not counted as a use nor a drop; it basically
+    /// just pops the stack space. It *is*, however, important to the
+    /// borrow checker.
+    StorageDead(Variable),
     Noop,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Path { // P =
     Base(Variable), // v
-    Extension(Box<Path>, usize), // P.n
+    Extension(Box<Path>, FieldName), // P.n
 }
 
 impl Path {
@@ -149,6 +241,19 @@ impl Path {
         match *self {
             Path::Base(v) => v,
             Path::Extension(ref e, _) => e.base(),
+        }
+    }
+
+    /// If the path is `a.b.c`, returns `a.b.c`, `a.b`, and `a`.
+    pub fn prefixes(&self) -> Vec<&Path> {
+        let mut this = self;
+        let mut result = vec![];
+        loop {
+            result.push(this);
+            match *this {
+                Path::Base(_) => return result,
+                Path::Extension(ref base, _) => this = base,
+            }
         }
     }
 
@@ -199,7 +304,7 @@ pub struct VariableDecl {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Assertion {
-    Eq(RegionName, Region),
+    Eq(RegionName, RegionLiteral),
     In(RegionName, Point),
     NotIn(RegionName, Point),
     Live(Variable, BasicBlock),
@@ -217,7 +322,18 @@ pub struct RegionName {
     name: InternedString
 }
 
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct FieldName {
+    name: InternedString
+}
+
+impl FieldName {
+    pub fn star() -> Self {
+        FieldName { name: intern::intern("star") }
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Region {
+pub struct RegionLiteral {
     pub points: Vec<Point>,
 }

@@ -1,7 +1,9 @@
+use borrowck;
 use env::{Environment, Point};
+use loans_in_scope::LoansInScope;
 use liveness::Liveness;
 use infer::{InferenceContext, RegionVariable};
-use nll_repr::repr::{self, Variance};
+use nll_repr::repr::{self, RegionName, Variance};
 use std::collections::HashMap;
 use std::error::Error;
 use region::Region;
@@ -10,31 +12,46 @@ pub fn region_check(env: &Environment) -> Result<(), Box<Error>> {
     let ck = &mut RegionCheck {
         env,
         infer: InferenceContext::new(),
-        region_map: HashMap::new()
+        region_map: HashMap::new(),
     };
     ck.check()
 }
 
-struct RegionCheck<'env> {
+pub struct RegionCheck<'env> {
     env: &'env Environment<'env>,
     infer: InferenceContext,
     region_map: HashMap<repr::RegionName, RegionVariable>,
 }
 
 impl<'env> RegionCheck<'env> {
+    pub fn env(&self) -> &'env Environment<'env> {
+        self.env
+    }
+
+    pub fn region(&self, name: RegionName) -> &Region {
+        let var = match self.region_map.get(&name) {
+            Some(&var) => var,
+            None => panic!("no region variable ever created with name `{:?}`", name),
+        };
+        self.infer.region(var)
+    }
+
     fn check(&mut self) -> Result<(), Box<Error>> {
         let liveness = &Liveness::new(self.env);
         self.populate_inference(liveness);
-        self.check_assertions(liveness)
+        let loans_in_scope = &LoansInScope::new(self);
+        borrowck::borrow_check(self.env, loans_in_scope)?;
+        self.check_assertions(liveness)?;
+        Ok(())
     }
 
-    fn check_assertions(&mut self, liveness: &Liveness) -> Result<(), Box<Error>> {
+    fn check_assertions(&self, liveness: &Liveness) -> Result<(), Box<Error>> {
         let mut errors = 0;
 
         for assertion in self.env.graph.assertions() {
             match *assertion {
                 repr::Assertion::Eq(region_name, ref region_literal) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let region_value = self.to_region(region_literal);
                     if *self.infer.region(region_var) != region_value {
                         errors += 1;
@@ -45,23 +62,29 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 repr::Assertion::In(region_name, ref point) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
                     if !self.infer.region(region_var).contains(point) {
                         errors += 1;
-                        println!("error: region variable `{:?}` does not contain `{:?}`",
-                                 region_name, point);
+                        println!(
+                            "error: region variable `{:?}` does not contain `{:?}`",
+                            region_name,
+                            point
+                        );
                         println!("  found   : {:?}", self.infer.region(region_var));
                     }
                 }
 
                 repr::Assertion::NotIn(region_name, ref point) => {
-                    let region_var = self.region_variable(region_name);
+                    let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
                     if self.infer.region(region_var).contains(point) {
                         errors += 1;
-                        println!("error: region variable `{:?}` contains `{:?}`",
-                                 region_name, point);
+                        println!(
+                            "error: region variable `{:?}` contains `{:?}`",
+                            region_name,
+                            point
+                        );
                         println!("  found   : {:?}", self.infer.region(region_var));
                     }
                 }
@@ -70,8 +93,11 @@ impl<'env> RegionCheck<'env> {
                     let block = self.env.graph.block(block_name);
                     if !liveness.var_live_on_entry(var, block) {
                         errors += 1;
-                        println!("error: variable `{:?}` not live on entry to `{:?}`",
-                                 var, block_name);
+                        println!(
+                            "error: variable `{:?}` not live on entry to `{:?}`",
+                            var,
+                            block_name
+                        );
                     }
                 }
 
@@ -79,8 +105,11 @@ impl<'env> RegionCheck<'env> {
                     let block = self.env.graph.block(block_name);
                     if liveness.var_live_on_entry(var, block) {
                         errors += 1;
-                        println!("error: variable `{:?}` live on entry to `{:?}`",
-                                 var, block_name);
+                        println!(
+                            "error: variable `{:?}` live on entry to `{:?}`",
+                            var,
+                            block_name
+                        );
                     }
                 }
             }
@@ -110,26 +139,32 @@ impl<'env> RegionCheck<'env> {
 
             // Next, walk the actions and establish any additional constraints
             // that may arise from subtyping.
-            let successor_point = Point { block: point.block, action: point.action + 1 };
-            match *action {
+            let successor_point = Point {
+                block: point.block,
+                action: point.action + 1,
+            };
+            match action.kind {
                 // `p = &'x` -- first, `'x` must include this point @ P,
                 // and second `&'x <: typeof(p) @ succ(P)`
-                repr::Action::Borrow(ref path, region_name) => {
-                    let path_ty = self.env.path_ty(path);
-                    let borrow_region = self.region_variable(region_name);
-                    match *path_ty {
-                        repr::Ty::Ref(rn, _) | repr::Ty::RefMut(rn, _) => {
-                            let var_region = self.region_variable(rn);
-                            self.infer.add_outlives(borrow_region, var_region, successor_point);
-                        }
-                        _ => {
-                            panic!("result must be `&T` or `&mut T` type")
-                        }
-                    }
+                repr::ActionKind::Borrow(
+                    ref dest_path,
+                    region_name,
+                    borrow_kind,
+                    ref source_path,
+                ) => {
+                    let dest_ty = self.env.path_ty(dest_path);
+                    let source_ty = self.env.path_ty(source_path);
+                    let ref_ty = Box::new(repr::Ty::Ref(
+                        repr::Region::Free(region_name),
+                        borrow_kind,
+                        source_ty,
+                    ));
+                    self.relate_tys(successor_point, repr::Variance::Contra, &dest_ty, &ref_ty);
+                    self.ensure_borrow_source(successor_point, region_name, source_path);
                 }
 
                 // a = b
-                repr::Action::Assign(ref a, ref b) => {
+                repr::ActionKind::Assign(ref a, ref b) => {
                     let a_ty = self.env.path_ty(a);
                     let b_ty = self.env.path_ty(b);
 
@@ -138,7 +173,7 @@ impl<'env> RegionCheck<'env> {
                 }
 
                 // 'X: 'Y
-                repr::Action::Constraint(ref c) => {
+                repr::ActionKind::Constraint(ref c) => {
                     match **c {
                         repr::Constraint::Outlives(c) => {
                             let sup_v = self.region_variable(c.sup);
@@ -151,14 +186,13 @@ impl<'env> RegionCheck<'env> {
                     }
                 }
 
-                repr::Action::Init(..) | // a = use(...)
-                repr::Action::Use(..) | // use(a)
-                repr::Action::Drop(..) | // drop(a)
-                repr::Action::Write(..) => { // write(a), e.g. *a += 1
-                    // the basic liveness rules suffice here
-                }
-
-                repr::Action::Noop => {
+                repr::ActionKind::Init(..) |
+                repr::ActionKind::Use(..) |
+                repr::ActionKind::Drop(..) |
+                repr::ActionKind::StorageDead(..) |
+                repr::ActionKind::Noop => {
+                    // no add'l constriants needed here; basic liveness
+                    // suffices.
                 }
             }
         });
@@ -175,10 +209,13 @@ impl<'env> RegionCheck<'env> {
 
     fn to_point(&self, point: &repr::Point) -> Point {
         let block = self.env.graph.block(point.block);
-        Point { block: block, action: point.action }
+        Point {
+            block: block,
+            action: point.action,
+        }
     }
 
-    fn to_region(&self, user_region: &repr::Region) -> Region {
+    fn to_region(&self, user_region: &repr::RegionLiteral) -> Region {
         let mut region = Region::new();
         for p in &user_region.points {
             region.add_point(self.to_point(p));
@@ -186,23 +223,33 @@ impl<'env> RegionCheck<'env> {
         region
     }
 
-    fn relate_tys(&mut self,
-                  successor_point: Point,
-                  variance: repr::Variance,
-                  a: &repr::Ty,
-                  b: &repr::Ty) {
-        log!("relate_tys({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
+    fn relate_tys(
+        &mut self,
+        successor_point: Point,
+        variance: repr::Variance,
+        a: &repr::Ty,
+        b: &repr::Ty,
+    ) {
+        log!(
+            "relate_tys({:?} {:?} {:?} @ {:?})",
+            a,
+            variance,
+            b,
+            successor_point
+        );
         match (a, b) {
-            (&repr::Ty::Ref(r_a, ref t_a), &repr::Ty::Ref(r_b, ref t_b)) => {
-                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
-                self.relate_tys(successor_point, variance, t_a, t_b);
+            (&repr::Ty::Ref(r_a, bk_a, ref t_a), &repr::Ty::Ref(r_b, bk_b, ref t_b)) => {
+                assert_eq!(bk_a, bk_b, "cannot relate {:?} and {:?}", a, b);
+                self.relate_regions(
+                    successor_point,
+                    variance.invert(),
+                    r_a.assert_free(),
+                    r_b.assert_free(),
+                );
+                let referent_variance = variance.xform(bk_a.variance());
+                self.relate_tys(successor_point, referent_variance, t_a, t_b);
             }
-            (&repr::Ty::RefMut(r_a, ref t_a), &repr::Ty::RefMut(r_b, ref t_b)) => {
-                self.relate_regions(successor_point, variance.invert(), r_a, r_b);
-                self.relate_tys(successor_point, variance.xform(repr::Variance::In), t_a, t_b);
-            }
-            (&repr::Ty::Unit, &repr::Ty::Unit) => {
-            }
+            (&repr::Ty::Unit, &repr::Ty::Unit) => {}
             (&repr::Ty::Struct(s_a, ref ps_a), &repr::Ty::Struct(s_b, ref ps_b)) => {
                 if s_a != s_b {
                     panic!("cannot compare `{:?}` and `{:?}`", s_a, s_b);
@@ -219,18 +266,33 @@ impl<'env> RegionCheck<'env> {
                     self.relate_parameters(successor_point, v, p_a, p_b);
                 }
             }
-            _ => panic!("cannot relate types `{:?}` and `{:?}`", a, b)
+            _ => {
+                panic!(
+                    "cannot relate types `{:?}` and `{:?}` at {:?}",
+                    a,
+                    b,
+                    successor_point
+                )
+            }
         }
     }
 
-    fn relate_regions(&mut self,
-                      successor_point: Point,
-                      variance: repr::Variance,
-                      a: repr::RegionName,
-                      b: repr::RegionName) {
-        log!("relate_regions({:?} {:?} {:?} @ {:?})", a, variance, b, successor_point);
-        let r_a = self.region_map[&a];
-        let r_b = self.region_map[&b];
+    fn relate_regions(
+        &mut self,
+        successor_point: Point,
+        variance: repr::Variance,
+        a: repr::RegionName,
+        b: repr::RegionName,
+    ) {
+        log!(
+            "relate_regions({:?} {:?} {:?} @ {:?})",
+            a,
+            variance,
+            b,
+            successor_point
+        );
+        let r_a = self.region_variable(a);
+        let r_b = self.region_variable(b);
         match variance {
             Variance::Co =>
                 // "a Co b" == "a <= b"
@@ -245,17 +307,104 @@ impl<'env> RegionCheck<'env> {
         }
     }
 
-    fn relate_parameters(&mut self,
-                         successor_point: Point,
-                         variance: repr::Variance,
-                         a: &repr::TyParameter,
-                         b: &repr::TyParameter) {
+    fn relate_parameters(
+        &mut self,
+        successor_point: Point,
+        variance: repr::Variance,
+        a: &repr::TyParameter,
+        b: &repr::TyParameter,
+    ) {
         match (a, b) {
-            (&repr::TyParameter::Ty(ref t_a), &repr::TyParameter::Ty(ref t_b)) =>
-                self.relate_tys(successor_point, variance, t_a, t_b),
-            (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
-                self.relate_regions(successor_point, variance, r_a, r_b),
-            _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
+            (&repr::TyParameter::Ty(ref t_a), &repr::TyParameter::Ty(ref t_b)) => {
+                self.relate_tys(successor_point, variance, t_a, t_b)
+            }
+            (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) => {
+                self.relate_regions(
+                    successor_point,
+                    variance,
+                    r_a.assert_free(),
+                    r_b.assert_free(),
+                )
+            }
+            _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b),
+        }
+    }
+
+    /// Add any relations between regions that are needed to ensures
+    /// that reborrows live long enough. Specifically, if we borrow
+    /// something like `*r` for `'a`, where `r: &'b i32`, then `'b:
+    /// 'a` is required.
+    fn ensure_borrow_source(
+        &mut self,
+        successor_point: Point,
+        borrow_region_name: RegionName,
+        mut source_path: &repr::Path,
+    ) {
+        log!(
+            "ensure_borrow_source({:?}, {:?}, {:?})",
+            successor_point,
+            borrow_region_name,
+            source_path
+        );
+
+        loop {
+            log!("ensure_borrow_source: {:?}", source_path);
+            match *source_path {
+                repr::Path::Base(_) => {
+                    // The borrow checker already detects the case where
+                    // the storage for a local goes dead whilst it is
+                    // borrowed and reports an error.
+                    return;
+                }
+                repr::Path::Extension(ref base_path, field_name) => {
+                    let ty = self.env.path_ty(base_path);
+                    log!("ensure_borrow_source: ty={:?}", ty);
+                    match *ty {
+                        repr::Ty::Ref(ref_region, ref_kind, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            let ref_region_name = ref_region.assert_free();
+                            let borrow_region_variable = self.region_variable(borrow_region_name);
+                            let ref_region_variable = self.region_variable(ref_region_name);
+                            self.infer.add_outlives(
+                                ref_region_variable,
+                                borrow_region_variable,
+                                successor_point,
+                            );
+
+                            match ref_kind {
+                                repr::BorrowKind::Shared => {
+                                    // If you borrow `*r` from a
+                                    // shared reference, that
+                                    // reference is copyable, so we
+                                    // don't need to "secure" the path
+                                    // by which you reached it.  After
+                                    // all, we could have copied the
+                                    // reference out from that path
+                                    // (instantaneously), and then
+                                    // reborrow the local path.
+                                    return;
+                                }
+                                repr::BorrowKind::Mut => {
+                                    // Mutable references are
+                                    // different.  If you borrow `*r`
+                                    // where `r` is an `&mut` borrow,
+                                    // the path `r` must also be
+                                    // "secured", to ensure that `*r` doesn't
+                                    // wind up reachable via some alias.
+                                    //
+                                    // See
+                                    // `borrowck-read-ref-while-referent-mutably-borrowed.nll`.
+                                }
+                            }
+                        }
+                        repr::Ty::Unit => {}
+                        repr::Ty::Struct(..) => {}
+                        repr::Ty::Bound(..) => {}
+                    }
+
+                    source_path = base_path;
+                }
+            }
         }
     }
 }

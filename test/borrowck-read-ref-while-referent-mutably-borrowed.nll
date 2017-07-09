@@ -1,0 +1,39 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p: &'p mut Vec<()> = &mut foo;
+// let q: &'q1 mut &'q2 mut Vec<()> = &mut p;
+// let r: &'r mut Vec<()> = &mut **q;
+// use(*p); //! ERROR
+// use(r);
+// ```
+//
+// Should be error, since `r` forces borrow of `p` to continue (indirectly).
+// In particular, this stresses the regionck requirement that
+// `'r: 'q2`, which is only needed because the outermost ref is a mutable reference.
+// This ensures that `p` is still considered borrowed (by `q`) at the point where
+// `*p` is used.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p mut Vec<()>;
+let q: &'q1 mut &'q2 mut Vec<()>;
+let r: &'r mut Vec<()>;
+
+block START {
+    foo = use();
+    p = &'bp mut foo;
+    q = &'bq mut p;
+    r = &'br mut q.star.star;
+    use(p.star); //! ERROR
+    use(r);
+    StorageDead(r);
+    StorageDead(q);
+    StorageDead(p);
+    StorageDead(foo);
+}
+

@@ -1,5 +1,5 @@
-use graph::{BasicBlockIndex, FuncGraph};
 use env::{Environment, Point};
+use graph::{BasicBlockIndex, FuncGraph};
 use graph_algorithms::Graph;
 use graph_algorithms::bit_set::{BitBuf, BitSet, BitSlice};
 use nll_repr::repr;
@@ -15,26 +15,30 @@ pub struct Liveness {
 
 impl Liveness {
     pub fn new(env: &Environment) -> Liveness {
-        let var_regions: HashMap<_, Vec<_>> =
-            env.graph.decls()
-                     .iter()
-                     .map(|d| (
-                         d.var,
-                         d.ty.walk_regions().collect()
-                     ))
-                     .collect();
-        let mut region_names: Vec<_> = var_regions.iter()
-                                                  .flat_map(|(_, ref names)| names.iter())
-                                                  .cloned()
-                                                  .collect();
+        let var_regions: HashMap<_, Vec<_>> = env.graph
+            .decls()
+            .iter()
+            .map(|d| {
+                (
+                    d.var,
+                    d.ty.walk_regions().map(|r| r.assert_free()).collect(),
+                )
+            })
+            .collect();
+        let mut region_names: Vec<_> = var_regions
+            .iter()
+            .flat_map(|(_, ref names)| names.iter())
+            .cloned()
+            .collect();
         region_names.sort();
         region_names.dedup();
-        let var_bits: HashMap<_, _> = region_names.iter()
-                                                  .cloned()
-                                                  .zip(0..)
-                                                  .collect();
+        let var_bits: HashMap<_, _> = region_names.iter().cloned().zip(0..).collect();
         let liveness = BitSet::new(env.graph, var_bits.len());
-        let mut this = Liveness { var_regions, var_bits, liveness };
+        let mut this = Liveness {
+            var_regions,
+            var_bits,
+            liveness,
+        };
         this.compute(env);
         this
     }
@@ -46,8 +50,10 @@ impl Liveness {
             .all(|bit| self.liveness.bits(b).get(bit))
     }
 
-    pub fn live_regions<'a>(&'a self, live_bits: BitSlice<'a>)
-                            -> impl Iterator<Item = repr::RegionName> + 'a {
+    pub fn live_regions<'a>(
+        &'a self,
+        live_bits: BitSlice<'a>,
+    ) -> impl Iterator<Item = repr::RegionName> + 'a {
         self.var_bits
             .iter()
             .filter(move |&(_, &bit)| live_bits.get(bit))
@@ -57,10 +63,9 @@ impl Liveness {
     /// Invokes callback once for each action with (A) the point of
     /// the action; (B) the action itself and (C) the set of live
     /// variables on entry to the action.
-    pub fn walk<CB>(&self,
-                    env: &Environment,
-                    mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
+    pub fn walk<CB>(&self, env: &Environment, mut callback: CB)
+    where
+        CB: FnMut(Point, Option<&repr::Action>, BitSlice),
     {
         let mut bits = self.liveness.empty_buf();
         for &block in &env.reverse_post_order {
@@ -81,12 +86,14 @@ impl Liveness {
         }
     }
 
-    fn simulate_block<CB>(&self,
-                          env: &Environment,
-                          buf: &mut BitBuf,
-                          block: BasicBlockIndex,
-                          mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
+    fn simulate_block<CB>(
+        &self,
+        env: &Environment,
+        buf: &mut BitBuf,
+        block: BasicBlockIndex,
+        mut callback: CB,
+    ) where
+        CB: FnMut(Point, Option<&repr::Action>, BitSlice),
     {
         buf.clear();
 
@@ -112,22 +119,25 @@ impl Liveness {
             // any variables we read from, we make live
             for v in use_var {
                 let var_ty = env.var_ty(v);
-                self.use_ty(buf, var_ty);
+                self.use_ty(buf, &var_ty);
             }
 
             // drop is special
-            if let repr::Action::Drop(ref path) = *action {
+            if let repr::ActionKind::Drop(ref path) = action.kind {
                 let path_ty = env.path_ty(path);
-                self.drop_ty(buf, env, path_ty);
+                self.drop_ty(buf, env, &path_ty);
             }
 
-            let point = Point { block, action: index };
+            let point = Point {
+                block,
+                action: index,
+            };
             callback(point, Some(action), buf.as_slice());
         }
     }
 
     fn use_ty(&self, buf: &mut BitBuf, ty: &repr::Ty) {
-        for region_name in ty.walk_regions() {
+        for region_name in ty.walk_regions().map(|r| r.assert_free()) {
             self.use_region(buf, region_name);
         }
     }
@@ -138,7 +148,8 @@ impl Liveness {
 
     fn drop_ty(&self, buf: &mut BitBuf, env: &Environment, ty: &repr::Ty) {
         match *ty {
-            repr::Ty::Ref(..) | repr::Ty::RefMut(..) | repr::Ty::Unit => {
+            repr::Ty::Ref(..) |
+            repr::Ty::Unit => {
                 // Dropping a reference (or `()`) does not require it to be live; it's a no-op.
             }
 
@@ -147,9 +158,9 @@ impl Liveness {
                 assert_eq!(struct_decl.parameters.len(), params.len());
                 for (param_decl, param) in struct_decl.parameters.iter().zip(params.iter()) {
                     match *param {
-                        repr::TyParameter::Region(region_name) => {
+                        repr::TyParameter::Region(region) => {
                             if !param_decl.may_dangle {
-                                self.use_region(buf, region_name);
+                                self.use_region(buf, region.assert_free());
                             }
                         }
 
@@ -163,34 +174,50 @@ impl Liveness {
                     }
                 }
             }
+
+            repr::Ty::Bound(_) => panic!("drop_ty: unexpected bound type {:?}", ty),
         }
     }
 }
 
-trait UseDefs {
+pub trait DefUse {
+    /// Returns (defs, uses), where `defs` contains variables whose
+    /// current value is completely overwritten, and `uses` contains
+    /// variables whose current value is used. Note that a variable
+    /// may exist in both sets.
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>);
 }
 
-impl UseDefs for repr::Action {
+impl DefUse for repr::Action {
     fn def_use(&self) -> (Vec<repr::Variable>, Vec<repr::Variable>) {
-        match *self {
-            repr::Action::Borrow(ref v, _name) => (vec![v.base()], vec![]),
-            repr::Action::Init(ref a, ref params) => {
-                (a.write_def().into_iter().collect(),
-                 params.iter().map(|p| p.base()).chain(a.write_use()).collect())
+        match self.kind {
+            repr::ActionKind::Borrow(ref p, _name, _, ref q) => (vec![p.base()], vec![q.base()]),
+            repr::ActionKind::Init(ref a, ref params) => {
+                (
+                    a.write_def().into_iter().collect(),
+                    params
+                        .iter()
+                        .map(|p| p.base())
+                        .chain(a.write_use())
+                        .collect(),
+                )
             }
-            repr::Action::Assign(ref a, ref b) => {
-                (a.write_def().into_iter().collect(),
-                 once(b.base()).chain(a.write_use()).collect())
+            repr::ActionKind::Assign(ref a, ref b) => {
+                (
+                    a.write_def().into_iter().collect(),
+                    once(b.base()).chain(a.write_use()).collect(),
+                )
             }
-            repr::Action::Constraint(ref _c) => (vec!(), vec!()),
-            repr::Action::Use(ref v) => (vec!(), vec!(v.base())),
-            repr::Action::Write(ref v) => (vec!(), vec!(v.base())),
+            repr::ActionKind::Constraint(ref _c) => (vec![], vec![]),
+            repr::ActionKind::Use(ref v) => (vec![], vec![v.base()]),
 
-            // drop is special
-            repr::Action::Drop(..) => (vec!(), vec!()),
+            // drop is special; it is not considered a "full use" of
+            // the variable that is being dropped
+            repr::ActionKind::Drop(..) => (vec![], vec![]),
 
-            repr::Action::Noop => (vec!(), vec!()),
+            repr::ActionKind::Noop => (vec![], vec![]),
+
+            repr::ActionKind::StorageDead(_) => (vec![], vec![]),
         }
     }
 }
