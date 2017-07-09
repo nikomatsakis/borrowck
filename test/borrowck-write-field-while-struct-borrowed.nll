@@ -1,0 +1,16 @@
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 foo;
+    foo.field = use(); //! ERROR
+    use(p);
+    StorageDead(p);
+    StorageDead(foo);
+}
+
