@@ -192,7 +192,7 @@ impl<'cx> BorrowCheck<'cx> {
             path_prefixes.contains(&loan.path) ||
 
             // ...as well as a loan of `a.b.c.d`
-                loan.path.prefixes().contains(&path)
+                self.intersecting_prefixes(&loan.path).contains(&path)
         })
     }
 
@@ -234,6 +234,47 @@ impl<'cx> BorrowCheck<'cx> {
                         repr::Ty::Ref(_, _, _) => {
                             assert_eq!(field_name, repr::FieldName::star());
                             return result;
+                        }
+
+                        // If you have borrowed `a.b`, then writing to
+                        // `a` would overwrite `a.b`, which is
+                        // disallowed.
+                        repr::Ty::Struct(..) => {
+                            path = base_path;
+                        }
+
+                        repr::Ty::Unit => panic!("unit has no fields"),
+                        repr::Ty::Bound(..) => panic!("unexpected bound type"),
+                    }
+                }
+            }
+        }
+    }
+
+    fn intersecting_prefixes<'a>(&self, mut path: &'a repr::Path) -> Vec<&'a repr::Path> {
+        let mut result = vec![];
+        loop {
+            result.push(path);
+            match *path {
+                repr::Path::Base(_) => return result,
+                repr::Path::Extension(ref base_path, field_name) => {
+                    match *self.env.path_ty(base_path) {
+                        // If you borrowed `*r`, and `r` is a shared
+                        // reference, then accessing `r` (or some
+                        // prefix of `r`) is not considered
+                        // intersecting. This is because we could have
+                        // copied the shared reference out and
+                        // borrowed from there.
+                        repr::Ty::Ref(_, repr::BorrowKind::Shared, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            return result;
+                        }
+
+                        // In contrast, if you have borrowed `*r`, and
+                        // `r` is an `&mut` reference, then we
+                        // consider access to `r` intersecting.
+                        repr::Ty::Ref(_, repr::BorrowKind::Mut, _) => {
+                            path = base_path;
                         }
 
                         // If you have borrowed `a.b`, then writing to
