@@ -112,9 +112,12 @@ impl<'cx> BorrowCheck<'cx> {
         for loan in self.loans {
             for loan_prefix in loan.path.prefixes() {
                 if prefixes.contains(&loan_prefix) {
-                    return Err(Box::new(
-                        BorrowError::for_move(self.point, path, &loan.path, loan.point),
-                    ));
+                    return Err(Box::new(BorrowError::for_move(
+                        self.point,
+                        path,
+                        &loan.path,
+                        loan.point,
+                    )));
                 }
             }
         }
@@ -129,9 +132,12 @@ impl<'cx> BorrowCheck<'cx> {
         for loan in self.loans {
             if let Some(loan_var) = self.invalidated_by_dead_storage(&loan.path) {
                 if var == loan_var {
-                    return Err(Box::new(
-                        BorrowError::for_storage_dead(self.point, var, &loan.path, loan.point),
-                    ));
+                    return Err(Box::new(BorrowError::for_storage_dead(
+                        self.point,
+                        var,
+                        &loan.path,
+                        loan.point,
+                    )));
                 }
             }
         }
