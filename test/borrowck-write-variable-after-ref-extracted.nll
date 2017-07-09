@@ -1,0 +1,36 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let mut p: &Vec<()> = &foo;
+// let q: &&Vec<()> = &p;
+// let r: &Vec<()> = &**q;
+// p = ();
+// use(r);
+// ```
+//
+// Should be OK; `r` will not be invalidated by 
+// and `foo` is read here.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+let q: &'q1 &'q2 Vec<()>;
+let r: &'r Vec<()>;
+
+block START {
+    foo = use();
+    p = &'bp foo;
+    q = &'bq p;
+    r = &'br q.star.star;
+    p = use();
+    use(r);
+    StorageDead(r);
+    StorageDead(q);
+    StorageDead(p);
+    StorageDead(foo);
+}
+

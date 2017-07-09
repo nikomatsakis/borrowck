@@ -353,7 +353,7 @@ impl<'env> RegionCheck<'env> {
                     let ty = self.env.path_ty(base_path);
                     log!("ensure_borrow_source: ty={:?}", ty);
                     match *ty {
-                        repr::Ty::Ref(ref_region, _, _) => {
+                        repr::Ty::Ref(ref_region, ref_kind, _) => {
                             assert_eq!(field_name, repr::FieldName::star());
                             let ref_region_name = ref_region.assert_free();
                             let borrow_region_variable = self.region_variable(borrow_region_name);
@@ -363,6 +363,32 @@ impl<'env> RegionCheck<'env> {
                                 borrow_region_variable,
                                 successor_point,
                             );
+
+                            match ref_kind {
+                                repr::BorrowKind::Shared => {
+                                    // If you borrow `*r` from a
+                                    // shared reference, that
+                                    // reference is copyable, so we
+                                    // don't need to "secure" the path
+                                    // by which you reached it.  After
+                                    // all, we could have copied the
+                                    // reference out from that path
+                                    // (instantaneously), and then
+                                    // reborrow the local path.
+                                    return;
+                                }
+                                repr::BorrowKind::Mut => {
+                                    // Mutable references are
+                                    // different.  If you borrow `*r`
+                                    // where `r` is an `&mut` borrow,
+                                    // the path `r` must also be
+                                    // "secured", to ensure that `*r` doesn't
+                                    // wind up reachable via some alias.
+                                    //
+                                    // See
+                                    // `borrowck-read-variable-while-borrowed-double-indirect.nll`.
+                                }
+                            }
                         }
                         repr::Ty::Unit => {}
                         repr::Ty::Struct(..) => {}
