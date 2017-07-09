@@ -148,13 +148,12 @@ impl<'cx> BorrowCheck<'cx> {
     /// - some subpath `p.foo` is borrowed;
     /// - some prefix of `p` is borrowed.
     ///
-    /// XXX counterexample?
-    ///
-    /// ```
-    /// let p: &i32;
-    /// let q = &*p;
-    /// move(p); // but this is not actually a *move*, is the point
-    /// ```
+    /// Note that this is stricter than both *writes* and
+    /// *storage-dead*. In particular, you **can** write to a variable
+    /// `x` that contains an `&mut` value when `*x` is borrowed, but
+    /// you **cannot** move `x`. This is because moving it would make
+    /// the `&mut` available in the new location, but writing (and
+    /// storage-dead) both kill it forever.
     fn check_move(&self, path: &repr::Path) -> Result<(), Box<Error>> {
         log!(
             "check_move of {:?} at {:?} with loans={:#?}",
