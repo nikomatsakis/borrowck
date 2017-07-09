@@ -386,7 +386,7 @@ impl<'env> RegionCheck<'env> {
                                     // wind up reachable via some alias.
                                     //
                                     // See
-                                    // `borrowck-read-variable-while-borrowed-double-indirect.nll`.
+                                    // `borrowck-read-ref-while-referent-mutably-borrowed.nll`.
                                 }
                             }
                         }
