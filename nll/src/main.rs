@@ -35,14 +35,18 @@ fn main() {
         .and_then(|d| d.argv(args()).decode())
         .unwrap_or_else(|e| e.exit());
 
+    let mut errors = 0;
     for input in &args.arg_inputs {
         match process_input(&args, input) {
             Ok(()) => { }
             Err(err) => {
                 println!("{}: {}", input, err);
-                process::exit(1);
+                errors += 1;
             }
         }
+    }
+    if errors > 0 {
+        process::exit(1);
     }
 }
 
