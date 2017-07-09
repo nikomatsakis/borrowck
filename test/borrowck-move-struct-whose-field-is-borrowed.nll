@@ -3,11 +3,11 @@ struct Foo {
 }  
 
 let a: Foo;
-let b: &'b ();
+let b: &'_ ();
 
 block START {
     a = use();
-    b = &'borrow1 a.field;
+    b = &'_ a.field;
     drop(a); //! ERROR
     use(b);
     StorageDead(b);

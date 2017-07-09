@@ -10,11 +10,11 @@
 // ```
 
 let foo: ();
-let p: &'p ();
+let p: &'_ ();
 
 block START {
     foo = use();
-    p = &'foo foo;
+    p = &'_ foo;
     StorageDead(foo); //! ERROR: `foo` is borrowed here
     use(p);    
 }

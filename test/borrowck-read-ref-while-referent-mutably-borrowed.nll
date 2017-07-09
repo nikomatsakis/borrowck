@@ -20,15 +20,15 @@ struct Vec<+> {
 }  
 
 let foo: Vec<()>;
-let p: &'p mut Vec<()>;
-let q: &'q1 mut &'q2 mut Vec<()>;
-let r: &'r mut Vec<()>;
+let p: &'_ mut Vec<()>;
+let q: &'_ mut &'_ mut Vec<()>;
+let r: &'_ mut Vec<()>;
 
 block START {
     foo = use();
-    p = &'bp mut foo;
-    q = &'bq mut p;
-    r = &'br mut q.star.star;
+    p = &'_ mut foo;
+    q = &'_ mut p;
+    r = &'_ mut q.star.star;
     use(p.star); //! ERROR
     use(r);
     StorageDead(r);

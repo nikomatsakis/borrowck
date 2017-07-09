@@ -150,6 +150,7 @@ Assertion: Assertion = {
 };
 
 RegionName: RegionName = {
+    "'_" => RegionName::fresh(),
     r"'[a-zA-Z_]\w*" => RegionName { name: intern::intern(<>) }
 };
 

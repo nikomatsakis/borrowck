@@ -2,6 +2,7 @@ use intern::{self, InternedString};
 use lalrpop_util::ParseError;
 use std::collections::BTreeMap;
 use std::iter;
+use std::sync::Mutex;
 
 mod parser;
 
@@ -320,6 +321,19 @@ pub struct Point {
 #[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct RegionName {
     name: InternedString
+}
+
+impl RegionName {
+    pub fn fresh() -> RegionName {
+        lazy_static! {
+            static ref COUNTER: Mutex<usize> = Mutex::new(0);
+        }
+
+        let mut data = COUNTER.lock().unwrap();
+        let name = intern::intern(&format!("'{}", *data));
+        *data += 1;
+        RegionName { name }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]

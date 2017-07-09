@@ -11,11 +11,11 @@ struct Vec<+> {
 }  
 
 let foo: Vec<()>;
-let p: &'p Vec<()>;
+let p: &'_ Vec<()>;
 
 block START {
     foo = use();
-    p = &'foo foo;
+    p = &'_ foo;
     drop(foo.field); //! ERROR `foo` is borrowed
     use(p);
     StorageDead(foo);

@@ -19,13 +19,13 @@ struct Vec<+> {
 }  
 
 let foo: Vec<()>;
-let p: &'p Vec<()>;
-let q: &'q Vec<()>;
+let p: &'_ Vec<()>;
+let q: &'_ Vec<()>;
 
 block START {
     foo = use();
-    p = &'b1 foo;
-    q = &'b2 p.star;
+    p = &'_ foo;
+    q = &'_ p.star;
     StorageDead(p);
     StorageDead(foo); //! ERROR 
     use(q);
