@@ -1,0 +1,34 @@
+// Corresponds to:
+//
+// ```
+// let q;
+// {
+//   let foo = Vec { dummy: () };
+//   {
+//     let p = &foo;
+//     q = &*p;
+//   }
+// }
+// print(q);
+// ```
+//
+// Should be error, since `q` forces borrow of `p` to outlive `foo`.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p Vec<()>;
+let q: &'q Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 foo;
+    q = &'b2 p.star;
+    StorageDead(p);
+    StorageDead(foo); //! ERROR 
+    use(q);
+    StorageDead(q);
+}
+

@@ -141,6 +141,7 @@ impl<'env> RegionCheck<'env> {
                                                         borrow_kind,
                                                         source_ty));
                     self.relate_tys(successor_point, repr::Variance::Contra, &dest_ty, &ref_ty);
+                    self.ensure_borrow_source(successor_point, region_name, source_path);
                 }
 
                 // a = b
@@ -271,6 +272,52 @@ impl<'env> RegionCheck<'env> {
             (&repr::TyParameter::Region(r_a), &repr::TyParameter::Region(r_b)) =>
                 self.relate_regions(successor_point, variance, r_a.assert_free(), r_b.assert_free()),
             _ => panic!("cannot relate parameters `{:?}` and `{:?}`", a, b)
+        }
+    }
+
+    /// Add any relations between regions that are needed to ensures
+    /// that reborrows live long enough. Specifically, if we borrow
+    /// something like `*r` for `'a`, where `r: &'b i32`, then `'b:
+    /// 'a` is required.
+    fn ensure_borrow_source(&mut self,
+                            successor_point: Point,
+                            borrow_region_name: RegionName,
+                            mut source_path: &repr::Path) {
+        log!("ensure_borrow_source({:?}, {:?}, {:?})",
+             successor_point,
+             borrow_region_name,
+             source_path);
+
+        loop {
+            log!("ensure_borrow_source: {:?}", source_path);
+            match *source_path {
+                repr::Path::Base(_) => {
+                    // The borrow checker already detects the case where
+                    // the storage for a local goes dead whilst it is
+                    // borrowed and reports an error.
+                    return;
+                }
+                repr::Path::Extension(ref base_path, field_name) => {
+                    let ty = self.env.path_ty(base_path);
+                    log!("ensure_borrow_source: ty={:?}", ty);
+                    match *ty {
+                        repr::Ty::Ref(ref_region, _, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            let ref_region_name = ref_region.assert_free();
+                            let borrow_region_variable = self.region_variable(borrow_region_name);
+                            let ref_region_variable = self.region_variable(ref_region_name);
+                            self.infer.add_outlives(ref_region_variable,
+                                                    borrow_region_variable,
+                                                    successor_point);
+                        }
+                        repr::Ty::Unit => { }
+                        repr::Ty::Struct(..) => { }
+                        repr::Ty::Bound(..) => { }
+                    }
+
+                    source_path = base_path;
+                }
+            }
         }
     }
 }

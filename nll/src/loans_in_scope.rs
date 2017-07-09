@@ -14,6 +14,7 @@ pub struct LoansInScope<'cx> {
     loans_by_point: HashMap<Point, usize>,
 }
 
+#[derive(Debug)]
 pub struct Loan<'cx> {
     pub point: Point,
     pub path: &'cx repr::Path,
@@ -46,6 +47,8 @@ impl<'cx> LoansInScope<'cx> {
                             })
                })
                .collect();
+
+        log!("loans: {:#?}", loans);
 
         // Make a convenient hash map for getting the index of a loan
         // based on where it appears.
