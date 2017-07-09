@@ -101,26 +101,17 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        let path_prefixes = path.prefixes();
-        for loan in self.loans {
+        for loan in self.find_loans_that_intersect(path) {
             match loan.kind {
-                repr::BorrowKind::Shared => continue,
-                repr::BorrowKind::Mut => {}
-            }
-
-            if {
-                // `a.b.c` or `a.b` is borrowed
-                path_prefixes.contains(&loan.path) ||
-
-                    // `a.b.c.d` is borrowed
-                    loan.path.prefixes().contains(&path)
-            } {
-                return Err(Box::new(BorrowError::for_read(
-                    self.point,
-                    path,
-                    &loan.path,
-                    loan.point,
-                )));
+                repr::BorrowKind::Shared => { /* Ok */ }
+                repr::BorrowKind::Mut => {
+                    return Err(Box::new(BorrowError::for_read(
+                        self.point,
+                        path,
+                        &loan.path,
+                        loan.point,
+                    )));
+                }
             }
         }
         Ok(())
@@ -144,23 +135,13 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        let path_prefixes = path.prefixes();
-        for loan in self.loans {
-            if {
-                // accessing `a.b.c` is illegal if `a.b.c` or `a.b` is
-                // borrowed...
-                path_prefixes.contains(&loan.path) ||
-
-                    // ...or `a.b.c.d` is borrowed
-                    loan.path.prefixes().contains(&path)
-            } {
-                return Err(Box::new(BorrowError::for_move(
-                    self.point,
-                    path,
-                    &loan.path,
-                    loan.point,
-                )));
-            }
+        for loan in self.find_loans_that_intersect(path) {
+            return Err(Box::new(BorrowError::for_move(
+                self.point,
+                path,
+                &loan.path,
+                loan.point,
+            )));
         }
         Ok(())
     }
@@ -185,6 +166,20 @@ impl<'cx> BorrowCheck<'cx> {
             )));
         }
         Ok(())
+    }
+
+    fn find_loans_that_intersect<'a>(
+        &'a self,
+        path: &'a repr::Path,
+    ) -> impl Iterator<Item = &'a Loan> + 'a {
+        let path_prefixes = path.prefixes();
+        self.loans.iter().cloned().filter(move |loan| {
+            // accessing `a.b.c` intersects a loan of `a.b.c` or `a.b`...
+            path_prefixes.contains(&loan.path) ||
+
+            // ...as well as a loan of `a.b.c.d`
+                loan.path.prefixes().contains(&path)
+        })
     }
 
     /// Helper for `check_write` and `check_storage_dead`: finds if
