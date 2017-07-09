@@ -1,0 +1,27 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p = &mut foo;
+// use(p);
+// use(foo);
+// ```
+//
+// No error: last use of `p` precedes used by `foo`.
+
+struct Vec<+> {
+  field: 0
+}
+
+let foo: Vec<()>;
+let p: &'p mut Vec<()>;
+
+block START {
+    foo = use();
+    p = &'b1 mut foo;
+    use(p);
+    use(foo);
+    StorageDead(p);
+    StorageDead(foo);
+}
+

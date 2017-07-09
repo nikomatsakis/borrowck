@@ -1,0 +1,36 @@
+// Corresponds to:
+//
+// ```
+// let foo = Vec { dummy: () };
+// let p: &mut Vec<()> = &mut foo;
+// let q: &mut &mut Vec<()> = &mut p;
+// let r: &mut Vec<()> = &mut **q;   
+// use(foo); //! ERROR
+// use(r);
+// ```
+//
+// Should be error, since `q` forces borrow of `p` to continue,
+// and `foo` is read here.
+
+struct Vec<+> {
+  field: 0
+}  
+
+let foo: Vec<()>;
+let p: &'p mut Vec<()>;
+let q: &'q1 mut &'q2 mut Vec<()>;
+let r: &'r mut Vec<()>;
+
+block START {
+    foo = use();
+    p = &'bp mut foo;
+    q = &'bq mut p;
+    r = &'br mut q.star.star;
+    use(foo); //! ERROR
+    use(r);
+    StorageDead(r);
+    StorageDead(q);
+    StorageDead(p);
+    StorageDead(foo);
+}
+
