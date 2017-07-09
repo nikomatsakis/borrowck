@@ -168,6 +168,19 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
+    /// A loan L *intersects* a path P if either:
+    ///
+    /// - the loan is for the path P; or,
+    /// - the path P can be extended to reach the data in the loan; or,
+    /// - the loan path can be extended to reach the data in P.
+    ///
+    /// So, for example, is the path P is `a.b.c`, then:
+    ///
+    /// - a loan of `a.b.c` intersects P;
+    /// - a loan of `a.b.c.d` intersects P, because (e.g.) after reading P
+    ///   you have also read `a.b.c.d`;
+    /// - a loan of `a.b` intersects P, because you can use the
+    ///   reference to access the data at P.
     fn find_loans_that_intersect<'a>(
         &'a self,
         path: &'a repr::Path,
