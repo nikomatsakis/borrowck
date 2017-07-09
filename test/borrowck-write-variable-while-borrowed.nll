@@ -2,24 +2,24 @@
 //
 // ```
 // let foo = Vec { dummy: () };
-// let p = &mut foo;
-// use(foo);
+// let p = &foo;
+// foo = use();
 // use(p);
 // ```
 //
-// Should be error, since `p` is still in active use.
+// Should be error, since borrow by `p` is still in force.
 
 struct Vec<+> {
   field: 0
 }  
 
 let foo: Vec<()>;
-let p: &'p mut Vec<()>;
+let p: &'p Vec<()>;
 
 block START {
     foo = use();
-    p = &'b1 mut foo;
-    use(foo); //! ERROR
+    p = &'b1 foo;
+    foo = use(); //! ERROR
     use(p);
     StorageDead(p);
     StorageDead(foo);

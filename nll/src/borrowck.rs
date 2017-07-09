@@ -65,7 +65,26 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
-    fn check_write(&self, _path: &repr::Path) -> Result<(), Box<Error>> {
+    /// Cannot write to a path `p` if:
+    /// - `p` is borrowed mutably;
+    /// - some subpath `p.foo` is borrowed mutably;
+    /// - some prefix of `p` is borrowed mutably.
+    ///
+    /// FIXME(#10520)
+    fn check_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        let prefixes = path.prefixes();
+        for loan in self.loans {
+            for loan_prefix in loan.path.prefixes() {
+                if prefixes.contains(&loan_prefix) {
+                    return Err(Box::new(BorrowError::for_write(
+                        self.point,
+                        path,
+                        &loan.path,
+                        loan.point,
+                    )));
+                }
+            }
+        }
         Ok(())
     }
 
@@ -220,6 +239,23 @@ impl BorrowError {
         }
     }
 
+    fn for_write(
+        point: Point,
+        path: &repr::Path,
+        loan_path: &repr::Path,
+        loan_point: Point,
+    ) -> Self {
+        BorrowError {
+            description: format!(
+                "point {:?} cannot write {:?} because {:?} is borrowed (at point `{:?}`)",
+                point,
+                path,
+                loan_path,
+                loan_point
+            ),
+        }
+    }
+
     fn for_storage_dead(
         point: Point,
         var: repr::Variable,
@@ -228,7 +264,8 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot kill storage for {:?} because {:?} is borrowed (at point `{:?}`)",
+                "point {:?} cannot kill storage for {:?} \
+                 because {:?} is borrowed (at point `{:?}`)",
                 point,
                 var,
                 loan_path,
