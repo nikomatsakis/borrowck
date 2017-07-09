@@ -121,6 +121,11 @@ impl<'func> Environment<'func> {
     }
 
     pub fn field_ty(&self, base_ty: &repr::Ty, field_name: repr::FieldName) -> Box<repr::Ty> {
+        log!(
+            "field_ty(base_ty={:?} field_name={:?})",
+            base_ty,
+            field_name
+        );
         match *base_ty {
             repr::Ty::Ref(_, _kind, ref t) => {
                 if field_name == repr::FieldName::star() {
@@ -140,7 +145,14 @@ impl<'func> Environment<'func> {
                     .find(|fd| fd.name == field_name)
                     .unwrap_or_else(|| panic!("no field named `{:?}` in `{:?}`", field_name, n));
                 let field_ty = &field_decl.ty;
-                Box::new(field_ty.subst(parameters))
+                log!(
+                    "field_ty: field_ty={:?} parameters={:?}",
+                    field_ty,
+                    parameters
+                );
+                let field_ty = field_ty.subst(parameters);
+                log!("field_ty: field_ty={:?} post-substitution", field_ty);
+                Box::new(field_ty)
             }
 
             repr::Ty::Bound(_) => panic!("field_ty: unexpected bound type"),

@@ -30,6 +30,7 @@ struct BorrowCheck<'cx> {
 
 impl<'cx> BorrowCheck<'cx> {
     fn check_action(&self, action: &repr::Action) -> Result<(), Box<Error>> {
+        log!("check_action({:?}) at {:?}", action, self.point);
         match action.kind {
             repr::ActionKind::Init(ref a, ref bs) => {
                 self.check_write(a)?;
@@ -66,23 +67,41 @@ impl<'cx> BorrowCheck<'cx> {
     }
 
     /// Cannot write to a path `p` if:
-    /// - `p` is borrowed mutably;
-    /// - some subpath `p.foo` is borrowed mutably;
-    /// - some prefix of `p` is borrowed mutably.
-    ///
-    /// FIXME(#10520)
+    /// - the path `p` is frozen by one of the loans
+    ///   - see `frozen_by_borrow_of()`
+    ///   - this covers writing to `a` (or `a.b`) when `a.b` is borrowed
+    /// - some prefix of `p` is borrowed.
+    ///   - this covers writing to `a.b.c` when `a.b` is borrowed
     fn check_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        log!(
+            "check_write of {:?} at {:?} with loans={:#?}",
+            path,
+            self.point,
+            self.loans
+        );
         let prefixes = path.prefixes();
         for loan in self.loans {
-            for loan_prefix in loan.path.prefixes() {
-                if prefixes.contains(&loan_prefix) {
-                    return Err(Box::new(BorrowError::for_write(
-                        self.point,
-                        path,
-                        &loan.path,
-                        loan.point,
-                    )));
-                }
+            // If you have borrowed `a.b`, this prevents writes to `a`
+            // or `a.b`:
+            let frozen_paths = self.frozen_by_borrow_of(&loan.path);
+            if frozen_paths.contains(&path) {
+                return Err(Box::new(BorrowError::for_write(
+                    self.point,
+                    path,
+                    &loan.path,
+                    loan.point,
+                )));
+            }
+
+            // If you have borrowed `a.b`, this prevents writes to
+            // `a.b.c`:
+            if prefixes.contains(&loan.path) {
+                return Err(Box::new(BorrowError::for_write(
+                    self.point,
+                    path,
+                    &loan.path,
+                    loan.point,
+                )));
             }
         }
         Ok(())
@@ -93,6 +112,12 @@ impl<'cx> BorrowCheck<'cx> {
     /// - some subpath `p.foo` is borrowed mutably;
     /// - some prefix of `p` is borrowed mutably.
     fn check_read(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        log!(
+            "check_read of {:?} at {:?} with loans={:#?}",
+            path,
+            self.point,
+            self.loans
+        );
         let prefixes = path.prefixes();
         for loan in self.loans {
             match loan.kind {
@@ -127,6 +152,12 @@ impl<'cx> BorrowCheck<'cx> {
     /// move(p); // but this is not actually a *move*, is the point
     /// ```
     fn check_move(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        log!(
+            "check_move of {:?} at {:?} with loans={:#?}",
+            path,
+            self.point,
+            self.loans
+        );
         let prefixes = path.prefixes();
         for loan in self.loans {
             for loan_prefix in loan.path.prefixes() {
@@ -148,6 +179,12 @@ impl<'cx> BorrowCheck<'cx> {
     ///
     /// In particular, having something like `*var` borrowed is ok.
     fn check_storage_dead(&self, var: repr::Variable) -> Result<(), Box<Error>> {
+        log!(
+            "check_storage_dead of {:?} at {:?} with loans={:#?}",
+            var,
+            self.point,
+            self.loans
+        );
         for loan in self.loans {
             if let Some(loan_var) = self.invalidated_by_dead_storage(&loan.path) {
                 if var == loan_var {
@@ -185,6 +222,40 @@ impl<'cx> BorrowCheck<'cx> {
                             path = base_path;
                         }
 
+                        repr::Ty::Bound(..) => panic!("unexpected bound type"),
+                    }
+                }
+            }
+        }
+    }
+
+    /// If `path` is mutably borrowed, returns a vector of paths which -- if
+    /// moved or if the storage went away -- would invalidate this
+    /// reference.
+    fn frozen_by_borrow_of<'a>(&self, mut path: &'a repr::Path) -> Vec<&'a repr::Path> {
+        let mut result = vec![];
+        loop {
+            result.push(path);
+            match *path {
+                repr::Path::Base(_) => return result,
+                repr::Path::Extension(ref base_path, field_name) => {
+                    match *self.env.path_ty(base_path) {
+                        // If you borrowed `*r`, writing to `r` does
+                        // not actually affect the memory at `*r`, so
+                        // we can stop iterating backwards now.
+                        repr::Ty::Ref(_, _, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            return result;
+                        }
+
+                        // If you have borrowed `a.b`, then writing to
+                        // `a` would overwrite `a.b`, which is
+                        // disallowed.
+                        repr::Ty::Struct(..) => {
+                            path = base_path;
+                        }
+
+                        repr::Ty::Unit => panic!("unit has no fields"),
                         repr::Ty::Bound(..) => panic!("unexpected bound type"),
                     }
                 }

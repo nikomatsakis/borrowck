@@ -266,7 +266,14 @@ impl<'env> RegionCheck<'env> {
                     self.relate_parameters(successor_point, v, p_a, p_b);
                 }
             }
-            _ => panic!("cannot relate types `{:?}` and `{:?}`", a, b),
+            _ => {
+                panic!(
+                    "cannot relate types `{:?}` and `{:?}` at {:?}",
+                    a,
+                    b,
+                    successor_point
+                )
+            }
         }
     }
 

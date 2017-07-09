@@ -1,0 +1,41 @@
+// Corresponds to:
+//
+// ```
+// let mut list: &mut List<()>
+// loop {
+//   let value = &mut (*list).value;
+//   list = &mut *(*list).successor;
+//   use(value);
+// }
+// ```
+//
+// This is an error; `p` is still borrowed until after `r`.
+
+struct List<+> {
+  value: 0,
+  successor: Box<List<0>>
+}
+
+struct Box<+> {
+  star: 0
+}
+
+let list: &'list mut List<()>;
+let value: &'value mut ();
+
+block START {
+    list = use();
+    goto LOOP;
+}
+
+block LOOP {
+    value = &'b1 mut list.star.value;
+    list = &'b2 mut list.star.successor.star;
+    use(value);
+    goto LOOP EXIT;
+}
+
+block EXIT {
+}
+
+assert LOOP/0 in 'b2;

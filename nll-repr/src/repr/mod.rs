@@ -111,9 +111,9 @@ impl Ty {
             }
             Ty::Ref(rn, kind, ref t) => Ty::Ref(rn.subst(params), kind, Box::new(t.subst(params))),
             Ty::Unit => Ty::Unit,
-            Ty::Struct(s, ref params) => Ty::Struct(
+            Ty::Struct(s, ref unsubst_params) => Ty::Struct(
                 s,
-                params.iter().map(|p| p.subst(params)).collect()
+                unsubst_params.iter().map(|p| p.subst(params)).collect()
             ),
         }
     }
