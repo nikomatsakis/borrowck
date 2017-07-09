@@ -61,8 +61,8 @@ fn process_input(args: &Args, input: &str) -> Result<(), Box<Error>> {
             env.dump_dominators();
         }
 
+        println!("Testing `{}`...", input);
         try!(regionck::region_check(&env));
-        println!("{}: OK", input);
         Ok(())
     })
 }
