@@ -107,10 +107,10 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
-    /// Cannot read from a path `p` if:
-    /// - `p` is borrowed mutably;
-    /// - some subpath `p.foo` is borrowed mutably;
-    /// - some prefix of `p` is borrowed mutably.
+    /// Cannot read from a path `a.b.c` if:
+    /// - the exact path `a.b.c` is borrowed mutably;
+    /// - some subpath `a.b.c.d` is borrowed mutably;
+    /// - some prefix of `a.b` is borrowed mutably.
     fn check_read(&self, path: &repr::Path) -> Result<(), Box<Error>> {
         log!(
             "check_read of {:?} at {:?} with loans={:#?}",
@@ -118,22 +118,26 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        let prefixes = path.prefixes();
+        let path_prefixes = path.prefixes();
         for loan in self.loans {
             match loan.kind {
                 repr::BorrowKind::Shared => continue,
                 repr::BorrowKind::Mut => {}
             }
 
-            for loan_prefix in loan.path.prefixes() {
-                if prefixes.contains(&loan_prefix) {
-                    return Err(Box::new(BorrowError::for_read(
-                        self.point,
-                        path,
-                        &loan.path,
-                        loan.point,
-                    )));
-                }
+            if {
+                // `a.b.c` or `a.b` is borrowed
+                path_prefixes.contains(&loan.path) ||
+
+                    // `a.b.c.d` is borrowed
+                    loan.path.prefixes().contains(&path)
+            } {
+                return Err(Box::new(BorrowError::for_read(
+                    self.point,
+                    path,
+                    &loan.path,
+                    loan.point,
+                )));
             }
         }
         Ok(())
@@ -158,17 +162,22 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        let prefixes = path.prefixes();
+        let path_prefixes = path.prefixes();
         for loan in self.loans {
-            for loan_prefix in loan.path.prefixes() {
-                if prefixes.contains(&loan_prefix) {
-                    return Err(Box::new(BorrowError::for_move(
-                        self.point,
-                        path,
-                        &loan.path,
-                        loan.point,
-                    )));
-                }
+            if {
+                // accessing `a.b.c` is illegal if `a.b.c` or `a.b` is
+                // borrowed...
+                path_prefixes.contains(&loan.path) ||
+
+                    // ...or `a.b.c.d` is borrowed
+                    loan.path.prefixes().contains(&path)
+            } {
+                return Err(Box::new(BorrowError::for_move(
+                    self.point,
+                    path,
+                    &loan.path,
+                    loan.point,
+                )));
             }
         }
         Ok(())
