@@ -79,30 +79,13 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        let prefixes = path.prefixes();
-        for loan in self.loans {
-            // If you have borrowed `a.b`, this prevents writes to `a`
-            // or `a.b`:
-            let frozen_paths = self.frozen_by_borrow_of(&loan.path);
-            if frozen_paths.contains(&path) {
-                return Err(Box::new(BorrowError::for_write(
-                    self.point,
-                    path,
-                    &loan.path,
-                    loan.point,
-                )));
-            }
-
-            // If you have borrowed `a.b`, this prevents writes to
-            // `a.b.c`:
-            if prefixes.contains(&loan.path) {
-                return Err(Box::new(BorrowError::for_write(
-                    self.point,
-                    path,
-                    &loan.path,
-                    loan.point,
-                )));
-            }
+        if let Some(loan) = self.find_loan_that_freezes(path) {
+            return Err(Box::new(BorrowError::for_write(
+                self.point,
+                path,
+                &loan.path,
+                loan.point,
+            )));
         }
         Ok(())
     }
@@ -193,48 +176,36 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        for loan in self.loans {
-            if let Some(loan_var) = self.invalidated_by_dead_storage(&loan.path) {
-                if var == loan_var {
-                    return Err(Box::new(BorrowError::for_storage_dead(
-                        self.point,
-                        var,
-                        &loan.path,
-                        loan.point,
-                    )));
-                }
-            }
+        if let Some(loan) = self.find_loan_that_freezes(&repr::Path::Base(var)) {
+            return Err(Box::new(BorrowError::for_storage_dead(
+                self.point,
+                var,
+                &loan.path,
+                loan.point,
+            )));
         }
         Ok(())
     }
 
-    /// If `path` is borrowed, returns a vector of paths which -- if
-    /// moved or if the storage went away -- would invalidate this
-    /// reference.
-    fn invalidated_by_dead_storage(&self, mut path: &repr::Path) -> Option<repr::Variable> {
-        loop {
-            match *path {
-                repr::Path::Base(v) => return Some(v),
-                repr::Path::Extension(ref base_path, field_name) => {
-                    match *self.env.path_ty(base_path) {
-                        // If you borrow `*r`, you can drop the
-                        // reference `r` without invalidating that
-                        // memory.
-                        repr::Ty::Ref(_, _, _) => {
-                            assert_eq!(field_name, repr::FieldName::star());
-                            return None;
-                        }
+    /// Helper for `check_write` and `check_storage_dead`: finds if
+    /// there is a loan that "freezes" the given path -- that is, a
+    /// loan that would make modifying the `path` (or freeing it)
+    /// illegal. This is slightly more permissive than the rules
+    /// around move and reads, precisely because overwriting or
+    /// freeing `path` makes the previous value unavailable from that
+    /// point on.
+    fn find_loan_that_freezes(&self, path: &repr::Path) -> Option<&Loan> {
+        let prefixes = path.prefixes();
+        self.loans.iter().cloned().find(|loan| {
+            // If you have borrowed `a.b`, this prevents writes to `a`
+            // or `a.b`:
+            let frozen_paths = self.frozen_by_borrow_of(&loan.path);
+            frozen_paths.contains(&path) ||
 
-                        repr::Ty::Unit |
-                        repr::Ty::Struct(..) => {
-                            path = base_path;
-                        }
-
-                        repr::Ty::Bound(..) => panic!("unexpected bound type"),
-                    }
-                }
-            }
-        }
+                // If you have borrowed `a.b`, this prevents writes to
+                // `a.b.c`:
+                prefixes.contains(&loan.path)
+        })
     }
 
     /// If `path` is mutably borrowed, returns a vector of paths which -- if
