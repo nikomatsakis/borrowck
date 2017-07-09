@@ -1,0 +1,16 @@
+struct Foo {
+  field: ()
+}  
+
+let a: Foo;
+let b: &'b ();
+
+block START {
+    a = use();
+    b = &'borrow1 a.field;
+    drop(a); //! ERROR
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+
