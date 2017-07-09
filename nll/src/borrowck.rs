@@ -48,6 +48,7 @@ impl<'cx> BorrowCheck<'cx> {
             }
             repr::ActionKind::Borrow(ref a, _, repr::BorrowKind::Mut, ref b) => {
                 self.check_write(a)?;
+                self.check_read(b)?;
                 self.check_write(b)?;
             }
             repr::ActionKind::Constraint(_) => {}

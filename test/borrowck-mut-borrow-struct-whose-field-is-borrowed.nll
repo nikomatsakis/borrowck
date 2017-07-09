@@ -1,0 +1,19 @@
+struct Foo {
+  field: ()
+}
+
+let a: Foo;
+let b: &'_ mut ();
+let c: &'_ mut Foo;
+
+block START {
+    a = use();
+    b = &'_ mut a.field;
+    c = &'_ mut a; //! ERROR
+    use(b);
+    use(c);
+    StorageDead(c);
+    StorageDead(b);
+    StorageDead(a);
+}
+
