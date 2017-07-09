@@ -4,9 +4,7 @@ use nll_repr::repr;
 use std::error::Error;
 use std::fmt;
 
-pub fn borrow_check(env: &Environment,
-                    loans_in_scope: &LoansInScope)
-                    -> Result<(), Box<Error>> {
+pub fn borrow_check(env: &Environment, loans_in_scope: &LoansInScope) -> Result<(), Box<Error>> {
     let mut result: Result<(), Box<Error>> = Ok(());
     loans_in_scope.walk(env, |point, opt_action, loans| {
         let borrowck = BorrowCheck { env, point, loans };
@@ -51,8 +49,7 @@ impl<'cx> BorrowCheck<'cx> {
                 self.check_write(a)?;
                 self.check_write(b)?;
             }
-            repr::ActionKind::Constraint(_) => {
-            }
+            repr::ActionKind::Constraint(_) => {}
             repr::ActionKind::Use(ref p) => {
                 self.check_read(p)?;
             }
@@ -62,8 +59,7 @@ impl<'cx> BorrowCheck<'cx> {
             repr::ActionKind::StorageDead(p) => {
                 self.check_storage_dead(p)?;
             }
-            repr::ActionKind::Noop => {
-            }
+            repr::ActionKind::Noop => {}
         }
 
         Ok(())
@@ -73,7 +69,29 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
-    fn check_read(&self, _path: &repr::Path) -> Result<(), Box<Error>> {
+    /// Cannot read from a path `p` if:
+    /// - `p` is borrowed mutably;
+    /// - some subpath `p.foo` is borrowed mutably;
+    /// - some prefix of `p` is borrowed mutably.
+    fn check_read(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        let prefixes = path.prefixes();
+        for loan in self.loans {
+            match loan.kind {
+                repr::BorrowKind::Shared => continue,
+                repr::BorrowKind::Mut => {}
+            }
+
+            for loan_prefix in loan.path.prefixes() {
+                if prefixes.contains(&loan_prefix) {
+                    return Err(Box::new(BorrowError::for_read(
+                        self.point,
+                        path,
+                        &loan.path,
+                        loan.point,
+                    )));
+                }
+            }
+        }
         Ok(())
     }
 
@@ -81,23 +99,39 @@ impl<'cx> BorrowCheck<'cx> {
     /// - `p` is borrowed;
     /// - some subpath `p.foo` is borrowed;
     /// - some prefix of `p` is borrowed.
+    ///
+    /// XXX counterexample?
+    ///
+    /// ```
+    /// let p: &i32;
+    /// let q = &*p;
+    /// move(p); // but this is not actually a *move*, is the point
+    /// ```
     fn check_move(&self, path: &repr::Path) -> Result<(), Box<Error>> {
         let prefixes = path.prefixes();
         for loan in self.loans {
             for loan_prefix in loan.path.prefixes() {
                 if prefixes.contains(&loan_prefix) {
-                    return Err(Box::new(BorrowError::for_move(self.point, path, &loan.path)));
+                    return Err(Box::new(
+                        BorrowError::for_move(self.point, path, &loan.path, loan.point),
+                    ));
                 }
             }
         }
         Ok(())
     }
 
+    /// Cannot free a local variable `var` if:
+    /// - data interior to `var` is borrowed.
+    ///
+    /// In particular, having something like `*var` borrowed is ok.
     fn check_storage_dead(&self, var: repr::Variable) -> Result<(), Box<Error>> {
         for loan in self.loans {
             if let Some(loan_var) = self.invalidated_by_dead_storage(&loan.path) {
                 if var == loan_var {
-                    return Err(Box::new(BorrowError::for_storage_dead(self.point, var, &loan.path)));
+                    return Err(Box::new(
+                        BorrowError::for_storage_dead(self.point, var, &loan.path, loan.point),
+                    ));
                 }
             }
         }
@@ -121,13 +155,12 @@ impl<'cx> BorrowCheck<'cx> {
                             return None;
                         }
 
-                        repr::Ty::Unit | repr::Ty::Struct(..) => {
+                        repr::Ty::Unit |
+                        repr::Ty::Struct(..) => {
                             path = base_path;
                         }
 
-                        repr::Ty::Bound(..) => {
-                            panic!("unexpected bound type")
-                        }
+                        repr::Ty::Bound(..) => panic!("unexpected bound type"),
                     }
                 }
             }
@@ -137,31 +170,64 @@ impl<'cx> BorrowCheck<'cx> {
 
 #[derive(Debug)]
 pub struct BorrowError {
-    description: String
+    description: String,
 }
 
 impl BorrowError {
     fn no_error(point: Point) -> Self {
         BorrowError {
-            description: format!("point {:?} had no error, but should have", point)
+            description: format!("point {:?} had no error, but should have", point),
         }
     }
 
-    fn for_move(point: Point, path: &repr::Path, loan_path: &repr::Path) -> Self {
+    fn for_move(
+        point: Point,
+        path: &repr::Path,
+        loan_path: &repr::Path,
+        loan_point: Point,
+    ) -> Self {
         BorrowError {
-            description: format!("point {:?} cannot move {:?} because {:?} is borrowed",
-                                 point,
-                                 path,
-                                 loan_path)
+            description: format!(
+                "point {:?} cannot move {:?} because {:?} is borrowed (at point `{:?}`)",
+                point,
+                path,
+                loan_path,
+                loan_point
+            ),
         }
     }
 
-    fn for_storage_dead(point: Point, var: repr::Variable, loan_path: &repr::Path) -> Self {
+    fn for_read(
+        point: Point,
+        path: &repr::Path,
+        loan_path: &repr::Path,
+        loan_point: Point,
+    ) -> Self {
         BorrowError {
-            description: format!("point {:?} cannot kill storage for {:?} because {:?} is borrowed",
-                                 point,
-                                 var,
-                                 loan_path)
+            description: format!(
+                "point {:?} cannot read {:?} because {:?} is mutably borrowed (at point `{:?}`)",
+                point,
+                path,
+                loan_path,
+                loan_point
+            ),
+        }
+    }
+
+    fn for_storage_dead(
+        point: Point,
+        var: repr::Variable,
+        loan_path: &repr::Path,
+        loan_point: Point,
+    ) -> Self {
+        BorrowError {
+            description: format!(
+                "point {:?} cannot kill storage for {:?} because {:?} is borrowed (at point `{:?}`)",
+                point,
+                var,
+                loan_path,
+                loan_point
+            ),
         }
     }
 }

@@ -28,35 +28,43 @@ impl<'cx> LoansInScope<'cx> {
 
         // Collect the full set of loans; these are just the set of
         // `&foo` expressions.
-        let loans: Vec<_> =
-            env.reverse_post_order
-               .iter()
-               .flat_map(|&block| {
-                   env.graph.block_data(block)
-                            .actions
-                            .iter()
-                            .enumerate()
-                            .flat_map(move |(index, action)| match action.kind {
-                                repr::ActionKind::Borrow(_, region, kind, ref path) => {
-                                    let point = Point { block, action: index };
-                                    let region = regionck.region(region);
-                                    Some(Loan { point, region, kind, path })
-                                }
-
-                                _ => None,
+        let loans: Vec<_> = env.reverse_post_order
+            .iter()
+            .flat_map(|&block| {
+                env.graph
+                    .block_data(block)
+                    .actions
+                    .iter()
+                    .enumerate()
+                    .flat_map(move |(index, action)| match action.kind {
+                        repr::ActionKind::Borrow(_, region, kind, ref path) => {
+                            let point = Point {
+                                block,
+                                action: index,
+                            };
+                            let region = regionck.region(region);
+                            Some(Loan {
+                                point,
+                                region,
+                                kind,
+                                path,
                             })
-               })
-               .collect();
+                        }
+
+                        _ => None,
+                    })
+            })
+            .collect();
 
         log!("loans: {:#?}", loans);
 
         // Make a convenient hash map for getting the index of a loan
         // based on where it appears.
-        let loans_by_point: HashMap<_, _> =
-            loans.iter()
-                 .enumerate()
-                 .map(|(index, loan)| (loan.point, index))
-                 .collect();
+        let loans_by_point: HashMap<_, _> = loans
+            .iter()
+            .enumerate()
+            .map(|(index, loan)| (loan.point, index))
+            .collect();
 
         // Get a bit set with the set of in-scope loans at each point
         // in the graph. These correspond to the set of loans in scope
@@ -64,7 +72,12 @@ impl<'cx> LoansInScope<'cx> {
         let loans_in_scope_after_block = BitSet::new(env.graph, loans.len());
 
         // iterate until fixed point
-        let mut this = LoansInScope { env, loans, loans_by_point, loans_in_scope_after_block };
+        let mut this = LoansInScope {
+            env,
+            loans,
+            loans_by_point,
+            loans_in_scope_after_block,
+        };
         this.compute();
 
         this
@@ -72,7 +85,8 @@ impl<'cx> LoansInScope<'cx> {
 
     /// Invokes `callback` with the loans in scope at each point.
     pub fn walk<CB>(&self, env: &Environment<'cx>, mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, &[&Loan])
+    where
+        CB: FnMut(Point, Option<&repr::Action>, &[&Loan]),
     {
         let mut loans = Vec::with_capacity(self.loans.len());
         let mut bits = self.loans_in_scope_after_block.empty_buf();
@@ -80,16 +94,13 @@ impl<'cx> LoansInScope<'cx> {
             self.simulate_block(&mut bits, block, |point, action, bits| {
                 // Convert from the bitset into a vector of references to loans.
                 loans.clear();
-                loans.extend(
-                    self.loans.iter()
-                              .enumerate()
-                              .filter_map(|(loan_index, loan)| {
-                                  if bits.get(loan_index) {
-                                      Some(loan)
-                                  } else {
-                                      None
-                                  }
-                              }));
+                loans.extend(self.loans.iter().enumerate().filter_map(
+                    |(loan_index, loan)| if bits.get(loan_index) {
+                        Some(loan)
+                    } else {
+                        None
+                    },
+                ));
 
                 // Invoke the callback.
                 callback(point, action, &loans);
@@ -108,16 +119,14 @@ impl<'cx> LoansInScope<'cx> {
             for &block in &self.env.reverse_post_order {
                 self.simulate_block(&mut bits, block, |_p, _a, _s| ());
                 changed |= self.loans_in_scope_after_block
-                               .insert_bits_from_slice(block, bits.as_slice());
+                    .insert_bits_from_slice(block, bits.as_slice());
             }
         }
     }
 
-    fn simulate_block<CB>(&self,
-                          buf: &mut BitBuf,
-                          block: BasicBlockIndex,
-                          mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
+    fn simulate_block<CB>(&self, buf: &mut BitBuf, block: BasicBlockIndex, mut callback: CB)
+    where
+        CB: FnMut(Point, Option<&repr::Action>, BitSlice),
     {
         buf.clear();
 
@@ -128,7 +137,10 @@ impl<'cx> LoansInScope<'cx> {
 
         // walk through the actions on by one
         for (index, action) in self.env.graph.block_data(block).actions.iter().enumerate() {
-            let point = Point { block, action: index };
+            let point = Point {
+                block,
+                action: index,
+            };
 
             // kill any loans where `point` is not in their region
             for loan_index in self.loans_not_in_scope_at(point) {
@@ -160,35 +172,30 @@ impl<'cx> LoansInScope<'cx> {
         callback(point, None, buf.as_slice());
     }
 
-    fn loans_not_in_scope_at<'a>(&'a self, point: Point)
-                                 -> impl Iterator<Item = usize> + 'a
-    {
-        self.loans.iter()
-                  .enumerate()
-                  .filter_map(move |(loan_index, loan)| {
-                      if !loan.region.contains(point) {
-                          Some(loan_index)
-                      } else {
-                          None
-                      }
-                  })
+    fn loans_not_in_scope_at<'a>(&'a self, point: Point) -> impl Iterator<Item = usize> + 'a {
+        self.loans.iter().enumerate().filter_map(
+            move |(loan_index, loan)| if !loan.region.contains(point) {
+                Some(loan_index)
+            } else {
+                None
+            },
+        )
     }
 
-    fn loans_killed_by_write_to<'a>(&'a self, path: &'a repr::Path)
-                                         -> impl Iterator<Item = usize> + 'a
-    {
+    fn loans_killed_by_write_to<'a>(
+        &'a self,
+        path: &'a repr::Path,
+    ) -> impl Iterator<Item = usize> + 'a {
         // When an assignment like `a.b.c = ...` occurs, we kill all
         // the loans for `a.b.c` or some subpath like `a.b.c.d`, since
         // the path no longer evaluates to the same thing.
-        self.loans.iter()
-                  .enumerate()
-                  .filter_map(move |(index, loan)| {
-                      if loan.path.prefixes().iter().any(|&p| p == path) {
-                          Some(index)
-                      } else {
-                          None
-                      }
-                  })
+        self.loans.iter().enumerate().filter_map(
+            move |(index, loan)| if loan.path.prefixes().iter().any(|&p| p == path) {
+                Some(index)
+            } else {
+                None
+            },
+        )
     }
 }
 

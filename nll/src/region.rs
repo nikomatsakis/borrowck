@@ -10,12 +10,14 @@ use std::fmt;
 /// where `B` is a basic block identifier and start/end are indices.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Region {
-    points: BTreeSet<Point>
+    points: BTreeSet<Point>,
 }
 
 impl Region {
     pub fn new() -> Self {
-        Region { points: BTreeSet::new() }
+        Region {
+            points: BTreeSet::new(),
+        }
     }
 
     pub fn add_point(&mut self, point: Point) -> bool {

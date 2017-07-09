@@ -15,26 +15,30 @@ pub struct Liveness {
 
 impl Liveness {
     pub fn new(env: &Environment) -> Liveness {
-        let var_regions: HashMap<_, Vec<_>> =
-            env.graph.decls()
-                     .iter()
-                     .map(|d| (
-                         d.var,
-                         d.ty.walk_regions().map(|r| r.assert_free()).collect()
-                     ))
-                     .collect();
-        let mut region_names: Vec<_> = var_regions.iter()
-                                                  .flat_map(|(_, ref names)| names.iter())
-                                                  .cloned()
-                                                  .collect();
+        let var_regions: HashMap<_, Vec<_>> = env.graph
+            .decls()
+            .iter()
+            .map(|d| {
+                (
+                    d.var,
+                    d.ty.walk_regions().map(|r| r.assert_free()).collect(),
+                )
+            })
+            .collect();
+        let mut region_names: Vec<_> = var_regions
+            .iter()
+            .flat_map(|(_, ref names)| names.iter())
+            .cloned()
+            .collect();
         region_names.sort();
         region_names.dedup();
-        let var_bits: HashMap<_, _> = region_names.iter()
-                                                  .cloned()
-                                                  .zip(0..)
-                                                  .collect();
+        let var_bits: HashMap<_, _> = region_names.iter().cloned().zip(0..).collect();
         let liveness = BitSet::new(env.graph, var_bits.len());
-        let mut this = Liveness { var_regions, var_bits, liveness };
+        let mut this = Liveness {
+            var_regions,
+            var_bits,
+            liveness,
+        };
         this.compute(env);
         this
     }
@@ -46,8 +50,10 @@ impl Liveness {
             .all(|bit| self.liveness.bits(b).get(bit))
     }
 
-    pub fn live_regions<'a>(&'a self, live_bits: BitSlice<'a>)
-                            -> impl Iterator<Item = repr::RegionName> + 'a {
+    pub fn live_regions<'a>(
+        &'a self,
+        live_bits: BitSlice<'a>,
+    ) -> impl Iterator<Item = repr::RegionName> + 'a {
         self.var_bits
             .iter()
             .filter(move |&(_, &bit)| live_bits.get(bit))
@@ -57,10 +63,9 @@ impl Liveness {
     /// Invokes callback once for each action with (A) the point of
     /// the action; (B) the action itself and (C) the set of live
     /// variables on entry to the action.
-    pub fn walk<CB>(&self,
-                    env: &Environment,
-                    mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
+    pub fn walk<CB>(&self, env: &Environment, mut callback: CB)
+    where
+        CB: FnMut(Point, Option<&repr::Action>, BitSlice),
     {
         let mut bits = self.liveness.empty_buf();
         for &block in &env.reverse_post_order {
@@ -81,12 +86,14 @@ impl Liveness {
         }
     }
 
-    fn simulate_block<CB>(&self,
-                          env: &Environment,
-                          buf: &mut BitBuf,
-                          block: BasicBlockIndex,
-                          mut callback: CB)
-        where CB: FnMut(Point, Option<&repr::Action>, BitSlice)
+    fn simulate_block<CB>(
+        &self,
+        env: &Environment,
+        buf: &mut BitBuf,
+        block: BasicBlockIndex,
+        mut callback: CB,
+    ) where
+        CB: FnMut(Point, Option<&repr::Action>, BitSlice),
     {
         buf.clear();
 
@@ -121,7 +128,10 @@ impl Liveness {
                 self.drop_ty(buf, env, &path_ty);
             }
 
-            let point = Point { block, action: index };
+            let point = Point {
+                block,
+                action: index,
+            };
             callback(point, Some(action), buf.as_slice());
         }
     }
@@ -138,7 +148,8 @@ impl Liveness {
 
     fn drop_ty(&self, buf: &mut BitBuf, env: &Environment, ty: &repr::Ty) {
         match *ty {
-            repr::Ty::Ref(..) | repr::Ty::Unit => {
+            repr::Ty::Ref(..) |
+            repr::Ty::Unit => {
                 // Dropping a reference (or `()`) does not require it to be live; it's a no-op.
             }
 
@@ -164,9 +175,7 @@ impl Liveness {
                 }
             }
 
-            repr::Ty::Bound(_) => {
-                panic!("drop_ty: unexpected bound type {:?}", ty)
-            }
+            repr::Ty::Bound(_) => panic!("drop_ty: unexpected bound type {:?}", ty),
         }
     }
 }
@@ -184,12 +193,20 @@ impl DefUse for repr::Action {
         match self.kind {
             repr::ActionKind::Borrow(ref p, _name, _, ref q) => (vec![p.base()], vec![q.base()]),
             repr::ActionKind::Init(ref a, ref params) => {
-                (a.write_def().into_iter().collect(),
-                 params.iter().map(|p| p.base()).chain(a.write_use()).collect())
+                (
+                    a.write_def().into_iter().collect(),
+                    params
+                        .iter()
+                        .map(|p| p.base())
+                        .chain(a.write_use())
+                        .collect(),
+                )
             }
             repr::ActionKind::Assign(ref a, ref b) => {
-                (a.write_def().into_iter().collect(),
-                 once(b.base()).chain(a.write_use()).collect())
+                (
+                    a.write_def().into_iter().collect(),
+                    once(b.base()).chain(a.write_use()).collect(),
+                )
             }
             repr::ActionKind::Constraint(ref _c) => (vec![], vec![]),
             repr::ActionKind::Use(ref v) => (vec![], vec![v.base()]),
