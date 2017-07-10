@@ -158,6 +158,83 @@ impl<'func> Environment<'func> {
             repr::Ty::Bound(_) => panic!("field_ty: unexpected bound type"),
         }
     }
+
+    /// The **supporting prefixes** of a path are all the prefixes of
+    /// a path that must remain valid for the path itself to remain
+    /// valid. For the most part, this means all prefixes, except that
+    /// recursion stops when dereferencing a shared reference.
+    ///
+    /// Examples:
+    ///
+    /// - the supporting prefixes of `s.f` where `s` is a struct are
+    ///   `s.f` and `s`.
+    /// - the supporting prefixes of `(*r).f` where `r` is a shared reference
+    ///   are `(*r).f` and `*r`, but not `r`.
+    ///   - Intuition: one could always copy `*r` into a temporary `t`
+    ///     and reach the data through `*t`, so it is not important to
+    ///     preserve `r` itself.
+    /// - the supporting prefixes of `(*m).f` where `m` is a **mutable** reference
+    ///   are `(*m).f`, `*m`, and `m`.
+    ///
+    /// Uses: Supporting prefixes appear in a number of places in the NLL
+    /// prototype:
+    ///
+    /// - the regionck adds sufficient constraints to ensure that the lifetime
+    ///   of any reference `r` where `*r` supports a borrowed path outlives
+    ///   the lifetime of the borrow (and hence `*r` remains valid).
+    /// - the borrowck prevents moves from supporting paths, and prevents reads
+    ///   from supporting paths of mutable borrows
+    ///
+    /// (The mutation and `StorageDead` rules however do not use
+    /// supporting prefixes, but rather a further subset.)
+    pub fn supporting_prefixes<'a>(&self, mut path: &'a repr::Path) -> Vec<&'a repr::Path> {
+        let mut result = vec![];
+        loop {
+            result.push(path);
+            match *path {
+                repr::Path::Var(_) => return result,
+                repr::Path::Extension(ref base_path, field_name) => {
+                    match *self.path_ty(base_path) {
+                        // If you borrowed `*r`, and `r` is a shared
+                        // reference, then accessing `r` (or some
+                        // prefix of `r`) is not considered
+                        // intersecting. This is because we could have
+                        // copied the shared reference out and
+                        // borrowed from there.
+                        //
+                        // This is crucial to a number of tests, e.g.:
+                        //
+                        // borrowck-write-variable-after-ref-extracted.nll
+                        repr::Ty::Ref(_, repr::BorrowKind::Shared, _) => {
+                            assert_eq!(field_name, repr::FieldName::star());
+                            return result;
+                        }
+
+                        // In contrast, if you have borrowed `*r`, and
+                        // `r` is an `&mut` reference, then we
+                        // consider access to `r` intersecting.
+                        //
+                        // This is crucial to a number of tests, e.g.:
+                        //
+                        // borrowck-read-ref-while-referent-mutably-borrowed.nll
+                        repr::Ty::Ref(_, repr::BorrowKind::Mut, _) => {
+                            path = base_path;
+                        }
+
+                        // If you have borrowed `a.b`, then writing to
+                        // `a` would overwrite `a.b`, which is
+                        // disallowed.
+                        repr::Ty::Struct(..) => {
+                            path = base_path;
+                        }
+
+                        repr::Ty::Unit => panic!("unit has no fields"),
+                        repr::Ty::Bound(..) => panic!("unexpected bound type"),
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl fmt::Debug for Point {
