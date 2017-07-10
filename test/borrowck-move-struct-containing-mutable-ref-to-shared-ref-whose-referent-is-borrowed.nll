@@ -1,0 +1,21 @@
+struct Foo<'-, '=> {
+  field: &'1 mut &'0 ()
+}  
+
+let a: Foo<'_, '_>;
+let b: &'_ ();
+
+block START {
+    a = use();
+    b = &'_ a.field.star.star;
+
+    // This move is OK, because we borrowed the referent
+    // of the &T, even though we *reached* it through an
+    // `&mut T`.
+    drop(a);
+
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+

@@ -1,0 +1,24 @@
+// This is Issue #38899. The bug is that we used to allow access to `b.current.star`
+// even though `b` is borrowed.
+
+struct u8 { }
+
+struct Block<'-> {
+    current: &'0 u8,
+    unrelated: &'0 u8,
+}
+
+let b: Block<'_>;
+let x: &'_ mut Block<'_>;
+let p: &'_ u8;
+
+block START {
+    b = use();
+    x = &'_ mut b;
+    p = &'_ b.current.star; //! ERROR
+    use(x);
+    use(p);
+    StorageDead(p);
+    StorageDead(x);
+    StorageDead(b);
+}

@@ -1,0 +1,21 @@
+struct Foo<'-> {
+  field: &'0 mut ()
+}  
+
+let a: Foo<'_>;
+let b: &'_ mut ();
+
+block START {
+    a = use();
+    b = &'_ mut a.field.star;
+
+    // We do not wish to allow this move,
+    // because then we could not guarantee
+    // `b` is still unique.
+    drop(a); //! ERROR
+
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+
