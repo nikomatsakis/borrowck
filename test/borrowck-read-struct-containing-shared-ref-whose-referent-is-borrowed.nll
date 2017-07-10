@@ -7,7 +7,7 @@ let b: &'_ mut ();
 
 block START {
     a = use();
-    b = &'_ mut a.field.star;
+    b = &'_ mut *a.field;
     use(a); //! ERROR
     use(b);
     StorageDead(b);

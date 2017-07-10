@@ -117,8 +117,14 @@ BorrowKind: BorrowKind = {
 };
 
 Path: Box<Path> = {
+    Path1,
+    "*" <Path> => Box::new(Path::Extension(<>, FieldName::star())),
+};
+
+Path1: Box<Path> = {
+    "(" <Path> ")",
     Variable => Box::new(Path::Var(<>)),
-    <Path> "." <FieldName> => Box::new(Path::Extension(<>)),
+    <Path1> "." <FieldName> => Box::new(Path::Extension(<>)),
 };
 
 Constraint: Box<Constraint> = {

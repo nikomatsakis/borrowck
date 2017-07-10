@@ -19,7 +19,7 @@ let b: &'_ ();
 
 block START {
     a = use();
-    b = &'_ a.field.star;
+    b = &'_ *a.field;
     a = use();
     use(b);
     StorageDead(b);

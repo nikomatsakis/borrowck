@@ -8,7 +8,7 @@ let c: &'_ mut Foo<'c1>;
 
 block START {
     a = use();
-    b = &'_ mut a.field.star;
+    b = &'_ mut *a.field;
     c = &'_ mut a; //! ERROR
     use(b);
     use(c);

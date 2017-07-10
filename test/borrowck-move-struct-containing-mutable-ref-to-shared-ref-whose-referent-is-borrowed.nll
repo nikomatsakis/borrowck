@@ -7,7 +7,7 @@ let b: &'_ ();
 
 block START {
     a = use();
-    b = &'_ a.field.star.star;
+    b = &'_ **a.field;
 
     // This move is OK, because we borrowed the referent
     // of the &T, even though we *reached* it through an

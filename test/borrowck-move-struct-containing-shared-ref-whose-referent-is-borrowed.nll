@@ -7,7 +7,7 @@ let b: &'_ ();
 
 block START {
     a = use();
-    b = &'_ a.field.star;
+    b = &'_ *a.field;
     drop(a); // No error expected here
     use(b);
     StorageDead(b);

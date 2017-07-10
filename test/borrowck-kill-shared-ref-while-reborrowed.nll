@@ -23,7 +23,7 @@ let q: &'_ Vec<()>;
 block START {
     foo = use();
     p = &'_ foo;
-    q = &'_ p.star;
+    q = &'_ *p;
     StorageDead(p);
     use(q);
     StorageDead(q);

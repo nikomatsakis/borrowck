@@ -25,7 +25,7 @@ let q: &'q Vec<()>;
 block START {
     foo = use();
     p = &'b1 mut foo;
-    q = &'b2 p.star;
+    q = &'b2 *p;
     StorageDead(p);
     use(foo); //! ERROR
     use(q);

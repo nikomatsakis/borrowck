@@ -1,4 +1,4 @@
-// This is Issue #38899. The bug is that we used to allow access to `b.current.star`
+// This is Issue #38899. The bug is that we used to allow access to `*b.current`
 // even though `b` is borrowed.
 
 struct u8 { }
@@ -15,7 +15,7 @@ let p: &'_ u8;
 block START {
     b = use();
     x = &'_ mut b;
-    p = &'_ b.current.star; //! ERROR
+    p = &'_ *b.current; //! ERROR
     use(x);
     use(p);
     StorageDead(p);

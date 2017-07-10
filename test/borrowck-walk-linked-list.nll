@@ -19,7 +19,7 @@ struct List<+> {
 }
 
 struct Box<+> {
-  star: 0
+  data: 0
 }
 
 let list: &'list mut List<()>;
@@ -31,8 +31,8 @@ block START {
 }
 
 block LOOP {
-    value = &'b1 mut list.star.value;
-    list = &'b2 mut list.star.successor.star;
+    value = &'b1 mut (*list).value;
+    list = &'b2 mut (*list).successor.data;
     use(value);
     goto LOOP EXIT;
 }

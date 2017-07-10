@@ -25,7 +25,7 @@ block START {
     p = &'bp foo;
     q = &'bq p;
     p = use(); //! ERROR
-    r = &'br q.star.star;
+    r = &'br **q;
     use(r);
     StorageDead(r);
     StorageDead(q);

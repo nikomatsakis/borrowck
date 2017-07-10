@@ -343,7 +343,7 @@ pub struct FieldName {
 
 impl FieldName {
     pub fn star() -> Self {
-        FieldName { name: intern::intern("star") }
+        FieldName { name: intern::intern("*") }
     }
 }
 
