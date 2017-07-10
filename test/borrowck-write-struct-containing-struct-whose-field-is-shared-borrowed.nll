@@ -18,11 +18,11 @@ struct Bar<'-> {
 }  
 
 let a: Foo<'_>;
-let b: &'_ mut &'_ mut ();
+let b: &'_ &'_ mut ();
 
 block START {
     a = use();
-    b = &'_ mut a.field.field;
+    b = &'_ a.field.field;
     a = use(); //! ERROR
     use(b);
     StorageDead(b);

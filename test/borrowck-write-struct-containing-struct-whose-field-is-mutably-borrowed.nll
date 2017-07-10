@@ -1,0 +1,31 @@
+// Corresponds to:
+//
+// ```
+// let a = Foo { field: Bar { .. } };
+// let b = &mut a.field.field;
+// a = Foo { .. };
+// use(b);
+// ```
+//
+// Error: overwriting `a` invalidates `b`.
+
+struct Foo<'-> {
+  field: Bar<'0>
+}  
+
+struct Bar<'-> {
+  field: &'0 mut ()
+}  
+
+let a: Foo<'_>;
+let b: &'_ mut &'_ mut ();
+
+block START {
+    a = use();
+    b = &'_ mut a.field.field;
+    a = use(); //! ERROR
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+
