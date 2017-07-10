@@ -1,0 +1,32 @@
+// Corresponds to:
+//
+// ```
+// let a = Foo { field: Bar { .. } };
+// let b = &mut a.field.field;
+// let c = &a;
+// use(b);
+// ```
+//
+// Error: reading `a` (maybe) aliases `b`
+
+struct Foo<'-> {
+  field: Bar<'0>
+}  
+
+struct Bar<'-> {
+  field: &'0 mut ()
+}  
+
+let a: Foo<'_>;
+let b: &'_ mut &'_ mut ();
+let c: &'_ Foo<'_>;
+
+block START {
+    a = use();
+    b = &'_ mut a.field.field;
+    c = &'_ a; //! ERROR -- aliases `b`
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+

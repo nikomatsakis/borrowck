@@ -1,0 +1,34 @@
+// Corresponds to:
+//
+// ```
+// let a = Foo { field: Bar { .. } };
+// let b = &a.field.field;
+// let c = &a;
+// use(*a.field.field);
+// use(b);
+// ```
+//
+// OK: two shared accesses.
+
+struct Foo<'-> {
+  field: Bar<'0>
+}  
+
+struct Bar<'-> {
+  field: &'0 mut ()
+}  
+
+let a: Foo<'_>;
+let b: &'_ &'_ mut ();
+let c: &'_ Foo<'_>;
+
+block START {
+    a = use();
+    b = &'_ a.field.field;
+    c = &'_ a;
+    use(a.field.field.star);
+    use(b);
+    StorageDead(b);
+    StorageDead(a);
+}
+
