@@ -350,7 +350,7 @@ impl<'env> RegionCheck<'env> {
         loop {
             log!("ensure_borrow_source: {:?}", source_path);
             match *source_path {
-                repr::Path::Base(_) => {
+                repr::Path::Var(_) => {
                     // The borrow checker already detects the case where
                     // the storage for a local goes dead whilst it is
                     // borrowed and reports an error.

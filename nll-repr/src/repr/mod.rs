@@ -233,14 +233,14 @@ pub enum ActionKind {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Path { // P =
-    Base(Variable), // v
+    Var(Variable), // v
     Extension(Box<Path>, FieldName), // P.n
 }
 
 impl Path {
     pub fn base(&self) -> Variable {
         match *self {
-            Path::Base(v) => v,
+            Path::Var(v) => v,
             Path::Extension(ref e, _) => e.base(),
         }
     }
@@ -252,7 +252,7 @@ impl Path {
         loop {
             result.push(this);
             match *this {
-                Path::Base(_) => return result,
+                Path::Var(_) => return result,
                 Path::Extension(ref base, _) => this = base,
             }
         }
@@ -262,7 +262,7 @@ impl Path {
     /// If this is `p = x`, then `x` is. Otherwise, nothing.
     pub fn write_def(&self) -> Option<Variable> {
         match *self {
-            Path::Base(v) => Some(v),
+            Path::Var(v) => Some(v),
             Path::Extension(..) => None,
         }
     }
@@ -271,7 +271,7 @@ impl Path {
     /// If this is `p = x.0`, then `x` is. Otherwise, nothing.
     pub fn write_use(&self) -> Option<Variable> {
         match *self {
-            Path::Base(..) => None,
+            Path::Var(..) => None,
             Path::Extension(..) => Some(self.base()),
         }
     }

@@ -112,7 +112,7 @@ impl<'func> Environment<'func> {
 
     pub fn path_ty(&self, path: &repr::Path) -> Box<repr::Ty> {
         match *path {
-            repr::Path::Base(v) => self.var_ty(v),
+            repr::Path::Var(v) => self.var_ty(v),
             repr::Path::Extension(ref base, field_name) => {
                 let base_ty = self.path_ty(base);
                 self.field_ty(&base_ty, field_name)

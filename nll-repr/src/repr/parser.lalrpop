@@ -117,7 +117,7 @@ BorrowKind: BorrowKind = {
 };
 
 Path: Box<Path> = {
-    Variable => Box::new(Path::Base(<>)),
+    Variable => Box::new(Path::Var(<>)),
     <Path> "." <FieldName> => Box::new(Path::Extension(<>)),
 };
 

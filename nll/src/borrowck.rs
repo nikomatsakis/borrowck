@@ -158,7 +158,7 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        if let Some(loan) = self.find_loan_that_freezes(&repr::Path::Base(var)) {
+        if let Some(loan) = self.find_loan_that_freezes(&repr::Path::Var(var)) {
             return Err(Box::new(BorrowError::for_storage_dead(
                 self.point,
                 var,
@@ -225,7 +225,7 @@ impl<'cx> BorrowCheck<'cx> {
         loop {
             result.push(path);
             match *path {
-                repr::Path::Base(_) => return result,
+                repr::Path::Var(_) => return result,
                 repr::Path::Extension(ref base_path, field_name) => {
                     match *self.env.path_ty(base_path) {
                         // If you borrowed `*r`, writing to `r` does
@@ -256,7 +256,7 @@ impl<'cx> BorrowCheck<'cx> {
         loop {
             result.push(path);
             match *path {
-                repr::Path::Base(_) => return result,
+                repr::Path::Var(_) => return result,
                 repr::Path::Extension(ref base_path, field_name) => {
                     match *self.env.path_ty(base_path) {
                         // If you borrowed `*r`, and `r` is a shared
