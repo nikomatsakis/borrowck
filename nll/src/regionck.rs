@@ -382,6 +382,10 @@ impl<'env> RegionCheck<'env> {
                                     // reference out from that path
                                     // (instantaneously), and then
                                     // reborrow the local path.
+                                    //
+                                    // This is crucial to:
+                                    //
+                                    // borrowck-write-variable-after-ref-extracted.nll
                                     return;
                                 }
                                 repr::BorrowKind::Mut => {
@@ -392,8 +396,9 @@ impl<'env> RegionCheck<'env> {
                                     // "secured", to ensure that `*r` doesn't
                                     // wind up reachable via some alias.
                                     //
-                                    // See
-                                    // `borrowck-read-ref-while-referent-mutably-borrowed.nll`.
+                                    // This is crucial to:
+                                    //
+                                    // borrowck-read-ref-while-referent-mutably-borrowed.nll
                                 }
                             }
                         }
