@@ -64,7 +64,7 @@ impl<'env> RegionCheck<'env> {
                 repr::Assertion::In(region_name, ref point) => {
                     let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
-                    if !self.infer.region(region_var).contains(point) {
+                    if !self.infer.region(region_var).may_contain(point) {
                         errors += 1;
                         println!(
                             "error: region variable `{:?}` does not contain `{:?}`",
@@ -78,7 +78,7 @@ impl<'env> RegionCheck<'env> {
                 repr::Assertion::NotIn(region_name, ref point) => {
                     let region_var = self.region_map[&region_name];
                     let point = self.to_point(point);
-                    if self.infer.region(region_var).contains(point) {
+                    if self.infer.region(region_var).may_contain(point) {
                         errors += 1;
                         println!(
                             "error: region variable `{:?}` contains `{:?}`",

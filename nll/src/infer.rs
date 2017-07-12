@@ -93,7 +93,7 @@ impl<'env> Dfs<'env> {
         while let Some(p) = self.stack.pop() {
             log!("        dfs: p={:?}", p);
 
-            if !from_region.contains(p) {
+            if !from_region.may_contain(p) {
                 log!("            not in from-region");
                 continue;
             }

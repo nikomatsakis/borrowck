@@ -24,31 +24,8 @@ impl Region {
         self.points.insert(point)
     }
 
-    pub fn add_region(&mut self, region: &Region) -> bool {
-        let l = self.points.len();
-        self.points.extend(&region.points);
-        l != self.points.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.points.is_empty()
-    }
-
-    pub fn contains(&self, point: Point) -> bool {
+    pub fn may_contain(&self, point: Point) -> bool {
         self.points.contains(&point)
-    }
-
-    pub fn iter<'a>(&'a self) -> <&'a BTreeSet<Point> as IntoIterator>::IntoIter {
-        self.points.iter()
-    }
-}
-
-impl<'a> IntoIterator for &'a Region {
-    type IntoIter = <&'a BTreeSet<Point> as IntoIterator>::IntoIter;
-    type Item = <&'a BTreeSet<Point> as IntoIterator>::Item;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.points.iter()
     }
 }
 

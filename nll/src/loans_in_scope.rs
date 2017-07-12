@@ -175,7 +175,7 @@ impl<'cx> LoansInScope<'cx> {
 
     fn loans_not_in_scope_at<'a>(&'a self, point: Point) -> impl Iterator<Item = usize> + 'a {
         self.loans.iter().enumerate().filter_map(
-            move |(loan_index, loan)| if !loan.region.contains(point) {
+            move |(loan_index, loan)| if !loan.region.may_contain(point) {
                 Some(loan_index)
             } else {
                 None
