@@ -130,8 +130,9 @@ impl<'cx> LoansInScope<'cx> {
     {
         buf.clear();
 
+
         // everything live at end of a pred  is live at the exit of the block
-        for succ in self.env.graph.successors(block) {
+        for succ in self.env.graph.predecessors(block) {
             buf.set_from(self.loans_in_scope_after_block.bits(succ));
         }
 

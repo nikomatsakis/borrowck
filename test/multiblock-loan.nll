@@ -1,0 +1,30 @@
+// Test that we handle loans that go across basic blocks correctly.
+
+struct Foo {}
+
+let foo: Foo;
+let a__: Foo;
+let a_: &'aa mut Foo;
+let a: &'a mut &'aa mut Foo;
+let b: &'b mut &'bb mut Foo;
+
+block START {
+    a__ = use();
+    foo = use();
+    a_ = &'aa mut a__;
+    a = &'a mut a_;
+    goto X;
+}
+
+block X {
+    b = &'b mut *a;
+    goto END;
+}
+
+block END {
+    *a = &'foo mut foo; //! ERROR
+    use(b);
+}
+
+assert X/1 in 'b;
+assert b live at END;
