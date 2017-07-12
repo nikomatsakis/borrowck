@@ -4,7 +4,7 @@
 // let foo = Vec { dummy: () };
 // let p: &mut Vec<()> = &mut foo;
 // let q: &mut &mut Vec<()> = &mut p;
-// let r: &mut Vec<()> = &mut **q;   
+// let r: &mut Vec<()> = &mut **q;
 // use(foo); //! ERROR
 // use(r);
 // ```
@@ -14,7 +14,7 @@
 
 struct Vec<+> {
   field: 0
-}  
+}
 
 let foo: Vec<()>;
 let p: &'p mut Vec<()>;
@@ -33,4 +33,3 @@ block START {
     StorageDead(p);
     StorageDead(foo);
 }
-

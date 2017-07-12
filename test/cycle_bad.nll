@@ -19,7 +19,7 @@ block START {
 }
 
 block END {
-    drop(foo);
+    drop(foo); //! ERROR
 }
 
 // At the time when we drop `foo`, it is considered borrowed:
