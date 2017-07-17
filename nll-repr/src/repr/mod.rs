@@ -13,6 +13,7 @@ pub struct BasicBlock(pub InternedString);
 pub struct Func {
     pub decls: Vec<VariableDecl>,
     pub structs: Vec<StructDecl>,
+    pub regions: Vec<RegionDecl>,
     pub data: BTreeMap<BasicBlock, BasicBlockData>,
     pub assertions: Vec<Assertion>
 }
@@ -45,6 +46,12 @@ pub struct StructDecl {
 pub struct FieldDecl {
     pub name: FieldName,
     pub ty: Box<Ty>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct RegionDecl {
+    pub name: RegionName,
+    pub outlives: Vec<RegionName>,
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]

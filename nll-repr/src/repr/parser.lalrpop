@@ -6,6 +6,7 @@ grammar;
 
 pub Func: Func = {
     <structs:StructDecl*>
+        <regions:RegionDecls>
         <decls:VarDecl*>
         <blocks:BasicBlockData+>
         <asserts:(Comment* <Assertion>)*> =>
@@ -13,6 +14,7 @@ pub Func: Func = {
         Func {
             structs: structs,
             decls: decls,
+            regions: regions,
             data: blocks.into_iter()
                         .map(|block| (block.name, block))
                         .collect(),
@@ -23,7 +25,7 @@ pub Func: Func = {
 
 StructDecl: StructDecl = {
     Comment* "struct" <n:StructName> <p:Angle<StructParameter>> "{"
-        <f:Comma0<FieldDecl>>
+        <f:Comma<FieldDecl>>
     "}" => {
         StructDecl {
             name: n,
@@ -54,6 +56,16 @@ KindVariance: (Kind, Variance) = {
     "=" => (Kind::Type, Variance::In),
 };
 
+#[inline]
+RegionDecls: Vec<RegionDecl> = {
+    () => vec![],
+    Comment* "for" <Angle<RegionDecl>> ";",
+};
+
+RegionDecl: RegionDecl = {
+    <name:RegionName> => RegionDecl { name, outlives: vec![] },
+    <name:RegionName> ":" <outlives:List<"+", RegionName>> => RegionDecl { name, outlives: vec![] },
+};
 
 VarDecl: VariableDecl = {
     Comment* "let" <n:Variable> ":" <t:Ty> ";" => VariableDecl {
@@ -101,7 +113,7 @@ Action: Action = {
 };
 
 ActionKind: ActionKind = {
-    <a:Path> "=" "use" "(" <p:Comma0<Path>> ")" ";" => ActionKind::Init(a, p),
+    <a:Path> "=" "use" "(" <p:Comma<Path>> ")" ";" => ActionKind::Init(a, p),
     <Path> "=" "&" <RegionName> <BorrowKind> <Path> ";" => ActionKind::Borrow(<>),
     <a:Path> "=" <b:Path> ";" => ActionKind::Assign(a, b),
     <c:Constraint> ";" => ActionKind::Constraint(c),
@@ -132,10 +144,10 @@ Constraint: Box<Constraint> = {
 };
 
 Constraint1: Constraint = {
-    "forall" "<" <v:Comma<RegionName>> ">" <c:Constraint> => Constraint::ForAll(v, c),
-    "exists" "<" <v:Comma<RegionName>> ">" <c:Constraint> => Constraint::Exists(v, c),
-    "if" "(" <v:Comma<OutlivesConstraint>> ")" <c:Constraint> => Constraint::Implies(v, c),
-    "{" <c:Comma<Constraint1>> "}" => Constraint::All(c),
+    "forall" "<" <v:Comma1<RegionName>> ">" <c:Constraint> => Constraint::ForAll(v, c),
+    "exists" "<" <v:Comma1<RegionName>> ">" <c:Constraint> => Constraint::Exists(v, c),
+    "if" "(" <v:Comma1<OutlivesConstraint>> ")" <c:Constraint> => Constraint::Implies(v, c),
+    "{" <c:Comma1<Constraint1>> "}" => Constraint::All(c),
     OutlivesConstraint => Constraint::Outlives(<>),
 };
 
@@ -188,21 +200,22 @@ Ident: InternedString = {
     r"[a-zA-Z_]\w*" => intern::intern(<>)
 };
 
-Comma<T>: Vec<T> = {
-    <Comma1<T>> ","?
+Comma<T> = List<",", T>;
+
+Comma1<T> = List1<",", T>;
+
+List<S, T>: Vec<T> = {
+    () => vec![],
+    <List1<S, T>> S?,
 };
 
-Comma0<T>: Vec<T> = {
-    <v:Comma<T>?> => v.unwrap_or(vec![])
-};
-
-Comma1<T>: Vec<T> = {
+List1<S, T>: Vec<T> = {
     T => vec![<>],
-    <v:Comma1<T>> "," <e:T> => {
+    <v:List1<S, T>> S <e:T> => {
         let mut v = v;
         v.push(e);
         v
-    }
+    },
 };
 
 Comment: () = {
@@ -216,5 +229,5 @@ ErrorComment: () = {
 
 Angle<T>: Vec<T> = {
     () => vec![],
-    "<" <Comma0<T>> ">",
+    "<" <Comma<T>> ">",
 };
