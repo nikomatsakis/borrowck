@@ -61,6 +61,7 @@ impl<'cx> BorrowCheck<'cx> {
             repr::ActionKind::StorageDead(p) => {
                 self.check_storage_dead(p)?;
             }
+            repr::ActionKind::SkolemizedEnd(_) |
             repr::ActionKind::Noop => {}
         }
 

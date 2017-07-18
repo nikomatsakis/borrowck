@@ -250,6 +250,13 @@ pub enum ActionKind {
     /// just pops the stack space. It *is*, however, important to the
     /// borrow checker.
     StorageDead(Variable),
+
+    /// A synthetic action that is inserted into the basic blocks
+    /// representing the end of a skolemized region. There is no
+    /// syntax for this sort of "action"; they are created by the NLL
+    /// logic in `graph.rs`.
+    SkolemizedEnd(RegionName),
+
     Noop,
 }
 

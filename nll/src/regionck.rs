@@ -190,6 +190,7 @@ impl<'env> RegionCheck<'env> {
                 repr::ActionKind::Use(..) |
                 repr::ActionKind::Drop(..) |
                 repr::ActionKind::StorageDead(..) |
+                repr::ActionKind::SkolemizedEnd(_) |
                 repr::ActionKind::Noop => {
                     // no add'l constriants needed here; basic liveness
                     // suffices.

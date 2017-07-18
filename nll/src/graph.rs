@@ -14,7 +14,7 @@ pub struct FuncGraph {
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
     block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
-    skolemized_end_indices: BTreeMap<repr::RegionName, BasicBlockIndex>,
+    skolemized_end_actions: BTreeMap<repr::RegionName, [repr::Action; 1]>,
 }
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
@@ -31,7 +31,7 @@ pub enum BasicBlockKind {
 #[derive(Copy, Clone, Debug)]
 pub enum BasicBlockData<'a> {
     Code(&'a repr::BasicBlockData),
-    SkolemizedEnd(repr::RegionName),
+    SkolemizedEnd(&'a [repr::Action]),
 }
 
 impl FuncGraph {
@@ -60,6 +60,20 @@ impl FuncGraph {
                     BasicBlockIndex {
                         index: index + block_indices.len(),
                     },
+                )
+            })
+            .collect();
+        let skolemized_end_actions: BTreeMap<_, _> = func.regions
+            .iter()
+            .map(|rd| {
+                (
+                    rd.name,
+                    [
+                        repr::Action {
+                            kind: repr::ActionKind::SkolemizedEnd(rd.name),
+                            should_have_error: false,
+                        },
+                    ],
                 )
             })
             .collect();
@@ -114,7 +128,7 @@ impl FuncGraph {
             predecessors,
             successors,
             block_indices,
-            skolemized_end_indices,
+            skolemized_end_actions,
         }
     }
 
@@ -125,7 +139,9 @@ impl FuncGraph {
     pub fn block_data(&self, index: BasicBlockIndex) -> BasicBlockData {
         match self.blocks[index.index] {
             BasicBlockKind::Code(block) => BasicBlockData::Code(&self.func.data[&block]),
-            BasicBlockKind::SkolemizedEnd(r) => BasicBlockData::SkolemizedEnd(r),
+            BasicBlockKind::SkolemizedEnd(r) => BasicBlockData::SkolemizedEnd(
+                &self.skolemized_end_actions[&r],
+            ),
         }
     }
 
@@ -228,7 +244,7 @@ impl<'a> BasicBlockData<'a> {
     pub fn actions(self) -> &'a [repr::Action] {
         match self {
             BasicBlockData::Code(d) => &d.actions,
-            BasicBlockData::SkolemizedEnd(_) => &[],
+            BasicBlockData::SkolemizedEnd(actions) => actions,
         }
     }
 }

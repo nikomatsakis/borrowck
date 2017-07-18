@@ -128,10 +128,16 @@ impl Liveness {
                 self.use_ty(buf, &var_ty);
             }
 
-            // drop is special
-            if let repr::ActionKind::Drop(ref path) = action.kind {
-                let path_ty = env.path_ty(path);
-                self.drop_ty(buf, env, &path_ty);
+            // some actions are special
+            match action.kind {
+                repr::ActionKind::Drop(ref path) => {
+                    let path_ty = env.path_ty(path);
+                    self.drop_ty(buf, env, &path_ty);
+                }
+                repr::ActionKind::SkolemizedEnd(name) => {
+                    self.use_region(buf, name);
+                }
+                _ => {}
             }
 
             let point = Point {
@@ -224,6 +230,8 @@ impl DefUse for repr::Action {
             repr::ActionKind::Noop => (vec![], vec![]),
 
             repr::ActionKind::StorageDead(_) => (vec![], vec![]),
+
+            repr::ActionKind::SkolemizedEnd(_) => (vec![], vec![]),
         }
     }
 }

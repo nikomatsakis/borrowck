@@ -221,6 +221,7 @@ impl Overwrites for repr::Action {
             repr::ActionKind::Use(_) => None,
             repr::ActionKind::Drop(_) => None,
             repr::ActionKind::Noop => None,
+            repr::ActionKind::SkolemizedEnd(_) => None,
             repr::ActionKind::StorageDead(_) => None,
         }
     }
