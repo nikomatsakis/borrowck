@@ -1,13 +1,28 @@
 use intern::{self, InternedString};
 use lalrpop_util::ParseError;
 use std::collections::BTreeMap;
+use std::fmt;
 use std::iter;
 use std::sync::Mutex;
 
 mod parser;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct BasicBlock(pub InternedString);
+pub struct BasicBlock {
+    name: InternedString
+}
+
+impl BasicBlock {
+    pub fn start() -> Self {
+        BasicBlock { name: intern::intern("START") }
+    }
+}
+
+impl fmt::Display for BasicBlock {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "{}", self.name)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Func {
@@ -343,6 +358,12 @@ impl RegionName {
     }
 }
 
+impl fmt::Display for RegionName {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "{}", self.name)
+    }
+}
+
 #[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct FieldName {
     name: InternedString
@@ -351,6 +372,12 @@ pub struct FieldName {
 impl FieldName {
     pub fn star() -> Self {
         FieldName { name: intern::intern("*") }
+    }
+}
+
+impl fmt::Display for FieldName {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(fmt, "{}", self.name)
     }
 }
 

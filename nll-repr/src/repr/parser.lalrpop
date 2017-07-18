@@ -193,7 +193,7 @@ Usize: usize = {
 };
 
 BasicBlock: BasicBlock = {
-    Ident => BasicBlock(<>)
+    Ident => BasicBlock { name: <> }
 };
 
 Ident: InternedString = {

@@ -33,7 +33,7 @@ impl<'cx> LoansInScope<'cx> {
             .flat_map(|&block| {
                 env.graph
                     .block_data(block)
-                    .actions
+                    .actions()
                     .iter()
                     .enumerate()
                     .flat_map(move |(index, action)| match action.kind {
@@ -137,7 +137,13 @@ impl<'cx> LoansInScope<'cx> {
         }
 
         // walk through the actions on by one
-        for (index, action) in self.env.graph.block_data(block).actions.iter().enumerate() {
+        for (index, action) in self.env
+            .graph
+            .block_data(block)
+            .actions()
+            .iter()
+            .enumerate()
+        {
             let point = Point {
                 block,
                 action: index,

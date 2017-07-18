@@ -1,4 +1,3 @@
-use lalrpop_intern::intern;
 use graph_algorithms as ga;
 use nll_repr::repr;
 use std::collections::BTreeMap;
@@ -11,7 +10,7 @@ use std::slice;
 pub struct FuncGraph {
     func: repr::Func,
     start_block: BasicBlockIndex,
-    blocks: Vec<repr::BasicBlock>,
+    blocks: Vec<BasicBlockKind>,
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
     block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
@@ -22,9 +21,24 @@ pub struct BasicBlockIndex {
     index: usize,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum BasicBlockKind {
+    Code(repr::BasicBlock),
+    SkolemizedEnd(repr::RegionName),
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum BasicBlockData<'a> {
+    Code(&'a repr::BasicBlockData),
+    SkolemizedEnd(repr::RegionName),
+}
+
 impl FuncGraph {
     pub fn new(func: repr::Func) -> Self {
-        let blocks: Vec<_> = func.data.keys().cloned().collect();
+        let blocks: Vec<_> = func.data
+            .keys()
+            .map(|&bb| BasicBlockKind::Code(bb))
+            .collect();
         let block_indices: BTreeMap<_, _> = func.data
             .keys()
             .cloned()
@@ -46,8 +60,7 @@ impl FuncGraph {
             }
         }
 
-        let start_name = intern("START");
-        let start_block = block_indices[&repr::BasicBlock(start_name)];
+        let start_block = block_indices[&repr::BasicBlock::start()];
 
         FuncGraph {
             func: func,
@@ -63,9 +76,11 @@ impl FuncGraph {
         self.block_indices[&name]
     }
 
-    pub fn block_data(&self, index: BasicBlockIndex) -> &repr::BasicBlockData {
-        let block = self.blocks[index.index];
-        &self.func.data[&block]
+    pub fn block_data(&self, index: BasicBlockIndex) -> BasicBlockData {
+        match self.blocks[index.index] {
+            BasicBlockKind::Code(block) => BasicBlockData::Code(&self.func.data[&block]),
+            BasicBlockKind::SkolemizedEnd(r) => BasicBlockData::SkolemizedEnd(r),
+        }
     }
 
     pub fn decls(&self) -> &[repr::VariableDecl] {
@@ -132,7 +147,7 @@ impl Into<usize> for BasicBlockIndex {
 }
 
 thread_local! {
-    static NAMES: RefCell<Vec<repr::BasicBlock>> = RefCell::new(vec![])
+    static NAMES: RefCell<Vec<BasicBlockKind>> = RefCell::new(vec![])
 }
 
 pub fn with_graph<OP, R>(g: &FuncGraph, op: OP) -> R
@@ -152,10 +167,22 @@ impl fmt::Debug for BasicBlockIndex {
         NAMES.with(|names| {
             let names = names.borrow();
             if !names.is_empty() {
-                write!(fmt, "{}", names[self.index].0)
+                match names[self.index] {
+                    BasicBlockKind::Code(bb) => write!(fmt, "{}", bb),
+                    BasicBlockKind::SkolemizedEnd(rn) => write!(fmt, "{}", rn),
+                }
             } else {
                 write!(fmt, "BB{}", self.index)
             }
         })
+    }
+}
+
+impl<'a> BasicBlockData<'a> {
+    pub fn actions(self) -> &'a [repr::Action] {
+        match self {
+            BasicBlockData::Code(d) => &d.actions,
+            BasicBlockData::SkolemizedEnd(_) => &[],
+        }
     }
 }

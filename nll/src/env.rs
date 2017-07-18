@@ -79,7 +79,7 @@ impl<'func> Environment<'func> {
     }
 
     pub fn end_point(&self, block: BasicBlockIndex) -> Point {
-        let actions = self.graph.block_data(block).actions.len();
+        let actions = self.graph.block_data(block).actions().len();
         Point {
             block: block,
             action: actions,

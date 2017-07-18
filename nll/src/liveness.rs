@@ -106,7 +106,13 @@ impl Liveness {
         callback(env.end_point(block), None, buf.as_slice());
 
         // walk backwards through the actions
-        for (index, action) in env.graph.block_data(block).actions.iter().enumerate().rev() {
+        for (index, action) in env.graph
+            .block_data(block)
+            .actions()
+            .iter()
+            .enumerate()
+            .rev()
+        {
             let (def_var, use_var) = action.def_use();
 
             // anything we write to is no longer live
