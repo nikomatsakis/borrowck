@@ -1,49 +1,44 @@
-struct Map { }
+struct Map { value: Value }
+struct Value { }
 
-let map: Map;
-let m: &'m mut Map;
+// fn get_default<'r>(map: &'r mut Map) -> &'r mut Value {
+//   match map.get_mut() {
+//     Some(v) => v,
+//     None => {
+//       map.insert(..);
+//       map.get_mut(..).unwrap()
+//     }
+//   }
+// }
 
-// this model is a bit inaccurate; we are
-// returning the whole map instead of just the
-// key, because I am too lazy, but this should
-// be ok
-let r: &'r mut Map;
-let return: &'return mut Map;
+for<'r>;
+let map: &'r mut Map;
+let return: &'r mut Value;
+
+let m: &'_ mut Map;
+let v: &'_ mut Value;
 
 block START {
-    m = &'map mut map; // (&map).get_mut();
-    r = m; // lifetime of return value linked to input
+    map = use(); // initialize the parameter
+    m = &'borrow1 mut *map;
+    v = &'_ mut (*m).value; // inlined variant of `get_mut`
     goto SOME NONE;
 }
 
 block SOME {
-    return = r;
+    use(map); //! ERROR -- original borrow is in scope on this path...
+    return = v;
     goto END;
 }
 
 block NONE {
-    ; // map.insert(...);
-    m = &'map2 mut map; // (&map).get_mut()
-    r = m; // lifetime of return value linked to input
-    return = r; // returned
+    use(map); // map.insert(...);
+    m = &'_ mut *map; // OK -- ...but not on this path.
+    v = &'_ mut (*m).value; // inlined variant of get_mut()
+    return = v; // returned
     goto END;
 }
 
 block END {
-    goto M_END;
 }
-
-// represents the end of the lifetime 'm
-block M_END {
-    use(return);
-}
-
-// Scope of first borrow.
-assert 'map == { END/0, M_END/0, SOME/0, SOME/1, START/1, START/2 };
-
-// Notably it does not include the NONE arm.
-assert NONE/0 not in 'map;
-
-// Scope of second borrow.
-assert 'map2 == { END/0, M_END/0, NONE/2, NONE/3, NONE/4 };
 
