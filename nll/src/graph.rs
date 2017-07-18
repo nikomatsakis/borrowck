@@ -14,6 +14,7 @@ pub struct FuncGraph {
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
     block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
+    skolemized_end_indices: BTreeMap<repr::RegionName, BasicBlockIndex>,
 }
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
@@ -38,12 +39,29 @@ impl FuncGraph {
         let blocks: Vec<_> = func.data
             .keys()
             .map(|&bb| BasicBlockKind::Code(bb))
+            .chain(
+                func.regions
+                    .iter()
+                    .map(|rd| BasicBlockKind::SkolemizedEnd(rd.name)),
+            )
             .collect();
         let block_indices: BTreeMap<_, _> = func.data
             .keys()
             .cloned()
             .enumerate()
             .map(|(index, block)| (block, BasicBlockIndex { index: index }))
+            .collect();
+        let skolemized_end_indices: BTreeMap<_, _> = func.regions
+            .iter()
+            .enumerate()
+            .map(|(index, rd)| {
+                (
+                    rd.name,
+                    BasicBlockIndex {
+                        index: index + block_indices.len(),
+                    },
+                )
+            })
             .collect();
         let mut predecessors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
         let mut successors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
@@ -63,12 +81,13 @@ impl FuncGraph {
         let start_block = block_indices[&repr::BasicBlock::start()];
 
         FuncGraph {
-            func: func,
-            blocks: blocks,
-            start_block: start_block,
-            predecessors: predecessors,
-            successors: successors,
-            block_indices: block_indices,
+            func,
+            blocks,
+            start_block,
+            predecessors,
+            successors,
+            block_indices,
+            skolemized_end_indices,
         }
     }
 
