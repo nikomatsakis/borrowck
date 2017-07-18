@@ -14,6 +14,7 @@ pub struct FuncGraph {
     successors: Vec<Vec<BasicBlockIndex>>,
     predecessors: Vec<Vec<BasicBlockIndex>>,
     block_indices: BTreeMap<repr::BasicBlock, BasicBlockIndex>,
+    skolemized_end_indices: BTreeMap<repr::RegionName, BasicBlockIndex>,
     skolemized_end_actions: BTreeMap<repr::RegionName, [repr::Action; 1]>,
 }
 
@@ -128,12 +129,17 @@ impl FuncGraph {
             predecessors,
             successors,
             block_indices,
+            skolemized_end_indices,
             skolemized_end_actions,
         }
     }
 
     pub fn block(&self, name: repr::BasicBlock) -> BasicBlockIndex {
         self.block_indices[&name]
+    }
+
+    pub fn skolemized_end(&self, name: repr::RegionName) -> BasicBlockIndex {
+        self.skolemized_end_indices[&name]
     }
 
     pub fn block_data(&self, index: BasicBlockIndex) -> BasicBlockData {

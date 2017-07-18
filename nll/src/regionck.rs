@@ -209,7 +209,10 @@ impl<'env> RegionCheck<'env> {
     }
 
     fn to_point(&self, point: &repr::Point) -> Point {
-        let block = self.env.graph.block(point.block);
+        let block = match point.block {
+            repr::PointName::Code(b) => self.env.graph.block(b),
+            repr::PointName::SkolemizedEnd(r) => self.env.graph.skolemized_end(r),
+        };
         Point {
             block: block,
             action: point.action,

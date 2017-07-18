@@ -181,7 +181,12 @@ FieldName: FieldName = {
 };
 
 Point: Point = {
-    <b:BasicBlock> "/" <a:Usize> => Point { block: b, action: a }
+    <b:PointName> "/" <a:Usize> => Point { block: b, action: a }
+};
+
+PointName: PointName = {
+    BasicBlock => PointName::Code(<>),
+    RegionName => PointName::SkolemizedEnd(<>),
 };
 
 RegionLiteral: RegionLiteral = {

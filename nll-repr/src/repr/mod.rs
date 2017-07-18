@@ -343,8 +343,14 @@ pub enum Assertion {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Point {
-    pub block: BasicBlock,
+    pub block: PointName,
     pub action: usize,
+}
+
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub enum PointName {
+    Code(BasicBlock),
+    SkolemizedEnd(RegionName),
 }
 
 #[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
