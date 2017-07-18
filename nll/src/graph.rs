@@ -168,7 +168,7 @@ impl ga::Graph for FuncGraph {
     type Node = BasicBlockIndex;
 
     fn num_nodes(&self) -> usize {
-        self.func.data.len()
+        self.blocks.len()
     }
 
     fn start_node(&self) -> BasicBlockIndex {
@@ -359,7 +359,11 @@ impl<'a> RegionRoots<'a> {
 
         // Visit successors now.
         self.stack.push(region_name);
-        for &succ in &self.successors[&region_name] {
+        for &succ in self.successors
+            .get(&region_name)
+            .into_iter()
+            .flat_map(|v| v)
+        {
             self.dfs(succ);
         }
         self.stack.pop();
