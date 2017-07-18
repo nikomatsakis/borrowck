@@ -66,6 +66,11 @@ impl FuncGraph {
         let mut predecessors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
         let mut successors: Vec<_> = (0..blocks.len()).map(|_| Vec::new()).collect();
 
+        let roots: Vec<_> = RegionRoots::extract(&func.regions)
+            .iter()
+            .map(|rn| skolemized_end_indices[rn])
+            .collect();
+
         for (block, &index) in &block_indices {
             let data = &func.data[block];
             for successor in &data.successors {
@@ -75,6 +80,28 @@ impl FuncGraph {
                     .unwrap_or_else(|| panic!("no index for {:?}", successor));
                 successors[index.index].push(successor_index);
                 predecessors[successor_index.index].push(index);
+            }
+
+            // Every block with no successors (and hence representing
+            // a RETURN or a RESUME point) has, as a successor, the
+            // root skolemized end points.
+            if data.successors.is_empty() {
+                for &root in &roots {
+                    successors[index.index].push(root);
+                    predecessors[root.index].push(index);
+                }
+            }
+        }
+
+        // Each `'a: 'b` relationship induces an edge `'b -> 'a`
+        for a_decl in &func.regions {
+            let a_index = skolemized_end_indices[&a_decl.name];
+
+            for b_name in &a_decl.outlives {
+                let b_index = skolemized_end_indices[b_name];
+
+                successors[b_index.index].push(a_index);
+                predecessors[a_index.index].push(b_index);
             }
         }
 
@@ -204,4 +231,162 @@ impl<'a> BasicBlockData<'a> {
             BasicBlockData::SkolemizedEnd(_) => &[],
         }
     }
+}
+
+struct RegionRoots<'a> {
+    stack: Vec<repr::RegionName>,
+    successors: &'a BTreeMap<repr::RegionName, Vec<repr::RegionName>>,
+    state: BTreeMap<repr::RegionName, RegionState>,
+}
+
+struct RegionState {
+    /// Does this region have a (non-cyclic) predecessor?
+    has_pred: bool,
+    visited: bool,
+}
+
+impl<'a> RegionRoots<'a> {
+    fn extract(regions: &[repr::RegionDecl]) -> Vec<repr::RegionName> {
+        // This is a bit tricky. Given something like `'a: 'b`, we want to produce
+        //
+        //   END -> 'b
+        //   'b -> 'a
+        //
+        // But not END -> 'a, I don't think, because that would imply
+        // that one can reach the end of 'a *without* passing through
+        // the end of 'b!
+        //
+        // But be wary of `'a: 'b` and `'b: 'a`, in which case we need
+        // an edge to one *or* the other, at least!
+        //
+        // So what are the ROOTS of the graph? We can create a GRAPH
+        // with nodes equal to skolemized points and edges `'b -> 'a`
+        // if `'a: 'b`. We then do a DFS.
+
+        // Create a state for every region.
+        let state: BTreeMap<_, _> = regions
+            .iter()
+            .map(|rd| {
+                (
+                    rd.name,
+                    RegionState {
+                        has_pred: false,
+                        visited: false,
+                    },
+                )
+            })
+            .collect();
+
+        // Create the edges. If `'a: 'b`, then `'b -> 'a`.
+        let mut successors = BTreeMap::new();
+        for rd in regions {
+            for &rn_outlives in &rd.outlives {
+                successors
+                    .entry(rn_outlives)
+                    .or_insert(vec![])
+                    .push(rd.name);
+            }
+        }
+
+        let stack = vec![];
+
+        let mut roots = RegionRoots {
+            state,
+            successors: &successors,
+            stack,
+        };
+
+        for rd in regions {
+            roots.dfs(rd.name);
+        }
+
+        roots
+            .state
+            .iter()
+            .filter(|&(_, state)| !state.has_pred)
+            .map(|(&key, _)| key)
+            .collect()
+    }
+
+    fn dfs(&mut self, region_name: repr::RegionName) {
+        // Did we uncover a cycle? Then just stop.
+        //
+        // Hence if we have A -> B, B -> A and we visit A first and
+        // then B:
+        // - We will mark B as "has pred" but not A.
+        // - Both will be marked as "visited", and hence when we next
+        //   visit B, we'll ignore it.
+        if self.stack.contains(&region_name) {
+            return;
+        }
+
+        // Otherwise, if this node has a predecessor, mark it as a non-root.
+        {
+            let mut state = self.state.get_mut(&region_name).unwrap();
+
+            if !self.stack.is_empty() {
+                state.has_pred = true;
+            }
+
+            if state.visited {
+                return;
+            }
+
+            state.visited = true;
+        }
+
+        // Visit successors now.
+        self.stack.push(region_name);
+        for &succ in &self.successors[&region_name] {
+            self.dfs(succ);
+        }
+        self.stack.pop();
+    }
+}
+
+#[test]
+#[allow(bad_style)]
+fn root_cycle() {
+    let A = repr::RegionName::from("'a");
+    let B = repr::RegionName::from("'b");
+    let regions = vec![
+        repr::RegionDecl {
+            name: A,
+            outlives: vec![B],
+        },
+        repr::RegionDecl {
+            name: B,
+            outlives: vec![A],
+        },
+    ];
+
+    let roots = RegionRoots::extract(&regions);
+
+    assert_eq!(roots, vec![A]);
+}
+
+#[test]
+#[allow(bad_style)]
+fn root_cycle_reachable_from_outside() {
+    let A = repr::RegionName::from("'a");
+    let B = repr::RegionName::from("'b");
+    let C = repr::RegionName::from("'c");
+    let regions = vec![
+        repr::RegionDecl {
+            name: A,
+            outlives: vec![B, C],
+        },
+        repr::RegionDecl {
+            name: B,
+            outlives: vec![A],
+        },
+        repr::RegionDecl {
+            name: C,
+            outlives: vec![],
+        },
+    ];
+
+    let roots = RegionRoots::extract(&regions);
+
+    assert_eq!(roots, vec![C]);
 }

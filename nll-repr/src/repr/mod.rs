@@ -358,6 +358,12 @@ impl RegionName {
     }
 }
 
+impl<'a> From<&'a str> for RegionName {
+    fn from(v: &'a str) -> Self {
+        RegionName { name: intern::intern(v) }
+    }
+}
+
 impl fmt::Display for RegionName {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(fmt, "{}", self.name)
