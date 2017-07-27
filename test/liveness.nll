@@ -1,0 +1,24 @@
+// Test that a kill of `b` doesn't (necessarily) consitute a kill of `'x`,
+// which is a region used in two places. But if no variables are live that
+// use `'x`, then it is dead.
+
+let a: &'x ();
+let b: &'x ();
+
+block START {
+    a = use();
+    goto USE;
+}
+
+block USE {
+    b = use();
+    use(a);
+    use(b);
+    goto END;
+}
+
+block END {
+}
+
+assert 'x live at USE;
+assert 'x not live at START;

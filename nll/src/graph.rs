@@ -151,6 +151,10 @@ impl FuncGraph {
         }
     }
 
+    pub fn free_regions(&self) -> &[repr::RegionDecl] {
+        &self.func.regions
+    }
+
     pub fn decls(&self) -> &[repr::VariableDecl] {
         &self.func.decls
     }

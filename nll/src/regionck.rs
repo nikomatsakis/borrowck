@@ -147,7 +147,7 @@ impl<'env> RegionCheck<'env> {
     }
 
     fn populate_inference(&mut self, liveness: &Liveness) {
-        liveness.walk(self.env, |point, action, live_on_entry| {
+        liveness.walk(|point, action, live_on_entry| {
             // To start, find every variable `x` that is live. All regions
             // in the type of `x` must include `point`.
             for region_name in liveness.live_regions(live_on_entry) {
