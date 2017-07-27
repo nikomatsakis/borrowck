@@ -33,7 +33,7 @@ block SOME {
 
 block NONE {
     use(map); // map.insert(...);
-    m = &'_ mut *map; // OK -- ...but not on this path.
+    m = &'borrow2 mut *map; // OK -- ...but not on this path.
     v = &'_ mut (*m).value; // inlined variant of get_mut()
     return = v; // returned
     goto END;
@@ -42,3 +42,9 @@ block NONE {
 block END {
 }
 
+assert END/0 in 'borrow1;
+assert END/0 in 'borrow2;
+assert 'r live at END;
+assert 'r live at NONE;
+assert 'r live at SOME;
+assert 'r live at START;

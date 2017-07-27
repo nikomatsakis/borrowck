@@ -339,6 +339,8 @@ pub enum Assertion {
     NotIn(RegionName, Point),
     Live(Variable, BasicBlock),
     NotLive(Variable, BasicBlock),
+    RegionLive(RegionName, BasicBlock),
+    RegionNotLive(RegionName, BasicBlock),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

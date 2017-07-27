@@ -50,6 +50,11 @@ impl Liveness {
             .all(|bit| self.liveness.bits(b).get(bit))
     }
 
+    pub fn region_live_on_entry(&self, region_name: repr::RegionName, b: BasicBlockIndex) -> bool {
+        let bit = self.var_bits[&region_name];
+        self.liveness.bits(b).get(bit)
+    }
+
     pub fn live_regions<'a>(
         &'a self,
         live_bits: BitSlice<'a>,

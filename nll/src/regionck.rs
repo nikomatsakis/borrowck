@@ -112,6 +112,30 @@ impl<'env> RegionCheck<'env> {
                         );
                     }
                 }
+
+                repr::Assertion::RegionLive(region_name, block_name) => {
+                    let block = self.env.graph.block(block_name);
+                    if !liveness.region_live_on_entry(region_name, block) {
+                        errors += 1;
+                        println!(
+                            "error: region `{:?}` not live on entry to `{:?}`",
+                            region_name,
+                            block_name
+                        );
+                    }
+                }
+
+                repr::Assertion::RegionNotLive(region_name, block_name) => {
+                    let block = self.env.graph.block(block_name);
+                    if liveness.region_live_on_entry(region_name, block) {
+                        errors += 1;
+                        println!(
+                            "error: region `{:?}` live on entry to `{:?}`",
+                            region_name,
+                            block_name
+                        );
+                    }
+                }
             }
         }
 

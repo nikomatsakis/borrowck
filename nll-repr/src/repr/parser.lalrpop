@@ -165,6 +165,8 @@ Assertion: Assertion = {
     "assert" <p:Point> "not" "in" <n:RegionName> ";" => Assertion::NotIn(n, p),
     "assert" <v:Variable> "live" "at" <b:BasicBlock> ";" => Assertion::Live(v, b),
     "assert" <v:Variable> "not" "live" "at" <b:BasicBlock> ";" => Assertion::NotLive(v, b),
+    "assert" <n:RegionName> "live" "at" <b:BasicBlock> ";" => Assertion::RegionLive(n, b),
+    "assert" <n:RegionName> "not" "live" "at" <b:BasicBlock> ";" => Assertion::RegionNotLive(n, b),
 };
 
 RegionName: RegionName = {

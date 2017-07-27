@@ -1,0 +1,35 @@
+struct Map<'-> { value: &'0 mut Value }
+struct Value { }
+
+// fn get_default<'r>(map: Map<'r>, value: &'r mut Value) {
+//   map.value = &mut *value;
+//   loop {
+//     use(value); // ERROR
+//   }
+// }
+
+for<'r>;
+let map: Map<'r>;
+let value: &'r mut Value;
+
+block START {
+    map = use(); // initialize the parameter
+    value = use();
+    map.value = &'_ mut *value;
+    goto LOOP;
+}
+
+block LOOP {
+    goto LOOP_BODY;
+}
+
+block LOOP_BODY {
+    use(value); //! ERROR
+    goto LOOP;
+}
+
+block LOOP_UNWIND {
+    // resume
+}
+
+assert 'r == {}; // ?? why does this include LOOP even without LOOP_UNWIND?
