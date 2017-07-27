@@ -31,5 +31,3 @@ block LOOP_BODY {
 block LOOP_UNWIND {
     // resume
 }
-
-assert 'r == {}; // ?? why does this include LOOP even without LOOP_UNWIND?
