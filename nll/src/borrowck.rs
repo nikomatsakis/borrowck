@@ -28,28 +28,37 @@ struct BorrowCheck<'cx> {
     loans: &'cx [&'cx Loan<'cx>],
 }
 
+enum Depth {
+    Shallow,
+    Deep,
+}
+
+enum Mode {
+    Read,
+    Write,
+}
+
 impl<'cx> BorrowCheck<'cx> {
     fn check_action(&self, action: &repr::Action) -> Result<(), Box<Error>> {
         log!("check_action({:?}) at {:?}", action, self.point);
         match action.kind {
             repr::ActionKind::Init(ref a, ref bs) => {
-                self.check_write(a)?;
+                self.check_instantaneous_write(a)?;
                 for b in bs {
                     self.check_read(b)?;
                 }
             }
             repr::ActionKind::Assign(ref a, ref b) => {
-                self.check_write(a)?;
+                self.check_instantaneous_write(a)?;
                 self.check_read(b)?;
             }
             repr::ActionKind::Borrow(ref a, _, repr::BorrowKind::Shared, ref b) => {
-                self.check_write(a)?;
+                self.check_instantaneous_write(a)?;
                 self.check_read(b)?;
             }
             repr::ActionKind::Borrow(ref a, _, repr::BorrowKind::Mut, ref b) => {
-                self.check_write(a)?;
-                self.check_read(b)?;
-                self.check_write(b)?;
+                self.check_instantaneous_write(a)?;
+                self.check_mut_borrow(b)?;
             }
             repr::ActionKind::Constraint(_) => {}
             repr::ActionKind::Use(ref p) => {
@@ -68,54 +77,59 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
-    /// Cannot write to a path `p` if:
-    /// - the path `p` is frozen by one of the loans
-    ///   - see `frozen_by_borrow_of()`
-    ///   - this covers writing to `a` (or `a.b`) when `a.b` is borrowed
-    /// - some prefix of `p` is borrowed.
-    ///   - this covers writing to `a.b.c` when `a.b` is borrowed
-    fn check_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
-        log!(
-            "check_write of {:?} at {:?} with loans={:#?}",
-            path,
-            self.point,
-            self.loans
-        );
-        if let Some(loan) = self.find_loan_that_freezes(path) {
-            return Err(Box::new(BorrowError::for_write(
-                self.point,
-                path,
-                &loan.path,
-                loan.point,
-            )));
-        }
-        Ok(())
+    /// `use(x)` may access `x` and (by going through the produced
+    /// value) anything reachable from `x`.
+    fn check_read(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        self.check_borrows(Depth::Deep, Mode::Read, path)
     }
 
-    /// Cannot read from a path `a.b.c` if:
-    /// - the exact path `a.b.c` is borrowed mutably;
-    /// - some subpath `a.b.c.d` is borrowed mutably;
-    /// - some prefix of `a.b` is borrowed mutably.
-    fn check_read(&self, path: &repr::Path) -> Result<(), Box<Error>> {
-        log!(
-            "check_read of {:?} at {:?} with loans={:#?}",
-            path,
-            self.point,
-            self.loans
-        );
-        for loan in self.find_loans_that_intersect(path) {
-            match loan.kind {
-                repr::BorrowKind::Shared => { /* Ok */ }
-                repr::BorrowKind::Mut => {
-                    return Err(Box::new(BorrowError::for_read(
+    /// `x = ...` overwrites `x` (without reading it) and prevents any
+    /// further reads from that path.
+    fn check_instantaneous_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        self.check_borrows(Depth::Shallow, Mode::Write, path)
+    }
+
+    /// `&mut x` may mutate `x`, but it can also *read* from `x`, and
+    /// mutate things reachable from `x`.
+    fn check_mut_borrow(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        self.check_borrows(Depth::Deep, Mode::Write, path)
+    }
+
+    fn check_borrows(&self,
+                     depth: Depth,
+                     access_mode: Mode,
+                     path: &repr::Path)
+                     -> Result<(), Box<Error>> {
+        let loans: Vec<_> = match depth {
+            Depth::Shallow => self.find_loans_that_freeze(path).collect(),
+            Depth::Deep => self.find_loans_that_intersect(path).collect(),
+        };
+
+        for loan in loans {
+            match access_mode {
+                Mode::Read => match loan.kind {
+                    repr::BorrowKind::Shared => { /* Ok */ }
+                    repr::BorrowKind::Mut => {
+                        return Err(Box::new(BorrowError::for_read(
+                            self.point,
+                            path,
+                            &loan.path,
+                            loan.point,
+                        )));
+                    }
+                },
+
+                Mode::Write => {
+                    return Err(Box::new(BorrowError::for_write(
                         self.point,
                         path,
                         &loan.path,
                         loan.point,
                     )));
-                }
+                },
             }
         }
+
         Ok(())
     }
 
@@ -159,7 +173,7 @@ impl<'cx> BorrowCheck<'cx> {
             self.point,
             self.loans
         );
-        if let Some(loan) = self.find_loan_that_freezes(&repr::Path::Var(var)) {
+        for loan in self.find_loans_that_freeze(&repr::Path::Var(var)) {
             return Err(Box::new(BorrowError::for_storage_dead(
                 self.point,
                 var,
@@ -204,13 +218,19 @@ impl<'cx> BorrowCheck<'cx> {
     /// around move and reads, precisely because overwriting or
     /// freeing `path` makes the previous value unavailable from that
     /// point on.
-    fn find_loan_that_freezes(&self, path: &repr::Path) -> Option<&Loan> {
-        let prefixes = path.prefixes();
-        self.loans.iter().cloned().find(|loan| {
+    fn find_loans_that_freeze<'a>(
+        &'a self,
+        path: &repr::Path)
+        -> impl Iterator<Item = &'a Loan> + 'a
+    {
+        let path: repr::Path = path.clone();
+        self.loans.iter().cloned().filter(move |loan| {
+            let prefixes = path.prefixes();
+
             // If you have borrowed `a.b`, this prevents writes to `a`
             // or `a.b`:
             let frozen_paths = self.frozen_by_borrow_of(&loan.path);
-            frozen_paths.contains(&path) ||
+            frozen_paths.contains(&&path) ||
 
                 // If you have borrowed `a.b`, this prevents writes to
                 // `a.b.c`:
