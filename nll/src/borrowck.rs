@@ -43,21 +43,21 @@ impl<'cx> BorrowCheck<'cx> {
         log!("check_action({:?}) at {:?}", action, self.point);
         match action.kind {
             repr::ActionKind::Init(ref a, ref bs) => {
-                self.check_instantaneous_write(a)?;
+                self.check_shallow_write(a)?;
                 for b in bs {
                     self.check_read(b)?;
                 }
             }
             repr::ActionKind::Assign(ref a, ref b) => {
-                self.check_instantaneous_write(a)?;
+                self.check_shallow_write(a)?;
                 self.check_read(b)?;
             }
             repr::ActionKind::Borrow(ref a, _, repr::BorrowKind::Shared, ref b) => {
-                self.check_instantaneous_write(a)?;
+                self.check_shallow_write(a)?;
                 self.check_read(b)?;
             }
             repr::ActionKind::Borrow(ref a, _, repr::BorrowKind::Mut, ref b) => {
-                self.check_instantaneous_write(a)?;
+                self.check_shallow_write(a)?;
                 self.check_mut_borrow(b)?;
             }
             repr::ActionKind::Constraint(_) => {}
@@ -85,7 +85,7 @@ impl<'cx> BorrowCheck<'cx> {
 
     /// `x = ...` overwrites `x` (without reading it) and prevents any
     /// further reads from that path.
-    fn check_instantaneous_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+    fn check_shallow_write(&self, path: &repr::Path) -> Result<(), Box<Error>> {
         self.check_borrows(Depth::Shallow, Mode::Write, path)
     }
 
