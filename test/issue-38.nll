@@ -1,0 +1,29 @@
+// // set the scene
+// x = Some(0);
+// y = &mut x;
+// assert(Discr(*y) is Some);
+// z = &(*y as Some).0; // (*)
+// 
+// // ... and then
+// t = &mut y;
+// **t = None;
+// // oops
+// use(z);
+
+struct Map { value: Value }
+struct Value { }
+
+let x: Map;
+let y: &'_ mut Map;
+let z: &'_ Value;
+let t: &'_ mut &'_ mut Map;
+
+block START {
+  x = use();
+  y = &'_ mut x;
+  z = &'_ (*y).value;
+
+  t = &'_ mut y; //! ERROR
+  **t = use();
+  use(z);
+}
