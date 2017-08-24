@@ -105,7 +105,19 @@ impl<'env> Dfs<'env> {
 
             changed |= to_region.add_point(p);
 
-            self.stack.extend(self.env.successor_points(p));
+            let successor_points = self.env.successor_points(p);
+            if successor_points.is_empty() {
+                // If we reach the END point in the graph, then copy
+                // over any skolemized end points in the `from_region`
+                // and make sure they are included in the `to_region`.
+                for region_decl in self.env.graph.free_regions() {
+                    let block = self.env.graph.skolemized_end(region_decl.name);
+                    let skolemized_end_point = Point { block, action: 0 };
+                    changed |= to_region.add_point(skolemized_end_point);
+                }
+            } else {
+                self.stack.extend(successor_points);
+            }
         }
 
         changed

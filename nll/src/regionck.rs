@@ -147,6 +147,33 @@ impl<'env> RegionCheck<'env> {
     }
 
     fn populate_inference(&mut self, liveness: &Liveness) {
+        // This is sort of a hack, but... for each "free region" `r`,
+        // we will wind up with a region variable. We want that region
+        // variable to be inferred to precisely the set: `{G, ...,
+        // End(r)}`, where `G` is all the points in the control-flow
+        // graph, and `End(r)` is the end-point of `r`. We also want
+        // to include the endpoints of any free-regions that `r`
+        // outlives. For now I'm ignoring that last bit, and we're
+        // also not enforcing (in inference) that `r` doesn't get
+        // inferred to some *larger* region (that would be a kind of
+        // constraint we would need to add, and inference right now
+        // doesn't permit such constraints -- you could also view it
+        // an assertion that we add to the tests).
+        for region_decl in self.env.graph.free_regions() {
+            let region = region_decl.name;
+            let rv = self.region_variable(region);
+            for &block in &self.env.reverse_post_order {
+                let end_point = self.env.end_point(block);
+                for action in 0 .. end_point.action {
+                    self.infer.add_live_point(rv, Point { block, action });
+                }
+                self.infer.add_live_point(rv, end_point);
+            }
+
+            let skolemized_block = self.env.graph.skolemized_end(region);
+            self.infer.add_live_point(rv, Point { block: skolemized_block, action: 0 });
+        }
+
         liveness.walk(|point, action, live_on_entry| {
             // To start, find every variable `x` that is live. All regions
             // in the type of `x` must include `point`.
