@@ -153,14 +153,13 @@ impl<'env> RegionCheck<'env> {
         // End(r)}`, where `G` is all the points in the control-flow
         // graph, and `End(r)` is the end-point of `r`. We also want
         // to include the endpoints of any free-regions that `r`
-        // outlives. For now I'm ignoring that last bit, and we're
-        // also not enforcing (in inference) that `r` doesn't get
-        // inferred to some *larger* region (that would be a kind of
-        // constraint we would need to add, and inference right now
-        // doesn't permit such constraints -- you could also view it
+        // outlives. We're also not enforcing (in inference) that `r`
+        // doesn't get inferred to some *larger* region (that would be
+        // a kind of constraint we would need to add, and inference right
+        // now doesn't permit such constraints -- you could also view it
         // an assertion that we add to the tests).
         for region_decl in self.env.graph.free_regions() {
-            let region = region_decl.name;
+            let &repr::RegionDecl { name: region, ref outlives } = region_decl;
             let rv = self.region_variable(region);
             for &block in &self.env.reverse_post_order {
                 let end_point = self.env.end_point(block);
@@ -172,6 +171,10 @@ impl<'env> RegionCheck<'env> {
 
             let skolemized_block = self.env.graph.skolemized_end(region);
             self.infer.add_live_point(rv, Point { block: skolemized_block, action: 0 });
+            for &region in outlives {
+                let skolemized_block = self.env.graph.skolemized_end(region);
+                self.infer.add_live_point(rv, Point { block: skolemized_block, action: 0});
+            }
         }
 
         liveness.walk(|point, action, live_on_entry| {

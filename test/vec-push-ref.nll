@@ -37,7 +37,7 @@ assert EXIT/0 in 'p;
 assert v not live at START;
 assert v live at B;
 assert v live at C;
-assert v not live at START;
+assert v live at EXIT;
 
 assert p not live at START;
 assert p live at B;
