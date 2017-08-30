@@ -64,7 +64,7 @@ RegionDecls: Vec<RegionDecl> = {
 
 RegionDecl: RegionDecl = {
     <name:RegionName> => RegionDecl { name, outlives: vec![] },
-    <name:RegionName> ":" <outlives:List<"+", RegionName>> => RegionDecl { name, outlives: vec![] },
+    <name:RegionName> ":" <outlives:List<"+", RegionName>> => RegionDecl { name, outlives },
 };
 
 VarDecl: VariableDecl = {
