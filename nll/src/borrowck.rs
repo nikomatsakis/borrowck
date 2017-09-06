@@ -65,7 +65,7 @@ impl<'cx> BorrowCheck<'cx> {
                 self.check_read(p)?;
             }
             repr::ActionKind::Drop(ref p) => {
-                self.check_move(p)?;
+                self.check_drop(p)?;
             }
             repr::ActionKind::StorageDead(p) => {
                 self.check_storage_dead(p)?;
@@ -133,6 +133,47 @@ impl<'cx> BorrowCheck<'cx> {
         Ok(())
     }
 
+    /// Cannot drop (*) for a path `p` if:
+    /// - `p` is borrowed;
+    /// - some subpath `p.foo` is borrowed (unless *every* projection
+    ///   for the subpath is may_dangle)
+    /// - some prefix of `p` is borrowed
+    ///
+    /// Note that the above disjunction is stricter than both *writes*
+    /// and *storage-dead*. In particular, you **can** write to a variable
+    /// `x` that contains an `&mut value when `*x` is borrowed, but you
+    /// **cannot** drop `x`. This is because the drop may run a destructor
+    /// that could subsequently access `*x` via the variable.
+    ///
+    /// (On the other hand, `may_dangle` throws a wrench into the
+    /// reasoning above. Namely, even if `*x` is borrowed, you still
+    /// **can** drop `x` that contains a `&'l mut value` where
+    /// `may_dangle 'l`, because that serves as a flag that the
+    /// destructor is not allowed to access the data behind any
+    /// reference of lifetime `'l`.)
+    ///
+    /// (*): to drop is to check the initialization-flag (be it static
+    /// or dynamic), and run all destructors recursively if
+    /// initialized)
+    fn check_drop(&self, path: &repr::Path) -> Result<(), Box<Error>> {
+        log!(
+            "check_drop of {:?} at {:?} with loans={:#?}",
+            path,
+            self.point,
+            self.loans
+        );
+        for loan in self.find_loans_that_intersect(path) {
+            return Err(Box::new(BorrowError::for_drop(
+                self.point,
+                path,
+                &loan.path,
+                loan.point,
+            )));
+        }
+        Ok(())
+    }
+
+    #[cfg(not_now)]
     /// Cannot move from a path `p` if:
     /// - `p` is borrowed;
     /// - some subpath `p.foo` is borrowed;
@@ -285,6 +326,24 @@ impl BorrowError {
         }
     }
 
+    fn for_drop(
+        point: Point,
+        path: &repr::Path,
+        loan_path: &repr::Path,
+        loan_point: Point,
+    ) -> Self {
+        BorrowError {
+            description: format!(
+                "point {:?} cannot drop {:?} because {:?} is borrowed (at point `{:?}`)",
+                point,
+                path,
+                loan_path,
+                loan_point
+            ),
+        }
+    }
+
+    #[cfg(not_now)]
     fn for_move(
         point: Point,
         path: &repr::Path,
