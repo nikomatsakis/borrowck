@@ -1,0 +1,36 @@
+// fn should_be_disallowed_2<'long>(impure_drop: PoisonOnDrop<'long>) {
+//     let borrow: &'long mut Type;
+//     {
+//         let tmp = impure_drop;
+//         borrow = &*tmp.0; // `borrow` wants shared access to `*tmp.0`
+//
+//     }                         // but dropping `tmp` mutates `*tmp.0`
+//     println!("borrow: {:?}", borrow);
+// }
+
+struct Type { }
+
+// Notes:
+// * invariant ('=) because its `&mut` (probably irrelevant to our concerns here)
+// * lack of may_dangle implies destructor may dereference self.dummy
+
+struct PoisonOnDrop<'=> {
+    dummy: &'0 mut Type
+}
+
+let impure_drop: PoisonOnDrop<'long>;
+let borrow: &'func Type;
+
+block START {
+    borrow = &'_ *impure_drop.dummy;
+
+    drop(impure_drop); //! ERROR
+    StorageDead(impure_drop);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+    StorageDead(borrow);
+}

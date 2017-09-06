@@ -1,0 +1,41 @@
+// struct MessageOnDrop2<T>(T);
+//
+// unsafe impl<#[may_dangle] T> Drop for MessageOnDrop<T> {
+//     fn drop(&mut self) {
+//         println!("dropping but not derefing");
+//     }
+// }
+//
+// fn and_also_allow_dangling_types<'long>(pure_drop: MessageOnDrop2<&'long mut Type>) {
+//     let borrow: &'long mut Type;
+//     {
+//         let tmp = pure_drop;
+//         borrow = &mut *tmp.0; // `borrow` must have sole access to `*tmp.0` here
+//
+//     }                         // dropping `tmp` will not access `*tmp.0`
+//     println!("borrow: {:?}", borrow);
+// }
+
+struct Type { }
+
+// FIXME: should this be invariant instead of co-variant?
+struct MessageOnDrop<may_dangle +> {
+    val: 0
+}
+
+let pure_drop: MessageOnDrop<&'long mut Type>;
+let borrow: &'func mut Type;
+
+block START {
+    borrow = &'_ mut *pure_drop.val;
+
+    drop(pure_drop);
+    StorageDead(pure_drop);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+    StorageDead(borrow);
+}

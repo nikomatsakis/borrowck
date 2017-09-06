@@ -1,0 +1,40 @@
+// struct MessageOnDrop1<'a>(&'a mut Type);
+//
+// unsafe impl<#[may_dangle] 'a> Drop for MessageOnDrop1<'a> {
+//     fn drop(&mut self) {
+//         println!("dropping but not derefing");
+//     }
+// }
+//
+// fn but_allow_dangling_lifetimes<'long>(pure_drop: MessageOnDrop1<'long>) {
+//     let borrow: &'long mut Type;
+//     {
+//         let tmp = pure_drop;
+//         borrow = &mut *tmp.0; // `borrow` must have sole access to `*tmp.0` here
+//
+//     }                         // dropping `tmp` will not access `*tmp.0`
+//     println!("borrow: {:?}", borrow);
+// }
+
+struct Type { }
+
+struct MessageOnDrop<may_dangle '=> {
+    ptr: &'0 mut Type
+}
+
+let pure_drop: MessageOnDrop<'long>;
+let borrow: &'func mut Type;
+
+block START {
+    borrow = &'_ mut *pure_drop.ptr;
+
+    drop(pure_drop);
+    StorageDead(pure_drop);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+    StorageDead(borrow);
+}

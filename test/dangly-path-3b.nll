@@ -1,0 +1,29 @@
+// This is a variation on dangly-path-3a that has a use of `pure_drop`
+// instead of a drop. This is just a double-check that whatever I do
+// to let the drops through does not also let the uses through too,
+// since uses do not provide the reasoning about "purity"
+// (parametricity? dangliness?) that is provided to drop via
+// #[may_dangle].
+
+struct Type { }
+
+struct MessageOnDrop<may_dangle '=> {
+    ptr: &'0 mut Type
+}
+
+let pure_drop: MessageOnDrop<'long>;
+let borrow: &'func mut Type;
+
+block START {
+    borrow = &'_ mut *pure_drop.ptr;
+
+    use(pure_drop); //! ERROR
+    StorageDead(pure_drop);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+    StorageDead(borrow);
+}

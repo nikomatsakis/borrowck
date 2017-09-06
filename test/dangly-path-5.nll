@@ -1,0 +1,37 @@
+// fn still_reject_this<'long>(eventually_impure: MessageOnDrop2<PoisonOnDrop<'long>) {
+//     let borrow: &'long mut Type;
+//     {
+//         let tmp = pure_drop;
+//         borrow = &mut *(tmp.0).0; // `borrow` must have sole access to `*(tmp.0).0` here
+//
+//     }                         // dropping `tmp` mutates `*(tmp.0).0`
+//     println!("borrow: {:?}", borrow);
+// }
+
+struct Type { }
+
+// FIXME: should this be invariant instead of co-variant?
+struct MessageOnDrop<may_dangle +> {
+    val: 0
+}
+
+struct PoisonOnDrop<'=> {
+    ptr: &'0 mut Type
+}
+
+let eventually_impure: MessageOnDrop<PoisonOnDrop<'long>>;
+let borrow: &'func mut Type;
+
+block START {
+    borrow = &'_ mut *(eventually_impure.val).ptr;
+
+    drop(eventually_impure); //! ERROR
+    StorageDead(eventually_impure);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+    StorageDead(borrow);
+}
