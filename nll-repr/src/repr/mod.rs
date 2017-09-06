@@ -306,6 +306,21 @@ impl Path {
     }
 }
 
+impl fmt::Display for Path {
+    fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Path::Var(ref var) =>
+                write!(w, "{}", var.name),
+            Path::Extension(ref path, ref field_name) =>
+                if field_name.name == intern::intern("*") {
+                    write!(w, "*{}", path)
+                } else {
+                    write!(w, "{}.{}", path, field_name.name)
+                },
+        }
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Constraint {
     ForAll(Vec<RegionName>, Box<Constraint>),
