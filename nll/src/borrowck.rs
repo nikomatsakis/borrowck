@@ -334,7 +334,7 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot drop {:?} because {:?} is borrowed (at point `{:?}`)",
+                "point {:?} cannot drop `{}` because `{}` is borrowed (at point `{:?}`)",
                 point,
                 path,
                 loan_path,
