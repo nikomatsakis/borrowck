@@ -139,11 +139,7 @@ impl<'func> Environment<'func> {
 
             repr::Ty::Struct(n, ref parameters) => {
                 let struct_decl = self.struct_map[&n];
-                let field_decl = struct_decl
-                    .fields
-                    .iter()
-                    .find(|fd| fd.name == field_name)
-                    .unwrap_or_else(|| panic!("no field named `{:?}` in `{:?}`", field_name, n));
+                let field_decl = struct_decl.field_decl(&field_name);
                 let field_ty = &field_decl.ty;
                 log!(
                     "field_ty: field_ty={:?} parameters={:?}",

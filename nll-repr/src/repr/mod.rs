@@ -57,6 +57,15 @@ pub struct StructDecl {
     pub fields: Vec<FieldDecl>,
 }
 
+impl StructDecl {
+    pub fn field_decl(&self, field_name: &FieldName) -> &FieldDecl {
+        self.fields
+            .iter()
+            .find(|fd| fd.name == *field_name)
+            .unwrap_or_else(|| panic!("no field named `{:?}` in `{:?}`", field_name, self))
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct FieldDecl {
     pub name: FieldName,
