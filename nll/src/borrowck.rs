@@ -41,6 +41,8 @@ enum Mode {
 impl<'cx> BorrowCheck<'cx> {
     fn check_action(&self, action: &repr::Action) -> Result<(), Box<Error>> {
         log!("check_action({:?}) at {:?}", action, self.point);
+        // FIXME: should check_read in Init and Assign use check_move
+        // instead of (or in addition to) check_read?
         match action.kind {
             repr::ActionKind::Init(ref a, ref bs) => {
                 self.check_shallow_write(a)?;
