@@ -165,6 +165,9 @@ impl<'cx> BorrowCheck<'cx> {
             self.loans
         );
         for loan in self.find_loans_that_intersect(path) {
+            if loan.path.may_dangle_with_respect_to(self.env, path) {
+                continue;
+            }
             return Err(Box::new(BorrowError::for_drop(
                 self.point,
                 path,
@@ -312,6 +315,213 @@ impl<'cx> BorrowCheck<'cx> {
                     }
                 }
             }
+        }
+    }
+}
+
+// Extension trait to attach dangly-path analysis.
+//
+// `p` *may dangle with respect to* `r` when a borrow of p can remain
+// valid across drop(r), because the destructor for `r` guarantees it
+// will not touch the data behind such a borrow.
+//
+// (Methods are documented with its impl.)
+trait MayDangle {
+    fn may_dangle_with_respect_to(&self,
+                                  env: &Environment,
+                                  root: &repr::Path)
+                                  -> bool;
+
+    fn inner_deref_nearest<'a>(&'a self,
+                               root: &repr::Path)
+                               -> Option<&'a repr::Path>;
+
+    fn all_allow_dangling_up_to(&self,
+                                env: &Environment,
+                                root: &repr::Path)
+                                -> bool;
+}
+
+impl MayDangle for repr::Path {
+    // Main entry point; true only if this path may dangle with
+    // respect to `root`.
+    fn may_dangle_with_respect_to(&self,
+                                  env: &Environment,
+                                  root: &repr::Path)
+                                  -> bool
+    {
+        let path = self;
+
+        // Determine if `p` may dangle w.r.t. `root`: identify path
+        // `loc` such that `p` extends `*loc`, `*loc` extends `root`,
+        // and all structs on path from `root` to `*loc` allow
+        // dangling.
+
+        // Since we require all structured data along path to `*loc`
+        // to allow dangling, we can without loss of generality
+        // *solely* consider the `*loc` closest to the root.
+        //
+        // For example, given root `r` and path `(*(*r.f1).f2).f3`
+        // (aka `p`), if we determine that `*r.f1` (= `*loc`) may
+        // dangle with respect to `r`, then dropping `r` is guaranteed
+        // not to access state behind `*r.f1`, which will include all
+        // of `(*r.f1).f2`, `*(*r.f1).f2`, and `(*(*r.f1).f2).f3`.
+        //
+        // Therefore need only consider the loc `r.f1` to know `p` may
+        // dangle with respect to `r`.
+        let loc = match path.inner_deref_nearest(root) {
+            // This is nearest deref we saw before we hit root.
+            Some(loc) => loc,
+
+            // Either (1.) we never saw deref or (2.) `path` is not an
+            // extension of `root`; cannot be a dangly path.
+            None => return false,
+        };
+
+        // At this point we have a candidate `*loc` where
+        // `p` extends `*loc` and `*loc` extends `r`.
+        //
+        // Need to confirm that every destructor up to and including
+        // the destructor of root allows `*loc` to dangle.
+
+        return loc.all_allow_dangling_up_to(env, root);
+    }
+
+    // Remainder are helper methods for doing dangly-path analysis.
+
+    // `p.inner_deref_nearest(r)` returns `loc` such that `p` extends
+    // `*loc`, `*loc` extends `r`, and there are no remaining derefs
+    // between `*loc` and `r`.
+    fn inner_deref_nearest<'a>(&'a self,
+                               root: &repr::Path)
+                               -> Option<&'a repr::Path> {
+        let mut path = self;
+        let mut cand_loc: Option<&repr::Path> = None;
+        loop {
+            if path == root {
+                return cand_loc;
+            } else {
+                match *path {
+                    repr::Path::Extension(ref p, ref field_name) => {
+                        if field_name == &repr::FieldName::star() {
+                            cand_loc = Some(p);
+                        }
+                        path = p;
+                        continue;
+                    }
+                    repr::Path::Var(_) => {
+                        // If we hit `Var`, then `path` does not extend `root`.
+                        return None;
+                    }
+                }
+            }
+        }
+    }
+
+    // Here, `self` is the candidate loc.
+    //
+    // `loc.all_allow_dangling_up_to(env, r)` is true only if path
+    // from `r` to `loc` has no destructors that could access state of
+    // `loc`.
+    fn all_allow_dangling_up_to(&self,
+                                env: &Environment,
+                                root: &repr::Path)
+                                -> bool {
+        let loc = self;
+        let mut b = loc.clone();
+        loop {
+            let next_b; // (lexical lifetimes force updating `b` outside `match`)
+            match b {
+                repr::Path::Var(_) => {
+                    // all destructors we encountered allowed `loc` to
+                    // dangle. As a sanity check, ensure `loc` extends root.
+                    assert_eq!(b, *root);
+                    return true;
+                }
+                repr::Path::Extension(ref p, ref field_name) => {
+                    // We know this is a non-deref extension, since
+                    // `*loc` is the deref extension nearest to
+                    // `root`.
+                    assert_ne!(field_name, &repr::FieldName::star());
+
+                    // On any extension, we need to determine if the
+                    // destructor for `p` allows this field to dangle.
+                    let p_ty = env.path_ty(p);
+                    let struct_name = if let repr::Ty::Struct(s_n, _params) = *p_ty {
+                        s_n
+                    } else {
+                        panic!("how can we have non-deref extension {:?} of non-struct type {:?}",
+                               p, p_ty);
+                    };
+                    let struct_decl = env.struct_map[&struct_name];
+                    let field_decl = struct_decl.field_decl(field_name);
+                    match *field_decl.ty {
+                        repr::Ty::Ref(rgn, _borrow_kind, ref _base_ty) => {
+                            match rgn {
+                                repr::Region::Free(region_name) => {
+                                    // free regions are never struct
+                                    // params and thus can never be
+                                    // marked "may_dangle". (Or if you
+                                    // prefer another POV, we assume
+                                    // free regions appearing within
+                                    // struct declaration itself can
+                                    // always be referenced from the
+                                    // destructor.)
+                                    log!("root `{T:?}` might access loc `{L:?}` \
+                                          via &'{R} in {S} destructor",
+                                         T=root, L=loc, S=struct_decl.name, R=region_name);
+                                    return false;
+                                }
+                                repr::Region::Bound(idx) => {
+                                    let struct_param = struct_decl.parameters[idx];
+                                    if !struct_param.may_dangle {
+                                        log!("root `{T:?}` might access loc `{L:?}` \
+                                              via `&'{R}` in {S} destructor",
+                                             T=root, L=loc, S=struct_decl.name, R=idx);
+                                        return false;
+                                    } else {
+                                        log!("struct {S} says region `'{R}` may dangle during \
+                                              destructor access to loc `{L:?}` from root `{T:?}`",
+                                             T=root, L=loc, S=struct_decl.name, R=idx);
+                                    }
+                                }
+                            }
+                        }
+                        repr::Ty::Unit => {
+                            panic!("found unit type during the dangly path walk?");
+                        }
+                        repr::Ty::Struct(struct_name, ref _params) => {
+                            // we must have already confirmed this
+                            // struct's destructor (with respect to a
+                            // particular field of the path) earlier
+                            // in the walk. Keep going.
+                            log!("struct {S2} presumed innocent of access to \
+                                  loc `{L:?}` from root `{T:?}` in {S} destructor",
+                                 T=root, L=loc, S=struct_decl.name, S2=struct_name);
+                        }
+                        repr::Ty::Bound(idx) => {
+                            let struct_param = struct_decl.parameters[idx];
+                            if !struct_param.may_dangle {
+                                log!("root `{T:?}` might access loc `{L:?}` \
+                                      via type param {P} in {S} destructor",
+                                     T=root, L=loc, S=struct_decl.name, P=idx);
+                                return false;
+                            } else {
+                                log!("struct {S} says type param {P} may dangle \
+                                      during destructor access to loc `{L:?}` from root `{T:?}`",
+                                     T=root, L=loc, S=struct_decl.name, P=idx);
+                            }
+                        }
+                    }
+
+                    if b == *root {
+                        return true;
+                    }
+
+                    next_b = (**p).clone();
+                }
+            };
+            b = next_b;
         }
     }
 }
