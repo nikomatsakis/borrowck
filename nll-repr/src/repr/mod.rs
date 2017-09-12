@@ -121,6 +121,12 @@ pub struct StructName {
     name: InternedString
 }
 
+impl fmt::Display for StructName {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}", self.name)
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum Ty {
     Ref(Region, BorrowKind, Box<Ty>),
