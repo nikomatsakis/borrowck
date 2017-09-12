@@ -57,6 +57,15 @@ pub struct StructDecl {
     pub fields: Vec<FieldDecl>,
 }
 
+impl StructDecl {
+    pub fn field_decl(&self, field_name: &FieldName) -> &FieldDecl {
+        self.fields
+            .iter()
+            .find(|fd| fd.name == *field_name)
+            .unwrap_or_else(|| panic!("no field named `{:?}` in `{:?}`", field_name, self))
+    }
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct FieldDecl {
     pub name: FieldName,
@@ -110,6 +119,12 @@ impl Variance {
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct StructName {
     name: InternedString
+}
+
+impl fmt::Display for StructName {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}", self.name)
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -302,6 +317,21 @@ impl Path {
         match *self {
             Path::Var(..) => None,
             Path::Extension(..) => Some(self.base()),
+        }
+    }
+}
+
+impl fmt::Display for Path {
+    fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Path::Var(ref var) =>
+                write!(w, "{}", var.name),
+            Path::Extension(ref path, ref field_name) =>
+                if field_name.name == intern::intern("*") {
+                    write!(w, "*{}", path)
+                } else {
+                    write!(w, "{}.{}", path, field_name.name)
+                },
         }
     }
 }

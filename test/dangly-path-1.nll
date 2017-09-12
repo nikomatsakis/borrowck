@@ -1,0 +1,37 @@
+// fn allowed_and_sound<'long>(a_box: Box<&'long mut Type>) {
+//     let borrow: &'long mut Type;
+//     {
+//         let tmp = a_box;
+//         borrow = &mut **tmp; // Know `borrow` must have sole access to `**tmp` here
+//
+//     }                        // `tmp` dropped here
+//
+//     // `*borrow` is valid (since `'long` outlives invocation), and we know
+//     //  destroying `tmp` (a Box) did not touch data behind the reference.
+//     println!("borrow; {:?}", borrow);
+// }
+
+struct Type { }
+
+struct Box<may_dangle +> {
+    dummy: 0
+}
+
+let a_box: Box<&'long mut Type>;
+let borrow: &'func mut Type;
+
+block START {
+    borrow = &'_ mut *a_box.dummy;
+
+    drop(a_box);
+    StorageDead(a_box);
+
+    goto REBORROW_USE;
+}
+
+block REBORROW_USE {
+    use(*borrow);
+}
+
+assert borrow live at REBORROW_USE;
+assert a_box not live at REBORROW_USE;
