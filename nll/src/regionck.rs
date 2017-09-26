@@ -56,6 +56,15 @@ impl<'env> RegionCheck<'env> {
 
         // Add inference constraints.
         self.populate_inference(liveness);
+
+        // Solve inference constraints, reporting any errors.
+        for error in self.infer.solve(self.env) {
+            errors.report_error(error.constraint_point,
+                                format!("capped variable `{}` exceeded its limits",
+                                        error.name));
+        }
+
+        // Compute loans in scope at each point.
         let loans_in_scope = &LoansInScope::new(self);
 
         // Run the borrow check, reporting any errors.
@@ -169,7 +178,66 @@ impl<'env> RegionCheck<'env> {
         Ok(())
     }
 
+    fn populate_outlives(
+        &mut self,
+        rv: RegionVariable,
+        visited: &mut Vec<RegionName>, // memoization
+        outlives: &Vec<RegionName>,
+    ) {
+        for &region in outlives {
+            // avoid recomputation
+            if visited.contains(&region) {
+                continue;
+            }
+
+            let skolemized_block = self.env.graph.skolemized_end(region);
+            self.infer.add_live_point(rv, Point { block: skolemized_block,  action: 0, });
+            let outlives = {
+                let mut possible_matches = self.env.graph
+                    .free_regions()
+                    .iter()
+                    .filter(|rd| region == rd.name);
+                match possible_matches.next() {
+                    Some(region_decl) => &region_decl.outlives,
+                    None => continue
+                }
+            };
+
+            visited.push(region);
+            self.populate_outlives(rv, visited, &outlives);
+        }
+    }
+
     fn populate_inference(&mut self, liveness: &Liveness) {
+        // This is sort of a hack, but... for each "free region" `r`,
+        // we will wind up with a region variable. We want that region
+        // variable to be inferred to precisely the set: `{G, ...,
+        // End(r)}`, where `G` is all the points in the control-flow
+        // graph, and `End(r)` is the end-point of `r`. We also want
+        // to include the endpoints of any free-regions that `r`
+        // outlives. We're not enforcing (in inference) that `r` doesn't
+        // get inferred to some *larger* region (that would be a kind of
+        // constraint we would need to add, and inference right now
+        // doesn't permit such constraints -- you could also view it
+        // an assertion that we add to the tests).
+        for region_decl in self.env.graph.free_regions() {
+            let &RegionDecl{ name: region, ref outlives } = region_decl;
+            let rv = self.region_variable(region);
+            for &block in &self.env.reverse_post_order {
+                let end_point = self.env.end_point(block);
+                for action in 0 .. end_point.action {
+                    self.infer.add_live_point(rv, Point { block, action });
+                }
+                self.infer.add_live_point(rv, end_point);
+            }
+
+            let skolemized_block = self.env.graph.skolemized_end(region);
+            self.infer.add_live_point(rv, Point { block: skolemized_block, action: 0 });
+            self.populate_outlives(rv, &mut vec![region], outlives);
+            self.infer.cap_var(rv);
+            log!("Region for {:?}:\n{:#?}\n", region, self.infer.region(rv));
+        }
+
         liveness.walk(|point, action, live_on_entry| {
             // To start, find every variable `x` that is live. All regions
             // in the type of `x` must include `point`.
@@ -244,13 +312,11 @@ impl<'env> RegionCheck<'env> {
                 }
             }
         });
-
-        self.infer.solve(self.env);
     }
 
     fn region_variable(&mut self, n: repr::RegionName) -> RegionVariable {
         let infer = &mut self.infer;
-        let r = *self.region_map.entry(n).or_insert_with(|| infer.add_var());
+        let r = *self.region_map.entry(n).or_insert_with(|| infer.add_var(n));
         log!("{:?} => {:?}", n, r);
         r
     }
