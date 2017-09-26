@@ -8,7 +8,7 @@ let b: &'_ ();
 block START {
     a = use();
     b = &'_ a.field;
-    drop(a); //! ERROR
+    drop(a); //! `a.field` is borrowed
     use(b);
     StorageDead(b);
     StorageDead(a);

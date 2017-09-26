@@ -24,7 +24,7 @@ let c: &'_ Foo<'_>;
 block START {
     a = use();
     b = &'_ mut a.field.field;
-    c = &'_ a; //! ERROR -- aliases `b`
+    c = &'_ a; //! `a.field.field` is mutably borrowed
     use(b);
     StorageDead(b);
     StorageDead(a);

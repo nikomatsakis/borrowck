@@ -23,7 +23,7 @@ let b: &'_ mut &'_ mut ();
 block START {
     a = use();
     b = &'_ mut a.field.field;
-    a = use(); //! ERROR
+    a = use(); //! `a.field.field` is borrowed
     use(b);
     StorageDead(b);
     StorageDead(a);

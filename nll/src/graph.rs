@@ -72,7 +72,7 @@ impl FuncGraph {
                     [
                         repr::Action {
                             kind: repr::ActionKind::SkolemizedEnd(rd.name),
-                            should_have_error: false,
+                            should_have_error: None,
                         },
                     ],
                 )

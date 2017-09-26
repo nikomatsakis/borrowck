@@ -15,7 +15,7 @@ let p: &'_ u8;
 block START {
     b = use();
     x = &'_ mut b;
-    p = &'_ *b.current; //! ERROR
+    p = &'_ *b.current; //! `b` is mutably borrowed
     use(x);
     use(p);
     StorageDead(p);

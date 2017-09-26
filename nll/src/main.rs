@@ -21,6 +21,7 @@ use std::process;
 mod log;
 mod borrowck;
 mod env;
+mod errors;
 use self::env::Environment;
 mod infer;
 mod loans_in_scope;

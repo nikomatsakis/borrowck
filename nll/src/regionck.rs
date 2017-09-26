@@ -1,9 +1,10 @@
 use borrowck;
 use env::{Environment, Point};
+use errors::ErrorReporting;
 use loans_in_scope::LoansInScope;
 use liveness::Liveness;
 use infer::{InferenceContext, RegionVariable};
-use nll_repr::repr::{self, RegionName, Variance};
+use nll_repr::repr::{self, RegionName, Variance, RegionDecl};
 use std::collections::HashMap;
 use std::error::Error;
 use region::Region;
@@ -37,12 +38,34 @@ impl<'env> RegionCheck<'env> {
     }
 
     fn check(&mut self) -> Result<(), Box<Error>> {
+        let mut errors = ErrorReporting::new();
+
+        // Register expected errors.
+        for &block in &self.env.reverse_post_order {
+            let actions = self.env.graph.block_data(block).actions();
+            for (index, action) in actions.iter().enumerate() {
+                let point = Point { block, action: index };
+                if let Some(ref expected) = action.should_have_error {
+                    errors.expect_error(point, &expected.string);
+                }
+            }
+        }
+
+        // Compute liveness.
         let liveness = &Liveness::new(self.env);
+
+        // Add inference constraints.
         self.populate_inference(liveness);
         let loans_in_scope = &LoansInScope::new(self);
-        borrowck::borrow_check(self.env, loans_in_scope)?;
+
+        // Run the borrow check, reporting any errors.
+        borrowck::borrow_check(self.env, loans_in_scope, &mut errors);
+
+        // Check that all assertions are obeyed.
         self.check_assertions(liveness)?;
-        Ok(())
+
+        // Check that we found the errors we expect to.
+        errors.reconcile_errors()
     }
 
     fn check_assertions(&self, liveness: &Liveness) -> Result<(), Box<Error>> {

@@ -108,7 +108,7 @@ BasicBlockData: BasicBlockData = {
 Action: Action = {
     Comment* <kind:ActionKind> <e:ErrorComment?> => Action {
         kind,
-        should_have_error: e.is_some(),
+        should_have_error: e,
     },
 };
 
@@ -230,8 +230,8 @@ Comment: () = {
     r"//[^!].*" => (),
 };
 
-ErrorComment: () = {
-    r"//!.*" => ()
+ErrorComment: ExpectedError = {
+    <s:r"//!.*"> => ExpectedError { string: s["//!".len()..].trim().to_string() },
 };
 
 Angle<T>: Vec<T> = {

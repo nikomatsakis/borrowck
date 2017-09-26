@@ -7,7 +7,7 @@
 //   let p = &mut foo;
 //   q = &*p;
 // }
-// use(foo); //! ERROR
+// use(foo); //!
 // use(q);
 // ```
 //
@@ -27,7 +27,7 @@ block START {
     p = &'b1 mut foo;
     q = &'b2 *p;
     StorageDead(p);
-    use(foo); //! ERROR
+    use(foo); //! `foo` is mutably borrowed
     use(q);
     StorageDead(q);
     StorageDead(foo);

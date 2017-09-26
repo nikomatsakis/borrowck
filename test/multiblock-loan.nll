@@ -22,7 +22,7 @@ block X {
 }
 
 block END {
-    *a = &'foo mut foo; //! ERROR
+    *a = &'foo mut foo; //! `*a` is borrowed
     use(b);
 }
 

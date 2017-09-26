@@ -1,25 +1,21 @@
 use env::{Environment, Point};
+use errors::ErrorReporting;
 use loans_in_scope::{Loan, LoansInScope};
 use nll_repr::repr;
 use std::error::Error;
 use std::fmt;
 
-pub fn borrow_check(env: &Environment, loans_in_scope: &LoansInScope) -> Result<(), Box<Error>> {
-    let mut result: Result<(), Box<Error>> = Ok(());
+pub fn borrow_check(env: &Environment,
+                    loans_in_scope: &LoansInScope,
+                    errors: &mut ErrorReporting) {
     loans_in_scope.walk(env, |point, opt_action, loans| {
         let borrowck = BorrowCheck { env, point, loans };
         if let Some(action) = opt_action {
             if let Err(e) = borrowck.check_action(action) {
-                if !action.should_have_error {
-                    result = Err(e);
-                }
-            } else if action.should_have_error {
-                result = Err(Box::new(BorrowError::no_error(point)));
+                errors.report_error(point, e.to_string());
             }
         }
     });
-
-    result
 }
 
 struct BorrowCheck<'cx> {
@@ -279,12 +275,6 @@ pub struct BorrowError {
 }
 
 impl BorrowError {
-    fn no_error(point: Point) -> Self {
-        BorrowError {
-            description: format!("point {:?} had no error, but should have", point),
-        }
-    }
-
     fn for_move(
         point: Point,
         path: &repr::Path,
@@ -293,7 +283,7 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot move {:?} because {:?} is borrowed (at point `{:?}`)",
+                "point {:?} cannot move `{}` because `{}` is borrowed (at point `{:?}`)",
                 point,
                 path,
                 loan_path,
@@ -310,7 +300,7 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot read {:?} because {:?} is mutably borrowed (at point `{:?}`)",
+                "point {:?} cannot read `{}` because `{}` is mutably borrowed (at point `{:?}`)",
                 point,
                 path,
                 loan_path,
@@ -327,7 +317,7 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot write {:?} because {:?} is borrowed (at point `{:?}`)",
+                "point {:?} cannot write `{}` because `{}` is borrowed (at point `{:?}`)",
                 point,
                 path,
                 loan_path,
@@ -344,8 +334,8 @@ impl BorrowError {
     ) -> Self {
         BorrowError {
             description: format!(
-                "point {:?} cannot kill storage for {:?} \
-                 because {:?} is borrowed (at point `{:?}`)",
+                "point {:?} cannot kill storage for `{}` \
+                 because `{}` is borrowed (at point `{:?}`)",
                 point,
                 var,
                 loan_path,

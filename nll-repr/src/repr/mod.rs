@@ -233,7 +233,12 @@ impl BorrowKind {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Action {
     pub kind: ActionKind,
-    pub should_have_error: bool,
+    pub should_have_error: Option<ExpectedError>,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct ExpectedError {
+    pub string: String,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -266,11 +271,35 @@ pub enum Path { // P =
     Extension(Box<Path>, FieldName), // P.n
 }
 
+impl fmt::Display for Path {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Path::Var(v) => write!(f, "{}", v),
+            Path::Extension(ref base, name) => {
+                if name == FieldName::star() {
+                    write!(f, "*{}", base)
+                } else if base.is_deref() {
+                    write!(f, "({}).{}", base, name)
+                } else {
+                    write!(f, "{}.{}", base, name)
+                }
+            }
+        }
+    }
+}
+
 impl Path {
     pub fn base(&self) -> Variable {
         match *self {
             Path::Var(v) => v,
             Path::Extension(ref e, _) => e.base(),
+        }
+    }
+
+    pub fn is_deref(&self) -> bool {
+        match *self {
+            Path::Var(_) => false,
+            Path::Extension(_, name) => name == FieldName::star()
         }
     }
 
@@ -324,6 +353,12 @@ pub struct OutlivesConstraint {
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Variable {
     name: InternedString,
+}
+
+impl fmt::Display for Variable {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", self.name)
+    }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

@@ -5,7 +5,7 @@
 // let p: &'p mut Vec<()> = &mut foo;
 // let q: &'q1 mut &'q2 mut Vec<()> = &mut p;
 // let r: &'r mut Vec<()> = &mut **q;
-// use(*p); //! ERROR
+// use(*p); //!
 // use(r);
 // ```
 //
@@ -29,7 +29,7 @@ block START {
     p = &'_ mut foo;
     q = &'_ mut p;
     r = &'_ mut **q;
-    use(*p); //! ERROR
+    use(*p); //! `p` is mutably borrowed
     use(r);
     StorageDead(r);
     StorageDead(q);

@@ -19,7 +19,7 @@ let p: &'p Vec<()>;
 block START {
     foo = use();
     p = &'b1 foo;
-    foo = use(); //! ERROR
+    foo = use(); //! `foo` is borrowed
     use(p);
     StorageDead(p);
     StorageDead(foo);
