@@ -8,7 +8,7 @@ let p: &'p ();
 block START {
     foo = use();
     p = &'b1 foo.field;
-    foo = use(); //! ERROR
+    foo = use(); //! `foo.field` is borrowed
     use(p);
     StorageDead(p);
     StorageDead(foo);

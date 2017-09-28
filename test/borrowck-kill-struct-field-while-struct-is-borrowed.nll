@@ -16,7 +16,7 @@ let p: &'_ Vec<()>;
 block START {
     foo = use();
     p = &'_ foo;
-    drop(foo.field); //! ERROR `foo` is borrowed
+    drop(foo.field); //! `foo` is borrowed
     use(p);
     StorageDead(foo);
 }

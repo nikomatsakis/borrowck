@@ -9,7 +9,7 @@ let c: &'_ mut Foo<'c1>;
 block START {
     a = use();
     b = &'_ mut *a.field;
-    c = &'_ mut a; //! ERROR
+    c = &'_ mut a; //! `*a.field` is borrowed
     use(b);
     use(c);
     StorageDead(c);

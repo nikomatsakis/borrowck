@@ -27,7 +27,7 @@ block START {
     p = &'_ foo;
     q = &'_ *p;
     StorageDead(p);
-    StorageDead(foo); //! ERROR 
+    StorageDead(foo); //! `foo` is borrowed
     use(q);
     StorageDead(q);
 }

@@ -16,7 +16,7 @@ let p: &'_ ();
 block START {
     foo = use();
     p = &'_ foo.field;
-    drop(foo); //! ERROR `foo.field` is borrowed
+    drop(foo); //! `foo.field` is borrowed
     use(p);
     StorageDead(foo);
 }

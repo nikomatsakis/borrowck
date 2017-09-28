@@ -26,7 +26,7 @@ block START {
 }
 
 block SOME {
-    use(map); //! ERROR -- original borrow is in scope on this path...
+    use(map); //! `*map` is mutably borrowed
     return = v;
     goto END;
 }
@@ -44,7 +44,5 @@ block END {
 
 assert END/0 in 'borrow1;
 assert END/0 in 'borrow2;
-assert 'r live at END;
-assert 'r live at NONE;
-assert 'r live at SOME;
-assert 'r live at START;
+assert NONE/0 not in 'borrow1;
+assert 'r/0 in 'borrow1;

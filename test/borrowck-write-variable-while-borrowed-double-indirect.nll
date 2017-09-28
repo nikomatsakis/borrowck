@@ -5,7 +5,7 @@
 // let p: &Vec<()> = &foo;
 // let q: &&Vec<()> = &p;
 // let r: &Vec<()> = &**q;   
-// foo = ...; //! ERROR
+// foo = ...; //!
 // use(r);
 // ```
 //
@@ -26,7 +26,7 @@ block START {
     p = &'bp foo;
     q = &'bq p;
     r = &'br **q;
-    foo = use(); //! ERROR
+    foo = use(); //! `foo` is borrowed
     use(r);
     StorageDead(r);
     StorageDead(q);

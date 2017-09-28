@@ -1,0 +1,28 @@
+struct Map { value: Value }
+struct Value { }
+
+// fn lives_too_long<'s: 'r, 'r>(map: &'r Map) -> &'s Value {
+//   &map.value
+// }
+
+for<'s: 'r, 'r>;
+let map: &'r Map;
+let return: &'s Value;
+
+let m: &'_ Map;
+let v: &'_ Value;
+
+block START {
+    map = use();
+
+    // The lifetime `'b` below is constrained as follows:
+    //
+    //     'b: 's -- must outlive `'s`, because it is returned
+    //     'r: 'b -- but cannot outlive `'r`, because it borrows contents from a `&'r` reference
+    //
+    // hence we force that `'r: 's`, which yields the "cap" violation below. 
+    m = &'b *map; //! capped variable `'r` exceeded its limits
+
+    v = &'_ (*m).value;
+    return = v;
+}

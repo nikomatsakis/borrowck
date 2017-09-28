@@ -23,7 +23,7 @@ block START {
   y = &'_ mut x;
   z = &'_ (*y).value;
 
-  t = &'_ mut y; //! ERROR
+  t = &'_ mut y; //! `(*y).value` is borrowed
   **t = use();
   use(z);
 }

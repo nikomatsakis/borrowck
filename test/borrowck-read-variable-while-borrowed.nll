@@ -19,7 +19,7 @@ let p: &'p mut Vec<()>;
 block START {
     foo = use();
     p = &'b1 mut foo;
-    use(foo); //! ERROR
+    use(foo); //! `foo` is mutably borrowed
     use(p);
     StorageDead(p);
     StorageDead(foo);

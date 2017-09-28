@@ -12,7 +12,7 @@ block START {
     // We do not wish to allow this move,
     // because then we could not guarantee
     // `b` is still unique.
-    drop(a); //! ERROR
+    drop(a); //! `*a.field` is borrowed
 
     use(b);
     StorageDead(b);

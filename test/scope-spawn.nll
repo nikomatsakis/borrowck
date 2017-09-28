@@ -24,7 +24,7 @@ block LOOP {
 }
 
 block LOOP_BODY {
-    use(value); //! ERROR
+    use(value); //! `*value` is mutably borrowed
     goto LOOP;
 }
 
